@@ -8,6 +8,7 @@ const sqlite3 = require("sqlite3");
 const { v4: uuidv4 } = require("uuid");
 const app = express();
 const nodemailer = require("nodemailer");
+const { log } = require("console");
 
 app.use(cors());
 app.use(express.json());
@@ -114,8 +115,7 @@ app.post("/forgot-password", async (request, response) => {
     const checkEmailExistQuery = `select * from user where email='${email}'`;
     const checkEmailExist = await db.get(checkEmailExistQuery);
     if (checkEmailExist !== undefined) {
-      const newPassword=Math.floor(Math.random()*100000000)
-      console.log(newPassword);
+      const newPassword = Math.floor(Math.random() * 100000000);
       const transporter = nodemailer.createTransport({
         service: "Gmail",
         auth: {
@@ -133,9 +133,8 @@ app.post("/forgot-password", async (request, response) => {
 
       transporter.sendMail(options, async (error, info) => {
         if (error) {
-          console.error(error);
+          console.log(error);
         } else {
-          console.log(info);
           const hashedPassword = await bcrypt.hash(`${newPassword}`, 10);
           const updatePasswordQuery = `update user set password='${hashedPassword}' where email='${email}'`;
           await db.run(updatePasswordQuery);
@@ -156,26 +155,3 @@ app.post("/forgot-password", async (request, response) => {
     });
   }
 });
-
-// const transporter = nodemailer.createTransport({
-//   service:"Gmail",
-//   auth: {
-//     user: "",
-//     pass: "",
-//   },
-// });
-
-// const options = {
-//   from: "",
-//   to: "",
-//   subject: "Test Mail",
-//   text:"A test mail from the server. Please ignore",
-// };
-
-// transporter.sendMail(options, (error, info) => {
-//   if (error) {
-//     console.error(error);
-//   } else {
-//     console.log(info);
-//   }
-// });

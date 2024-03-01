@@ -1,9 +1,18 @@
 import { MdOutlineKeyboardBackspace } from "react-icons/md";
-import "../ResponsiveDevice/index.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useState } from "react";
 import { Oval } from "react-loader-spinner";
+import {
+  BackButton,
+  ErrorMessage,
+  InputContainer,
+  InputElement,
+  LabelElement,
+  LoginForm,
+  LoginRegisterButton,
+  LoginRegisterButtonContainer,
+} from "../Styling/StyledComponents";
 
 const ForgotPassword = (props) => {
   const { changeButtonClicked } = props;
@@ -33,7 +42,6 @@ const ForgotPassword = (props) => {
         const response = await fetch(`${api}/forgot-password`, option);
         if (response.ok === true) {
           const data = await response.json();
-          console.log(data);
           const successMsg = data.success_msg;
           toast.success(`${successMsg}`, {
             position: "bottom-center",
@@ -76,59 +84,46 @@ const ForgotPassword = (props) => {
 
   return (
     <>
-      <div className="div-container-forgot">
-        <div className="back-button-container">
-          <button
-            style={{ fontWeight: "bolder" }}
-            className="back-button"
-            onClick={() => {
-              changeButtonClicked();
-            }}
-          >
-            <MdOutlineKeyboardBackspace className="icon-back" />
-            Back
-          </button>
-        </div>
-
-        <div className="forgot-container">
-        <h1 className="main-heading-form">Reset Your Password</h1>
-          <form onSubmit={onSubmitResetPassword}>
-            <div className="mb-3 mt-2">
-              <label htmlFor="email">Enter you Email Id:</label>
-              <input
-                type="text"
-                id="email"
-                className="form-control"
-                onChange={onChangeEmailVal}
-                value={email}
+      <LoginForm className="pt-3 shadow" onSubmit={onSubmitResetPassword}>
+        <BackButton
+          className="back-button mb-4"
+          onClick={() => {
+            changeButtonClicked();
+          }}
+        >
+          <MdOutlineKeyboardBackspace className="mr-5" />
+          Back
+        </BackButton>
+        <InputContainer className="mt-2 mb-3">
+          <LabelElement htmlFor="email">Enter you Email Id:</LabelElement>
+          <InputElement
+            type="text"
+            id="email"
+            className="form-control mt-2"
+            onChange={onChangeEmailVal}
+            value={email}
+          />
+        </InputContainer>
+        <LoginRegisterButtonContainer>
+          <LoginRegisterButton type="submit" disabled={disabled}>
+            {disabled === true ? (
+              <Oval
+                visible={true}
+                height="25"
+                width="25"
+                color="#ffffff"
+                ariaLabel="oval-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                className="text-center"
               />
-            </div>
-            <div>
-              <button className="btn btn-primary" disabled={disabled}>
-                {disabled === true ? (
-                  <Oval
-                    visible={true}
-                    height="25"
-                    width="25"
-                    color="#ffffff"
-                    ariaLabel="oval-loading"
-                    wrapperStyle={{}}
-                    wrapperClass=""
-                  />
-                ) : (
-                  "Send Email"
-                )}
-              </button>
-            </div>
-            <p
-              style={{ color: "#ff3333", fontWeight: "Bolder" }}
-              className="mt-2"
-            >
-              {errorMsg}
-            </p>
-          </form>
-        </div>
-      </div>
+            ) : (
+              "Send Email"
+            )}
+          </LoginRegisterButton>
+        </LoginRegisterButtonContainer>
+        <ErrorMessage className="mt-3">{errorMsg}</ErrorMessage>
+      </LoginForm>
       <ToastContainer
         position="bottom-center"
         autoClose={7000}

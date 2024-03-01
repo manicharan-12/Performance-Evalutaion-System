@@ -1,10 +1,20 @@
 import { useState } from "react";
-import "../ResponsiveDevice/index.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Cookies from "js-cookie";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Oval } from "react-loader-spinner";
+import {
+  LoginForm,
+  InputContainer,
+  LabelElement,
+  InputElement,
+  LoginButtonContainer,
+  LoginRegisterButton,
+  ErrorMessage,
+  LoginRegisterButtonContainer,
+  HyperLinkButton,
+} from "../Styling/StyledComponents";
 
 const Login = (props) => {
   const [username, setUsername] = useState("");
@@ -43,9 +53,7 @@ const Login = (props) => {
           onSubmitSuccess(data.jwt_token);
           setDisabled(false);
         } else {
-          console.log(response);
           const data = await response.json();
-          console.log(data);
           const errorMsg = data.error_msg;
           toast.error(`${errorMsg}`, {
             position: "bottom-center",
@@ -92,11 +100,10 @@ const Login = (props) => {
   }
   return (
     <>
-      <form onSubmit={onSubmitLogin}>
-        <h1 className="main-heading-form">Welcome Back!</h1>
-        <div className="mt-2 mb-3">
-          <label htmlFor="username">Username:</label>
-          <input
+      <LoginForm onSubmit={onSubmitLogin} className="shadow">
+        <InputContainer className="mt-2 mb-3">
+          <LabelElement htmlFor="username">Username:</LabelElement>
+          <InputElement
             className="form-control mt-1"
             onChange={onChangeUsername}
             value={username}
@@ -104,10 +111,10 @@ const Login = (props) => {
             id="username"
             placeholder="Enter Your Username"
           />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="password">Password:</label>
-          <input
+        </InputContainer>
+        <InputContainer className="mt-2 mb-3">
+          <LabelElement htmlFor="username">Password:</LabelElement>
+          <InputElement
             className="form-control mt-1"
             onChange={onChangePassword}
             value={password}
@@ -115,9 +122,9 @@ const Login = (props) => {
             id="password"
             placeholder="Enter Your Password"
           />
-        </div>
-        <div className="mb-3">
-          <button className="btn btn-primary" disabled={disabled}>
+        </InputContainer>
+        <LoginButtonContainer className="mb-3">
+          <LoginRegisterButton disabled={disabled}>
             {disabled === true ? (
               <Oval
                 visible={true}
@@ -127,34 +134,36 @@ const Login = (props) => {
                 ariaLabel="oval-loading"
                 wrapperStyle={{}}
                 wrapperClass=""
+                className="text-center"
               />
             ) : (
               "Login"
             )}
-          </button>
-        </div>
-        <p style={{ color: "#ff3333", fontWeight: "Bolder" }}>{errorMsg}</p>
-      </form>
-      <div>
-        <button
-          className="hyper-button m-2"
-          onClick={() => {
-            changeButtonClicked();
-          }}
-          style={{color:"blue",textDecoration:"underline"}}
-        >
-          Forgot Password
-        </button>
-        <button
-          className="hyper-button"
-          onClick={() => {
-            changeLoginRegister("R");
-          }}
-        >
-        
-          Not a Registered User? <span style={{color:"blue",textDecoration:"underline"}}>Sign in</span>
-        </button>
-      </div>
+          </LoginRegisterButton>
+        </LoginButtonContainer>
+        <ErrorMessage>{errorMsg}</ErrorMessage>
+        <LoginRegisterButtonContainer>
+          <HyperLinkButton
+            onClick={() => {
+              changeButtonClicked();
+            }}
+            style={{ color: "blue", textDecoration: "underline" }}
+          >
+            Forgot Password
+          </HyperLinkButton>
+          <HyperLinkButton
+            className="hyper-button"
+            onClick={() => {
+              changeLoginRegister("R");
+            }}
+          >
+            Not a Registered User?{" "}
+            <span style={{ color: "blue", textDecoration: "underline" }}>
+              Sign in
+            </span>
+          </HyperLinkButton>
+        </LoginRegisterButtonContainer>
+      </LoginForm>
       <ToastContainer
         position="bottom-center"
         autoClose={7000}

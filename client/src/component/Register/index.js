@@ -1,10 +1,23 @@
 import { useState } from "react";
-import "../ResponsiveDevice/index.css";
 import validator from "validator";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Oval } from "react-loader-spinner";
+import {
+  ErrorMessage,
+  HyperLinkButton,
+  InputContainer,
+  InputElement,
+  LabelElement,
+  LoginButtonContainer,
+  LoginForm,
+  LoginRegisterButton,
+  LoginRegisterButtonContainer,
+  OptionInput,
+  SelectInput,
+  UsernamePasswordErrMsg,
+} from "../Styling/StyledComponents";
 
 const Register = (props) => {
   const { changeLoginRegister } = props;
@@ -17,14 +30,16 @@ const Register = (props) => {
   const [password, setPassword] = useState("");
   const [passwordErr, setPasswordErr] = useState(false);
   const [passwordErrorMsg, setPasswordErrorMsg] = useState("");
+  const [conformPassword, setConformPassword] = useState("");
+
   const [usernameErr, setUsernameErr] = useState(false);
   const [usernameErrorMsg, setUsernameErrorMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [disabled, setDisabled] = useState(false);
 
   const onSubmitRegisterUser = async (event) => {
+    event.preventDefault();
     try {
-      event.preventDefault();
       setDisabled(true);
       if (
         name === "" ||
@@ -47,61 +62,65 @@ const Register = (props) => {
             );
             setDisabled(false);
           } else {
-            setErrorMsg("");
-
-            const api = "http://localhost:5000";
-            const postData = {
-              name,
-              email,
-              designation,
-              dept: department,
-              username,
-              password,
-            };
-            const option = {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(postData),
-            };
-            const response = await fetch(`${api}/register/`, option);
-            if (response.ok === true) {
-              const data = await response.json();
-              const successMsg = data.success_msg;
-              toast.success(`${successMsg}`, {
-                position: "bottom-center",
-                autoClose: 5000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-              });
-              setName("");
-              setEmail("");
-              setDepartment("cse");
-              setDesignation("");
-              setUsername("");
-              setPassword("");
+            if (password !== conformPassword) {
+              setErrorMsg("Password Doesn't Match! Please Check");
               setDisabled(false);
-              setUsernameErrorMsg('')
-              setPasswordErrorMsg('')
             } else {
-              const data = await response.json();
-              const errorMsg = data.error_msg;
-              toast.error(`${errorMsg}`, {
-                position: "bottom-center",
-                autoClose: 5000,
-                hideProgressBar: true,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "light",
-              });
-              setDisabled(false);
+              setErrorMsg("");
+              const api = "http://localhost:5000";
+              const postData = {
+                name,
+                email,
+                designation,
+                dept: department,
+                username,
+                password,
+              };
+              const option = {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(postData),
+              };
+              const response = await fetch(`${api}/register/`, option);
+              if (response.ok === true) {
+                const data = await response.json();
+                const successMsg = data.success_msg;
+                toast.success(`${successMsg}`, {
+                  position: "bottom-center",
+                  autoClose: 5000,
+                  hideProgressBar: true,
+                  closeOnClick: true,
+                  pauseOnHover: false,
+                  draggable: true,
+                  progress: undefined,
+                  theme: "light",
+                });
+                setName("");
+                setEmail("");
+                setDepartment("cse");
+                setDesignation("");
+                setUsername("");
+                setPassword("");
+                setDisabled(false);
+                setUsernameErrorMsg("");
+                setPasswordErrorMsg("");
+              } else {
+                const data = await response.json();
+                const errorMsg = data.error_msg;
+                toast.error(`${errorMsg}`, {
+                  position: "bottom-center",
+                  autoClose: 5000,
+                  hideProgressBar: true,
+                  closeOnClick: true,
+                  pauseOnHover: false,
+                  draggable: true,
+                  progress: undefined,
+                  theme: "light",
+                });
+                setDisabled(false);
+              }
             }
           }
         }
@@ -211,92 +230,129 @@ const Register = (props) => {
     }
   };
 
+  const onChangeConformPassword = (event) => {
+    setConformPassword(event.target.value);
+  };
+
+  const options = [
+    "CSE",
+    "IT",
+    "AI",
+    "AIML",
+    "DS",
+    "CS",
+    "MECH",
+    "CIVIL",
+    "ECE",
+    "EEE",
+  ];
+  const designations = ["HOD", "ASS PROF", "PROF"];
+
   const passwordColor =
-    passwordErr === true
-      ? { color: "#ff3333", fontWeight: "Bolder" }
-      : { color: "#5dac51", fontWeight: "Bolder" };
+    passwordErr === true ? { color: "#ff3333" } : { color: "#5dac51" };
   const usernameColor =
-    usernameErr === false
-      ? { color: "#ff3333", fontWeight: "Bolder" }
-      : { color: "#5dac51", fontWeight: "Bolder" };
+    usernameErr === false ? { color: "#ff3333" } : { color: "#5dac51" };
 
   return (
     <>
-      <form onSubmit={onSubmitRegisterUser}>
-        <h1 className="main-heading-form">Register</h1>
-        <div className="mb-3">
-          <label htmlFor="name">Name:</label>
-          <input
+      <LoginForm className="mt-5 mb-5 shadow" onSubmit={onSubmitRegisterUser}>
+        <InputContainer className="mb-3">
+          <LabelElement htmlFor="name">Name:</LabelElement>
+          <InputElement
             className="form-control mt-1"
             type="text"
             id="name"
             value={name}
             onChange={onChangeName}
           />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="email">Email:</label>
-          <input
+        </InputContainer>
+        <InputContainer className="mb-3">
+          <LabelElement htmlFor="email">Email:</LabelElement>
+          <InputElement
             className="form-control mt-1"
             type="text"
             id="email"
             value={email}
             onChange={onChangeEmail}
           />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="designation">Designation:</label>
-          <input
+        </InputContainer>
+        <InputContainer className="mb-3">
+          <LabelElement htmlFor="designation">Designation:</LabelElement>
+          <SelectInput
             className="form-control mt-1"
-            type="text"
             id="designation"
             value={designation}
             onChange={onChangeDesignation}
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="department">Department:</label>
-          <select
+          >
+            {designations.map((eachDesignation) => {
+              return (
+                <OptionInput value={eachDesignation} key={eachDesignation}>
+                  {eachDesignation}
+                </OptionInput>
+              );
+            })}
+          </SelectInput>
+        </InputContainer>
+        <InputContainer className="mb-3">
+          <LabelElement htmlFor="department">Department:</LabelElement>
+          <SelectInput
             className="form-control mt-1"
             id="department"
             value={department}
             onChange={onChangeDepartment}
           >
-            <option disabled>Select Your Department</option>
-            <option value="cse">CSE</option>
-            <option value="it">IT</option>
-            <option value="ai">AI</option>
-            <option value="mech">MECH</option>
-            <option value="chem">CHEM</option>
-            <option value="civil">CIVIL</option>
-            <option value="ece">ECE</option>
-            <option value="eee">EEE</option>
-          </select>
-        </div>
-        <div className="mb-3">
-          <label htmlFor="username">Username:</label>
-          <input
+            <OptionInput disabled>Select Your Department</OptionInput>
+            {options.map((eachOption) => {
+              return (
+                <OptionInput value={eachOption} key={eachOption}>
+                  {eachOption}
+                </OptionInput>
+              );
+            })}
+          </SelectInput>
+        </InputContainer>
+        <InputContainer className="">
+          <LabelElement htmlFor="username">Username</LabelElement>
+          <InputElement
             className="form-control mt-1"
             type="text"
             id="username"
             value={username}
             onChange={onChangeUsername}
           />
-          <p style={usernameColor}>{usernameErrorMsg}</p>
-        </div>
-        <div className="mb-3">
-          <label htmlFor="password">Password:</label>
-          <input
+          <UsernamePasswordErrMsg style={usernameColor} className="mt-1">
+            {usernameErrorMsg}
+          </UsernamePasswordErrMsg>
+        </InputContainer>
+        <InputContainer className="">
+          <LabelElement htmlFor="password">Password:</LabelElement>
+          <InputElement
             className="form-control mt-1"
             type="text"
             id="password"
             value={password}
             onChange={onChangePassword}
           />
-          <p style={passwordColor}>{passwordErrorMsg}</p>
-        </div>
-        <div className="mb-3">
-          <button className="btn btn-primary" disabled={disabled}>
+          <UsernamePasswordErrMsg style={passwordColor} className="mt-1">
+            {passwordErrorMsg}
+          </UsernamePasswordErrMsg>
+        </InputContainer>
+        <InputContainer className="mb-3">
+          <LabelElement htmlFor="con-password">Conform Password:</LabelElement>
+          <InputElement
+            className="form-control mt-1"
+            type="text"
+            id="con-password"
+            value={conformPassword}
+            onChange={onChangeConformPassword}
+          />
+        </InputContainer>
+        <LoginButtonContainer>
+          <LoginRegisterButton
+            type="submit"
+            className="btn btn-primary"
+            disabled={disabled}
+          >
             {disabled === true ? (
               <Oval
                 visible={true}
@@ -310,21 +366,22 @@ const Register = (props) => {
             ) : (
               "Register"
             )}
-          </button>
-        </div>
-        <p style={{ color: "#ff3333", fontWeight: "Bolder" }}>{errorMsg}</p>
-        <div>
-          <button
+          </LoginRegisterButton>
+        </LoginButtonContainer>
+        <ErrorMessage className="mt-3">{errorMsg}</ErrorMessage>
+        <LoginRegisterButtonContainer>
+          <HyperLinkButton
+            type="button"
             onClick={() => {
               changeLoginRegister("L");
             }}
             className="hyper-button"
-            style={{color:"blue",textDecoration:"underline"}}
+            style={{ color: "blue", textDecoration: "underline" }}
           >
             Login as a User
-          </button>
-        </div>
-      </form>
+          </HyperLinkButton>
+        </LoginRegisterButtonContainer>
+      </LoginForm>
       <ToastContainer
         position="bottom-center"
         autoClose={7000}
