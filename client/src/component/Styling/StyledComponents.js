@@ -110,3 +110,28 @@ export const OptionInput = styled.option``;
 export const UsernamePasswordErrMsg = styled.p`
   font-weight: bolder;
 `;
+
+export const ResetPasswordContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  width: 100%;
+`;
+
+export const ExpiredTokenContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+`;
+
+export const ExpiredImage = styled.img`
+  display: flex;
+  flex-direction: column;
+  width: 20%;
+`;
+
+export const ExpiredMessage = styled.p``;

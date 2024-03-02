@@ -5,6 +5,7 @@ import LoginRegister from "./component/LoginRegister";
 import ProtectedRoute from "./component/ProtectedRoute";
 import Home from "./component/Home";
 import { useEffect, useState } from "react";
+import ResetPassword from "./component/ResetPassword";
 
 function App() {
   const [width, setWidth] = useState(window.innerWidth);
@@ -30,6 +31,7 @@ function App() {
             <Route path="/home" element={<Home />} />
           </Route>
           <Route path="*" element={<Navigate replace to="/" />} />
+          <Route path="/resetPassword/:token" element={<ResetPassword />} />
         </Routes>
       )}
     </>

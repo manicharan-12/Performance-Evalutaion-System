@@ -15,11 +15,11 @@ These instructions will get you a copy of the project up and running on your loc
 
 The client is a React application.
 
-1. Navigate into the client directory:  ```cd client```
+1. Navigate into the client directory: `cd client`
 
-2. Install the dependencies:  `npm install`
+2. Install the dependencies: `npm install`
 
-3. Start the client:  `npm start`
+3. Start the client: `npm start`
 
 The client will start on [http://localhost:3000](http://localhost:3000) (or another port if 3000 is busy).
 
@@ -27,11 +27,11 @@ The client will start on [http://localhost:3000](http://localhost:3000) (or anot
 
 The server is a Node.js application.
 
-1. Navigate into the server directory (from the root of the project):  `cd server`
+1. Navigate into the server directory (from the root of the project): `cd server`
 
-2. Install the dependencies:  `npm install`
+2. Install the dependencies: `npm install`
 
-3. Start the server:  `node app.js` or `nodemon app.js`
+3. Start the server: `node app.js` or `nodemon app.js`
 
 The server will start on [http://localhost:5000].
 
