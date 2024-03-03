@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import logo from "../Images/AU LOGO.png";
+import validator from "validator";
 import {
   ErrorMessage,
   ExpiredImage,
@@ -85,47 +86,60 @@ const ResetPassword = () => {
         setErrorMsg("PassWord Doesn't Match");
         setDisabled(false);
       } else {
-        setErrorMsg("");
-        const api = "http://localhost:5000";
-        const postData = { email, password };
-        const option = {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(postData),
-        };
-        const response = await fetch(`${api}/resetPassword/${token}`, option);
-        if (response.ok === true) {
-          const data = await response.json();
-          const successMsg = data.success_msg;
-          toast.success(`${successMsg}`, {
-            position: "bottom-center",
-            autoClose: 5000,
-            hideProgressBar: true,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-          });
-          setConPassword("");
-          setPassword("");
-          setEmail("");
-          setDisabled(false);
+        if (
+          validator.isStrongPassword(password, {
+            minLength: 8,
+            minLowercase: 1,
+            minUppercase: 1,
+            minNumbers: 1,
+            minSymbols: 1,
+          })
+        ) {
+          setErrorMsg("");
+          const api = "http://localhost:5000";
+          const postData = { email, password };
+          const option = {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(postData),
+          };
+          const response = await fetch(`${api}/resetPassword/${token}`, option);
+          if (response.ok === true) {
+            const data = await response.json();
+            const successMsg = data.success_msg;
+            toast.success(`${successMsg}`, {
+              position: "bottom-center",
+              autoClose: 5000,
+              hideProgressBar: true,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+            });
+            setConPassword("");
+            setPassword("");
+            setEmail("");
+            setDisabled(false);
+          } else {
+            const data = await response.json();
+            const errorMsg = data.error_msg;
+            toast.error(`${errorMsg}`, {
+              position: "bottom-center",
+              autoClose: 5000,
+              hideProgressBar: true,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+            });
+            setDisabled(false);
+          }
         } else {
-          const data = await response.json();
-          const errorMsg = data.error_msg;
-          toast.error(`${errorMsg}`, {
-            position: "bottom-center",
-            autoClose: 5000,
-            hideProgressBar: true,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-          });
+          setErrorMsg("Not a Strong Password");
           setDisabled(false);
         }
       }
@@ -168,7 +182,10 @@ const ResetPassword = () => {
             {isTimedOut ? (
               ""
             ) : (
-              <LoginForm className="shadow" onSubmit={onSubmitResetPassword}>
+              <LoginForm
+                className="shadow pb-4"
+                onSubmit={onSubmitResetPassword}
+              >
                 <InputContainer className="mt-2 mb-3">
                   <LabelElement htmlFor="email">Email Id:</LabelElement>
                   <InputElement
@@ -220,7 +237,7 @@ const ResetPassword = () => {
                     )}
                   </LoginRegisterButton>
                 </LoginButtonContainer>
-                <ErrorMessage>{errorMsg}</ErrorMessage>
+                <ErrorMessage className="mb-0">{errorMsg}</ErrorMessage>
               </LoginForm>
             )}
           </ResetPasswordContainer>
