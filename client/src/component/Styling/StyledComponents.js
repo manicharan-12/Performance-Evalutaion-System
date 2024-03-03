@@ -1,4 +1,28 @@
-import styled from "styled-components";
+import {styled,createGlobalStyle} from "styled-components";
+
+export const GlobalStyle =createGlobalStyle`
+body{
+  font-family: "Poppins";
+}
+`
+
+
+export const SmallDeviceContainer=styled.div`
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+`
+
+export const SmallDeviceImageContainer=styled.div`
+width: 60%;
+`
+
+export const SmallDeviceImage=styled.img`
+width:100%;
+`
+export const TextContent = styled.h6``
 
 export const MainContainerLoginRegister = styled.div`
   display: flex;
@@ -35,9 +59,13 @@ export const ContainerLoginRegister = styled.div`
 export const LoginForm = styled.form`
   width: 30%;
   padding: 32px;
-  min-height: 350px;
+  min-height: 381px;
   border-radius: 5px;
 `;
+
+export const FormHeading=styled.h3`
+font-weight: 500;
+`
 
 export const InputContainer = styled.div`
   display: flex;
@@ -85,6 +113,11 @@ export const HyperLinkButton = styled.button`
   background-color: #fff;
   border: none;
 `;
+
+export const SpanElement=styled.span`
+color: blue;
+text-decoration: underline;
+`
 
 export const BackButtonContainer = styled.div`
   padding: 32px;

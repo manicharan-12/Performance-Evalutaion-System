@@ -6,6 +6,7 @@ import {
   ExpiredImage,
   ExpiredMessage,
   ExpiredTokenContainer,
+  FormHeading,
   InputContainer,
   InputElement,
   LabelElement,
@@ -186,6 +187,7 @@ const ResetPassword = () => {
                 className="shadow pb-4"
                 onSubmit={onSubmitResetPassword}
               >
+              <FormHeading className="mb-3">Complete Password Reset</FormHeading>
                 <InputContainer className="mt-2 mb-3">
                   <LabelElement htmlFor="email">Email Id:</LabelElement>
                   <InputElement

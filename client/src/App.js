@@ -6,11 +6,12 @@ import ProtectedRoute from "./component/ProtectedRoute";
 import Home from "./component/Home";
 import { useEffect, useState } from "react";
 import ResetPassword from "./component/ResetPassword";
+import SmallDevice from "./component/SmallDevice";
+import { GlobalStyle } from "./component/Styling/StyledComponents";
 
 function App() {
   const [width, setWidth] = useState(window.innerWidth);
-  console.log(width);
-
+  
   useEffect(() => {
     const handleResize = () => setWidth(window.innerWidth);
 
@@ -22,8 +23,9 @@ function App() {
 
   return (
     <>
+    <GlobalStyle/>
       {width < 992 ? (
-        ""
+        <SmallDevice/>
       ) : (
         <Routes>
           <Route path="/" element={<LoginRegister />} />

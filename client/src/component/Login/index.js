@@ -14,6 +14,8 @@ import {
   ErrorMessage,
   LoginRegisterButtonContainer,
   HyperLinkButton,
+  SpanElement,
+  FormHeading,
 } from "../Styling/StyledComponents";
 
 const Login = (props) => {
@@ -101,6 +103,7 @@ const Login = (props) => {
   return (
     <>
       <LoginForm onSubmit={onSubmitLogin} className="shadow">
+      <FormHeading className="mb-3">Welcome Back!</FormHeading>
         <InputContainer className="mt-2 mb-3">
           <LabelElement htmlFor="username">Username:</LabelElement>
           <InputElement
@@ -158,9 +161,9 @@ const Login = (props) => {
             }}
           >
             Not a Registered User?{" "}
-            <span style={{ color: "blue", textDecoration: "underline" }}>
+            <SpanElement>
               Sign in
-            </span>
+            </SpanElement>
           </HyperLinkButton>
         </LoginRegisterButtonContainer>
       </LoginForm>

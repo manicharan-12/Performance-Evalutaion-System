@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Oval } from "react-loader-spinner";
 import {
   ErrorMessage,
+  FormHeading,
   HyperLinkButton,
   InputContainer,
   InputElement,
@@ -16,6 +17,7 @@ import {
   LoginRegisterButtonContainer,
   OptionInput,
   SelectInput,
+  SpanElement,
   UsernamePasswordErrMsg,
 } from "../Styling/StyledComponents";
 
@@ -256,6 +258,7 @@ const Register = (props) => {
   return (
     <>
       <LoginForm className="mt-5 mb-5 shadow" onSubmit={onSubmitRegisterUser}>
+        <FormHeading className="mb-3">Create Your Account</FormHeading>
         <InputContainer className="mb-3">
           <LabelElement htmlFor="name">Name:</LabelElement>
           <InputElement
@@ -376,9 +379,8 @@ const Register = (props) => {
               changeLoginRegister("L");
             }}
             className="hyper-button"
-            style={{ color: "blue", textDecoration: "underline" }}
           >
-            Login as a User
+            Already Registered? <SpanElement>Login Here</SpanElement>
           </HyperLinkButton>
         </LoginRegisterButtonContainer>
       </LoginForm>
