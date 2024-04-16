@@ -96,7 +96,7 @@ const ForgotPassword = (props) => {
           Back
         </BackButton>
         <InputContainer className="mt-2 mb-3">
-        <FormHeading className="mb-3">Reset Your Password</FormHeading>
+          <FormHeading className="mb-3">Reset Your Password</FormHeading>
           <LabelElement htmlFor="email">Enter you Email Id:</LabelElement>
           <InputElement
             type="text"

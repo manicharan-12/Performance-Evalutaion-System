@@ -1,28 +1,27 @@
-import {styled,createGlobalStyle} from "styled-components";
+import { styled, createGlobalStyle } from "styled-components";
 
-export const GlobalStyle =createGlobalStyle`
+export const GlobalStyle = createGlobalStyle`
 body{
   font-family: "Poppins";
 }
-`
+`;
 
+export const SmallDeviceContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+`;
 
-export const SmallDeviceContainer=styled.div`
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-min-height: 100vh;
-`
+export const SmallDeviceImageContainer = styled.div`
+  width: 60%;
+`;
 
-export const SmallDeviceImageContainer=styled.div`
-width: 60%;
-`
-
-export const SmallDeviceImage=styled.img`
-width:100%;
-`
-export const TextContent = styled.h6``
+export const SmallDeviceImage = styled.img`
+  width: 100%;
+`;
+export const TextContent = styled.h6``;
 
 export const MainContainerLoginRegister = styled.div`
   display: flex;
@@ -63,9 +62,9 @@ export const LoginForm = styled.form`
   border-radius: 5px;
 `;
 
-export const FormHeading=styled.h3`
-font-weight: 500;
-`
+export const FormHeading = styled.h3`
+  font-weight: 500;
+`;
 
 export const InputContainer = styled.div`
   display: flex;
@@ -114,13 +113,13 @@ export const HyperLinkButton = styled.button`
   border: none;
 `;
 
-export const SpanElement=styled.span`
-color: blue;
-text-decoration: underline;
-`
+export const SpanElement = styled.span`
+  color: blue;
+  text-decoration: underline;
+`;
 
 export const BackButtonContainer = styled.div`
-  padding: 32px;
+  width: 100%;
 `;
 
 export const BackButton = styled.button`
@@ -168,3 +167,131 @@ export const ExpiredImage = styled.img`
 `;
 
 export const ExpiredMessage = styled.p``;
+
+export const MainNavContainer = styled.nav`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-left: 24px;
+  padding-right: 24px;
+  width: 100%;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+`;
+
+export const LogoutButtonContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+`;
+
+export const LogoutButton = styled.button``;
+
+export const HomeMainContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const MainContainer = styled.div`
+  width: 90%;
+  padding: 32px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const ProfileForm = styled.form`
+  width: 80%;
+`;
+
+export const InputContainerMain = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+`;
+
+export const SaveNextButtonContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+`;
+export const SaveNextButton = styled.button``;
+
+export const HeadingContainer = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+`;
+
+export const SectionHeading = styled.h4``;
+
+export const MarksHeading = styled.h4``;
+
+export const SubSectionHeading = styled.h5``;
+
+export const LoaderContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+`;
+
+export const FailureContainer = styled.div`
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+`;
+
+export const FailureImage = styled.img`
+  width: 25%;
+`;
+
+export const SubSectionHeadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+`;
+
+export const CourseContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+`;
+
+export const CourseFormContainer = styled.form`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 60%;
+`;
+
+export const CourseHeadingContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+`;
+
+export const DeleteButton = styled.button`
+  background: transparent;
+  border: none;
+  font-size: 24px;
+`;
+
+export const HorizontalLine = styled.hr`
+  border: 1px solid #000;
+  width: 100%;
+`;

@@ -26,9 +26,11 @@ const Login = (props) => {
 
   const navigate = useNavigate();
 
-  const onSubmitSuccess = (jwtToken) => {
-    Cookies.set("jwt_token", jwtToken, { expires: 30, path: "/" });
-    navigate("/home");
+  const onSubmitSuccess = (jwtToken, userId) => {
+    Cookies.set("jwt_token", jwtToken, { expires: 1, path: "/" });
+    Cookies.set("user_id", userId, { expires: 1, path: "/" });
+
+    navigate("/profile");
   };
 
   const onSubmitLogin = async (event) => {
@@ -52,7 +54,8 @@ const Login = (props) => {
         const response = await fetch(`${api}/login/`, option);
         if (response.ok === true) {
           const data = await response.json();
-          onSubmitSuccess(data.jwt_token);
+          console.log(data.id);
+          onSubmitSuccess(data.jwt_token, data.id);
           setDisabled(false);
         } else {
           const data = await response.json();
@@ -98,12 +101,12 @@ const Login = (props) => {
 
   const jwtToken = Cookies.get("jwt_token");
   if (jwtToken !== undefined) {
-    return <Navigate to="/home" />;
+    return <Navigate to="/profile" />;
   }
   return (
     <>
       <LoginForm onSubmit={onSubmitLogin} className="shadow">
-      <FormHeading className="mb-3">Welcome Back!</FormHeading>
+        <FormHeading className="mb-3">Welcome Back!</FormHeading>
         <InputContainer className="mt-2 mb-3">
           <LabelElement htmlFor="username">Username:</LabelElement>
           <InputElement
@@ -160,10 +163,7 @@ const Login = (props) => {
               changeLoginRegister("R");
             }}
           >
-            Not a Registered User?{" "}
-            <SpanElement>
-              Sign in
-            </SpanElement>
+            Not a Registered User? <SpanElement>Sign in</SpanElement>
           </HyperLinkButton>
         </LoginRegisterButtonContainer>
       </LoginForm>

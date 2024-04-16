@@ -26,8 +26,8 @@ const Register = (props) => {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [designation, setDesignation] = useState("");
-  const [department, setDepartment] = useState("cse");
+  const [designation, setDesignation] = useState("HOD");
+  const [department, setDepartment] = useState("CSE");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordErr, setPasswordErr] = useState(false);
@@ -51,6 +51,7 @@ const Register = (props) => {
         username === "" ||
         password === ""
       ) {
+        console.log(name, email, designation, department, username, password);
         setErrorMsg("All Fields are Mandatory to be Filled");
         setDisabled(false);
       } else {
@@ -101,8 +102,8 @@ const Register = (props) => {
                 });
                 setName("");
                 setEmail("");
-                setDepartment("cse");
-                setDesignation("");
+                setDepartment("CSE");
+                setDesignation("HOD");
                 setUsername("");
                 setPassword("");
                 setDisabled(false);
@@ -168,7 +169,7 @@ const Register = (props) => {
         .then((response) => {
           if (response.status === 200) {
             const data = response.data;
-            setUsernameErr(data.status);
+            setUsernameErr(true);
             if (data.status === false) {
               setUsernameErrorMsg(`${event.target.value} Already Exists!`);
             } else {
