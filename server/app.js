@@ -18,7 +18,7 @@ const initializeDbAndServer = async () => {
   try {
     mongoose
       .connect(
-        "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority",
+        "mongodb+srv://manicharan12:<password>@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority",
       )
       .then(() => {
         app.listen(5000, () => {
@@ -130,7 +130,7 @@ app.post("/forgot-password", async (request, response) => {
           service: "Gmail",
           auth: {
             user: "gade.manicharan12@gmail.com",
-            pass: "ccos qjgg eozq qdyy",
+            pass: <Your pass code>,
           },
         });
 
