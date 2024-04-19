@@ -17,7 +17,7 @@ import {
   NavContainer,
   NavImage,
   ResetPasswordContainer,
-} from "../Styling/StyledComponents";
+} from "./StyledComponents";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";

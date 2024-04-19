@@ -5,7 +5,7 @@ import {
   LogoutButton,
   MainNavContainer,
   NavImage,
-} from "../Styling/StyledComponents";
+} from "./StyledComponents";
 import logo from "../Images/AU LOGO.png";
 
 const Header = () => {

@@ -8,7 +8,7 @@ import {
   NavContainer,
   NavImage,
   ContainerLoginRegister,
-} from "../Styling/StyledComponents";
+} from "./StyledComponents";
 
 const LoginRegister = () => {
   const [loginRegister, setLoginRegister] = useState("L");

@@ -16,7 +16,7 @@ import {
   HyperLinkButton,
   SpanElement,
   FormHeading,
-} from "../Styling/StyledComponents";
+} from "./StyledComponents";
 
 const Login = (props) => {
   const [username, setUsername] = useState("");
@@ -54,7 +54,6 @@ const Login = (props) => {
         const response = await fetch(`${api}/login/`, option);
         if (response.ok === true) {
           const data = await response.json();
-          console.log(data.id);
           onSubmitSuccess(data.jwt_token, data.id);
           setDisabled(false);
         } else {

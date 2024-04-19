@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { BackButton, BackButtonContainer } from "../Styling/StyledComponents";
+import { BackButton, BackButtonContainer } from "./StyledComponents";
 import { MdOutlineKeyboardBackspace } from "react-icons/md";
 
 const Back = () => {

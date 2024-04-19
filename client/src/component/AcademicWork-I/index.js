@@ -11,7 +11,7 @@ import {
   SubSectionHeadingContainer,
   InputElement,
   HorizontalLine,
-} from "../Styling/StyledComponents";
+} from "./StyledComponents";
 
 const AcademicWorkI = () => {
   return (

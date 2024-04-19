@@ -16,7 +16,7 @@ import {
   FailureImage,
   SubSectionHeading,
   ErrorMessage,
-} from "../Styling/StyledComponents";
+} from "./StyledComponents";
 import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
@@ -86,7 +86,6 @@ const ProfilePage = () => {
         const response = await fetch(`${api}/profile/details/${userId}`);
         if (response.ok === true) {
           const data = await response.json();
-
           setName(data.name);
           setDesignation(data.designation);
           setDepartment(data.department);
@@ -139,6 +138,8 @@ const ProfilePage = () => {
   };
 
   const renderSuccessView = () => {
+    const dojDate = new Date(doj);
+    const isoString = dojDate.toISOString();
     return (
       <>
         <HeadingContainer>
@@ -194,7 +195,7 @@ const ProfilePage = () => {
             <LabelElement htmlFor="DOJ">Date of Joining:</LabelElement>
             <InputElement
               type="date"
-              value={doj}
+              value={isoString.split("T")[0]}
               id="DOJ"
               className="form-control text-center"
               style={{ width: "40%" }}

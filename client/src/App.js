@@ -7,7 +7,7 @@ import ProfilePage from "./component/Profile";
 import { useEffect, useState } from "react";
 import ResetPassword from "./component/ResetPassword";
 import SmallDevice from "./component/SmallDevice";
-import { GlobalStyle } from "./component/Styling/StyledComponents";
+import { GlobalStyle } from "./GolablStyle/StyledComponents";
 import AcademicWorkI from "./component/AcademicWork-I";
 
 function App() {

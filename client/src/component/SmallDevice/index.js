@@ -3,7 +3,7 @@ import {
   SmallDeviceImage,
   SmallDeviceImageContainer,
   TextContent,
-} from "../Styling/StyledComponents";
+} from "./StyledComponents";
 import image from "../Images/Small Devices.png";
 
 const SmallDevice = () => {

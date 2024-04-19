@@ -10,7 +10,7 @@ import {
   CourseHeadingContainer,
   DeleteButton,
   LogoutButton,
-} from "../Styling/StyledComponents";
+} from "./StyledComponents";
 import { MdDelete } from "react-icons/md";
 import Cookies from "js-cookie";
 
@@ -31,7 +31,6 @@ const CourseForm = ({ semester }) => {
 
   useEffect(() => {
     async function fetchData() {}
-
     fetchData();
   }, []);
 

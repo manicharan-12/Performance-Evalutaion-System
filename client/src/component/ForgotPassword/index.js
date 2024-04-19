@@ -13,7 +13,7 @@ import {
   LoginForm,
   LoginRegisterButton,
   LoginRegisterButtonContainer,
-} from "../Styling/StyledComponents";
+} from "./StyledComponents";
 
 const ForgotPassword = (props) => {
   const { changeButtonClicked } = props;

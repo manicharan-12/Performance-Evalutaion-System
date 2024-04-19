@@ -19,7 +19,7 @@ import {
   SelectInput,
   SpanElement,
   UsernamePasswordErrMsg,
-} from "../Styling/StyledComponents";
+} from "./StyledComponents";
 
 const Register = (props) => {
   const { changeLoginRegister } = props;
@@ -49,9 +49,9 @@ const Register = (props) => {
         designation === "" ||
         department === "" ||
         username === "" ||
-        password === ""
+        password === "" ||
+        conformPassword === ""
       ) {
-        console.log(name, email, designation, department, username, password);
         setErrorMsg("All Fields are Mandatory to be Filled");
         setDisabled(false);
       } else {
@@ -106,6 +106,7 @@ const Register = (props) => {
                 setDesignation("HOD");
                 setUsername("");
                 setPassword("");
+                setConformPassword("");
                 setDisabled(false);
                 setUsernameErrorMsg("");
                 setPasswordErrorMsg("");
