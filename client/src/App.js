@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import ResetPassword from "./component/ResetPassword";
 import SmallDevice from "./component/SmallDevice";
 import { GlobalStyle } from "./GolablStyle/StyledComponents";
-import AcademicWorkI from "./component/AcademicWork-I";
+import AcademicWorkI from "./component/AcademicWork-I/Part A";
 
 function App() {
   const [width, setWidth] = useState(window.innerWidth);
@@ -34,7 +34,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route path="/" element={<ProtectedRoute />}>
-            <Route path="/academicWork-I" element={<AcademicWorkI />} />
+            <Route path="/academicWork-I/part-a" element={<AcademicWorkI />} />
           </Route>
           <Route path="*" element={<Navigate replace to="/" />} />
           <Route path="/resetPassword/:token" element={<ResetPassword />} />

@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import Header from "../Header";
+import validator from "validator";
+import Cookies from "js-cookie";
+import { ThreeDots } from "react-loader-spinner";
+import failure from "../Images/failure view.png";
+import { useNavigate } from "react-router-dom";
 import {
   HeadingContainer,
   HomeMainContainer,
@@ -17,10 +22,6 @@ import {
   SubSectionHeading,
   ErrorMessage,
 } from "./StyledComponents";
-import Cookies from "js-cookie";
-import { ThreeDots } from "react-loader-spinner";
-import failure from "../Images/failure view.png";
-import { useNavigate } from "react-router-dom";
 
 const apiStatusConstants = {
   initial: "INITIAL",
@@ -35,56 +36,54 @@ const ProfilePage = () => {
   const [designation, setDesignation] = useState("");
   const [department, setDepartment] = useState("");
   const [doj, setDoj] = useState("");
-  const [teachingExperience, setTeachingExperience] = useState(Number(""));
-  const [industryExperience, setIndustryExperience] = useState(Number(""));
-  const [totalExperience, setTotalExperience] = useState("");
+  const [teachingExperience, setTeachingExperience] = useState("");
+  const [industryExperience, setIndustryExperience] = useState("");
+  const [totalExperience, setTotalExperience] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
 
   const navigate = useNavigate();
 
+  const isNumeric = (value) => validator.isNumeric(String(value));
+
   const onSubmitProfile = async (event) => {
+    event.preventDefault();
+    if (!isNumeric(teachingExperience) || !isNumeric(industryExperience)) {
+      setErrorMsg("Teaching and Industry Experience must be numeric.");
+      return;
+    }
+    setErrorMsg("");
+    const userId = Cookies.get("user_id");
+    const postData = {
+      userId,
+      doj,
+      teachingExperience,
+      industryExperience,
+      totalExperience,
+    };
     try {
-      event.preventDefault();
-      const userId = Cookies.get("user_id");
-      if (
-        doj === "" ||
-        industryExperience === "" ||
-        teachingExperience === ""
-      ) {
-        setErrorMsg("All Fields are mandatory to be filled");
-      } else {
-        setErrorMsg("");
-        const api = "http://localhost:5000";
-        const postData = {
-          userId,
-          doj,
-          teachingExperience,
-          industryExperience,
-          totalExperience,
-        };
-        console.log(postData);
-        const option = {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(postData),
-        };
-        await fetch(`${api}/update/profile`, option);
-        navigate("/academicWork-I");
-      }
-    } catch (error) {}
+      const api = "http://localhost:5000";
+      const option = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postData),
+      };
+      await fetch(`${api}/update/profile`, option);
+      navigate("/academicWork-I/part-a");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
     async function fetchData() {
       try {
-        setApiStatus(apiStatusConstants.loading);
-
+        setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
         const response = await fetch(`${api}/profile/details/${userId}`);
-        if (response.ok === true) {
+        if (response.ok) {
           const data = await response.json();
           setName(data.name);
           setDesignation(data.designation);
@@ -105,7 +104,13 @@ const ProfilePage = () => {
   }, []);
 
   useEffect(() => {
-    setTotalExperience(Number(teachingExperience) + Number(industryExperience));
+    if (isNumeric(teachingExperience) && isNumeric(industryExperience)) {
+      setTotalExperience(
+        Number(teachingExperience) + Number(industryExperience),
+      );
+    } else {
+      setTotalExperience(0);
+    }
   }, [teachingExperience, industryExperience]);
 
   const onChangeDate = (event) => {
@@ -113,11 +118,31 @@ const ProfilePage = () => {
   };
 
   const onChangeTeaching = (event) => {
-    setTeachingExperience(event.target.value);
+    const newTeachingExperience = event.target.value;
+    if (
+      newTeachingExperience !== "" &&
+      !validator.isNumeric(String(newTeachingExperience))
+    ) {
+      setErrorMsg("Please enter a valid number for Teaching Experience.");
+      setTeachingExperience("");
+    } else {
+      setErrorMsg("");
+      setTeachingExperience(newTeachingExperience);
+    }
   };
 
   const onChangeIndustry = (event) => {
-    setIndustryExperience(event.target.value);
+    const newIndustryExperience = event.target.value;
+    if (
+      newIndustryExperience !== "" &&
+      !validator.isNumeric(String(newIndustryExperience))
+    ) {
+      setErrorMsg("Please enter a valid number for Industry Experience.");
+      setIndustryExperience("");
+    } else {
+      setErrorMsg("");
+      setIndustryExperience(newIndustryExperience);
+    }
   };
 
   const renderLoadingView = () => {
@@ -265,7 +290,7 @@ const ProfilePage = () => {
 
   const renderProfilePage = () => {
     switch (apiStatus) {
-      case apiStatusConstants.loading:
+      case apiStatusConstants.inProgress:
         return renderLoadingView();
 
       case apiStatusConstants.success:

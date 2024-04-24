@@ -10,6 +10,7 @@ const crypto = require("crypto");
 const mongoose = require("mongoose");
 const User = require("./models/user");
 const Token = require("./models/token");
+const AcademicWorkPartA = require("./models/Academic Work/partA");
 
 app.use(cors());
 app.use(express.json());
@@ -18,7 +19,7 @@ const initializeDbAndServer = async () => {
   try {
     mongoose
       .connect(
-        "mongodb+srv://manicharan12:<password>@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority",
+        "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority",
       )
       .then(() => {
         app.listen(5000, () => {
@@ -130,7 +131,7 @@ app.post("/forgot-password", async (request, response) => {
           service: "Gmail",
           auth: {
             user: "gade.manicharan12@gmail.com",
-            pass: <Your pass code>,
+            pass: "psuh fkfz zshn kbwg",
           },
         });
 
@@ -263,5 +264,56 @@ app.post("/update/profile", async (request, response) => {
     response.status(500).json({
       error_msg: "Internal Server Error! Please Try again Later",
     });
+  }
+});
+
+app.post("/academic-work-1", async (request, response) => {
+  try {
+    const {
+      userId,
+      tableData,
+      year,
+      averageResultPercentage,
+      averageFeedbackPercentage,
+      totalApiScore,
+    } = request.body;
+    const existingData = await AcademicWorkPartA.findOne({
+      userId,
+      academic_year: year,
+    });
+    if (existingData) {
+      existingData.tableData = tableData;
+      await existingData.save();
+    } else {
+      const newAcademicWork = new AcademicWorkPartA({
+        userId,
+        academic_year: year,
+        academic_work_part_a: tableData,
+        averageResultPercentage,
+        averageFeedbackPercentage,
+        totalApiScore,
+      });
+      await newAcademicWork.save();
+    }
+
+    response.status(200).json({ message: "Data saved successfully!" });
+  } catch (error) {
+    console.log(error);
+    response
+      .status(500)
+      .json({ error_msg: "Internal Server Error! Please try again later." });
+  }
+});
+
+app.get("/academic-work-1/data/:userId", async (request, response) => {
+  try {
+    const { userId } = request.params;
+    const getUserDetails = await AcademicWorkPartA.findOne({ userId });
+    response.json(getUserDetails);
+  } catch (error) {
+    console.log(error);
+    response
+      .status(500)
+      .json({ error_msg: "Internal Server Error! Please try again later." });
   }
 });
