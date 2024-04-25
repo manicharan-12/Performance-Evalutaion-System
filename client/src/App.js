@@ -1,14 +1,15 @@
 import { Route, Routes, Navigate } from "react-router-dom";
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
+import { GlobalStyle } from "./GolablStyle/StyledComponents";
+import { useEffect, useState } from "react";
 import LoginRegister from "./component/LoginRegister";
 import ProtectedRoute from "./component/ProtectedRoute";
 import ProfilePage from "./component/Profile";
-import { useEffect, useState } from "react";
 import ResetPassword from "./component/ResetPassword";
 import SmallDevice from "./component/SmallDevice";
-import { GlobalStyle } from "./GolablStyle/StyledComponents";
 import AcademicWorkI from "./component/AcademicWork-I/Part A";
+import AcademicWorkII from "./component/AcademicWork-I/Part B";
 
 function App() {
   const [width, setWidth] = useState(window.innerWidth);
@@ -34,7 +35,10 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route path="/" element={<ProtectedRoute />}>
-            <Route path="/academicWork-I/part-a" element={<AcademicWorkI />} />
+            <Route path="/academicWork/part-a" element={<AcademicWorkI />} />
+          </Route>
+          <Route path="/" element={<ProtectedRoute />}>
+            <Route path="/academicWork/part-b" element={<AcademicWorkII />} />
           </Route>
           <Route path="*" element={<Navigate replace to="/" />} />
           <Route path="/resetPassword/:token" element={<ResetPassword />} />

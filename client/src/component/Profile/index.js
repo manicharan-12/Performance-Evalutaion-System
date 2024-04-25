@@ -70,7 +70,7 @@ const ProfilePage = () => {
         body: JSON.stringify(postData),
       };
       await fetch(`${api}/update/profile`, option);
-      navigate("/academicWork-I/part-a");
+      navigate("/academicWork/part-a");
     } catch (error) {
       console.error(error);
     }

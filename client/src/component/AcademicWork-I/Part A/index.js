@@ -5,6 +5,7 @@ import EditableValue from "../EditableValue";
 import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
+import { useNavigate } from "react-router-dom";
 import {
   HeadingContainer,
   SectionHeading,
@@ -94,6 +95,8 @@ const AcademicWorkI = () => {
   const [averageResultPercentage, setAverageResultPercentage] = useState();
   const [averageFeedbackPercentage, setAverageFeedbackPercentage] = useState();
   const [totalApiScore, setTotalApiScore] = useState();
+
+  const navigate = useNavigate();
 
   const handleYearChange = (event) => {
     setYear(event.target.value);
@@ -283,6 +286,7 @@ const AcademicWorkI = () => {
           body: JSON.stringify(postData),
         };
         await fetch(`${api}/academic-work-1`, option);
+        navigate("/academicWork/part-b");
       }
     } catch (error) {
       console.log(error);
