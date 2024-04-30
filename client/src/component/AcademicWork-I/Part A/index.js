@@ -1,9 +1,9 @@
 import Back from "../../Back";
 import React, { useEffect, useState, useCallback } from "react";
 import Header from "../../Header";
-import EditableValue from "../EditableValue";
+import EditableValue from "../../EditableValue";
 import Cookies from "js-cookie";
-import { ThreeDots } from "react-loader-spinner";
+import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
 import { useNavigate } from "react-router-dom";
 import {
@@ -95,6 +95,7 @@ const AcademicWorkI = () => {
   const [averageResultPercentage, setAverageResultPercentage] = useState();
   const [averageFeedbackPercentage, setAverageFeedbackPercentage] = useState();
   const [totalApiScore, setTotalApiScore] = useState();
+  const [disabled, setDisabled] = useState(false);
 
   const navigate = useNavigate();
 
@@ -248,6 +249,7 @@ const AcademicWorkI = () => {
   const submitAcademicForm1 = async (event) => {
     try {
       event.preventDefault();
+      setDisabled(true);
       const isAnyFieldEmpty = (course) => {
         return (
           !course.name ||
@@ -286,6 +288,7 @@ const AcademicWorkI = () => {
           body: JSON.stringify(postData),
         };
         await fetch(`${api}/academic-work-1`, option);
+        setDisabled(false);
         navigate("/academicWork/part-b");
       }
     } catch (error) {
@@ -302,17 +305,23 @@ const AcademicWorkI = () => {
     async function fetchData() {
       try {
         setApiStatus(apiStatusConstants.inProgress);
+        setDisabled(true);
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
         const response = await fetch(`${api}/academic-work-1/data/${userId}`);
         if (response.ok === true) {
           const data = await response.json();
-          setTableData(data.academic_work_part_a);
-          setYear(data.academic_year);
-          setAverageFeedbackPercentage(data.averageFeedbackPercentage);
-          setAverageResultPercentage(data.averageResultPercentage);
-          setTotalApiScore(data.totalApiScore);
-          setApiStatus(apiStatusConstants.success);
+          if (data === null) {
+            setApiStatus(apiStatusConstants.success);
+          } else {
+            setTableData(data.academic_work_part_a || tableData);
+            setYear(data.academic_year);
+            setAverageFeedbackPercentage(data.averageFeedbackPercentage);
+            setAverageResultPercentage(data.averageResultPercentage);
+            setTotalApiScore(data.totalApiScore);
+            setDisabled(false);
+            setApiStatus(apiStatusConstants.success);
+          }
         } else {
           setApiStatus(apiStatusConstants.failure);
         }
@@ -404,6 +413,8 @@ const AcademicWorkI = () => {
                           })
                         }
                         validate={(input) => /^[A-Za-z\s]+$/.test(input)}
+                        type="text"
+                        disabled={false}
                       />
                     </TableData>
                     <TableData>
@@ -416,6 +427,8 @@ const AcademicWorkI = () => {
                           })
                         }
                         validate={(input) => /^[0-9]+$/.test(input)}
+                        type="text"
+                        disabled={false}
                       />
                     </TableData>
                     <TableData>
@@ -428,6 +441,8 @@ const AcademicWorkI = () => {
                           })
                         }
                         validate={(input) => /^[0-9]+$/.test(input)}
+                        type="text"
+                        disabled={false}
                       />
                     </TableData>
                     <TableData>
@@ -446,6 +461,8 @@ const AcademicWorkI = () => {
                           input <= 100 &&
                           input >= 0
                         }
+                        type="text"
+                        disabled={false}
                       />
                     </TableData>
                     <TableData>
@@ -467,6 +484,8 @@ const AcademicWorkI = () => {
                           input <= 100 &&
                           input >= 0
                         }
+                        type="text"
+                        disabled={false}
                       />
                     </TableData>
                     <TableData>
@@ -480,12 +499,16 @@ const AcademicWorkI = () => {
                         >
                           Add Course
                         </SaveNextButton>
-                        <SaveNextButton
-                          onClick={() => handleDeleteCourse(semesterIndex)}
-                          className="btn btn-danger  mb-2"
-                        >
-                          Delete Course
-                        </SaveNextButton>
+                        {semester.courses.length > 2 ? (
+                          <SaveNextButton
+                            onClick={() => handleDeleteCourse(semesterIndex)}
+                            className="btn btn-danger  mb-2"
+                          >
+                            Delete Course
+                          </SaveNextButton>
+                        ) : (
+                          ""
+                        )}
                       </TableData>
                     )}
                   </TableRow>
@@ -564,8 +587,22 @@ const AcademicWorkI = () => {
             className="btn btn-primary"
             type="submit"
             onClick={submitAcademicForm1}
+            disabled={disabled}
           >
-            Save & Next
+            {disabled ? (
+              <Oval
+                visible={true}
+                height="25"
+                width="25"
+                color="#ffffff"
+                ariaLabel="oval-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                className="text-center"
+              />
+            ) : (
+              "Save & Next"
+            )}
           </SaveNextButton>
         </SaveNextButtonContainer>
       </>

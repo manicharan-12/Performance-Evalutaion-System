@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Header from "../Header";
 import validator from "validator";
 import Cookies from "js-cookie";
-import { ThreeDots } from "react-loader-spinner";
+import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
 import { useNavigate } from "react-router-dom";
 import {
@@ -40,6 +40,7 @@ const ProfilePage = () => {
   const [industryExperience, setIndustryExperience] = useState("");
   const [totalExperience, setTotalExperience] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
+  const [disabled, setDisabled] = useState(false);
 
   const navigate = useNavigate();
 
@@ -52,6 +53,7 @@ const ProfilePage = () => {
       return;
     }
     setErrorMsg("");
+    setDisabled(true);
     const userId = Cookies.get("user_id");
     const postData = {
       userId,
@@ -70,6 +72,7 @@ const ProfilePage = () => {
         body: JSON.stringify(postData),
       };
       await fetch(`${api}/update/profile`, option);
+      setDisabled(false);
       navigate("/academicWork/part-a");
     } catch (error) {
       console.error(error);
@@ -80,6 +83,7 @@ const ProfilePage = () => {
     async function fetchData() {
       try {
         setApiStatus(apiStatusConstants.inProgress);
+        setDisabled(true);
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
         const response = await fetch(`${api}/profile/details/${userId}`);
@@ -88,15 +92,17 @@ const ProfilePage = () => {
           setName(data.name);
           setDesignation(data.designation);
           setDepartment(data.department);
-          setDoj(data.doj || "");
+          setDoj(data.doj || new Date());
           setTeachingExperience(data.teaching_experience || "");
           setIndustryExperience(data.industry_experience || "");
           setTotalExperience(data.total_experience || "");
+          setDisabled(false);
           setApiStatus(apiStatusConstants.success);
         } else {
           setApiStatus(apiStatusConstants.failure);
         }
       } catch (error) {
+        console.log(error);
         setApiStatus(apiStatusConstants.failure);
       }
     }
@@ -265,8 +271,25 @@ const ProfilePage = () => {
             />
           </InputContainerMain>
           <SaveNextButtonContainer>
-            <SaveNextButton className="btn btn-primary" type="submit">
-              Save & Next
+            <SaveNextButton
+              className="btn btn-primary"
+              type="submit"
+              disabled={disabled}
+            >
+              {disabled === true ? (
+                <Oval
+                  visible={true}
+                  height="25"
+                  width="25"
+                  color="#ffffff"
+                  ariaLabel="oval-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  className="text-center"
+                />
+              ) : (
+                "Save & Next"
+              )}
             </SaveNextButton>
           </SaveNextButtonContainer>
           <ErrorMessage className="text-center mt-3">{errorMsg}</ErrorMessage>

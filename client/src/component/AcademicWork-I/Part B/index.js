@@ -4,10 +4,9 @@ import Header from "../../Header";
 // import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
-// import { useNavigate } from "react-router-dom";
-import { Editor } from "@tinymce/tinymce-react";
-import { plugins } from "./plugin";
-import { toolbars } from "./toolbars";
+import { useNavigate } from "react-router-dom";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import {
   LoaderContainer,
   FailureContainer,
@@ -19,8 +18,10 @@ import {
   ParagraphContainer,
   Paragraph,
   TextEditorContainer,
-  EditorContainer,
-  Toolbar,
+  InputFileContainer,
+  InputFile,
+  SaveNextButton,
+  SaveNextButtonContainer,
 } from "./StyledComponents";
 
 const apiStatusConstants = {
@@ -30,30 +31,100 @@ const apiStatusConstants = {
   failure: "FAILURE",
 };
 
+const modules = {
+  toolbar: [
+    ["bold", "italic", "underline", "strike"],
+    ["blockquote", "code-block"],
+    ["link", "image", "video", "formula"],
+
+    [{ header: 1 }, { header: 2 }],
+    [{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
+    [{ script: "sub" }, { script: "super" }],
+    [{ indent: "-1" }, { indent: "+1" }],
+    [{ direction: "rtl" }],
+
+    [{ size: ["small", false, "large", "huge"] }],
+    [{ header: [1, 2, 3, 4, 5, 6, false] }],
+
+    [{ color: [] }, { background: [] }],
+    [{ font: [] }],
+    [{ align: [] }],
+
+    ["clean"],
+  ],
+  clipboard: {
+    matchVisual: false,
+  },
+};
+
+const formats = [
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "blockquote",
+  "code-block",
+  "link",
+  "image",
+  "video",
+  "formula",
+  "header",
+  "list",
+  "bullet",
+  "check",
+  "script",
+  "sub",
+  "super",
+  "indent",
+  "direction",
+  "size",
+  "color",
+  "background",
+  "font",
+  "align",
+  "clean",
+];
+
 const AcademicWorkII = () => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.success);
   const [year, setYear] = useState("");
-  const [contentState, setContentState] = useState(null);
-  const [value, setValue] = useState("");
-  const [text, setText] = useState("");
-
-  console.log(value);
-  const onEditorInputChange = (newValue, editor) => {
-    setValue(newValue);
-    setText(editor.getContent({ format: "text" }));
-  };
-  // const navigate = useNavigate();
+  const [editorContent, setEditorContent] = useState("");
+  const [file, setFile] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const loadData = async () => {
-      //   const apiContent = await ();
-      //   // Assuming 'apiContent' is a string of HTML
-      //   const contentState = convertToRaw(ContentState.createFromBlockArray(convertFromHTML(apiContent)));
-      //   setContentState(contentState);
-    };
+    const loadData = async () => {};
 
     loadData();
   }, []);
+
+  const submitAcademicForm2 = async (event) => {
+    try {
+      event.preventDefault();
+
+      // Create a FormData object
+      const formData = new FormData();
+      formData.append("editorContent", editorContent);
+      formData.append("file", file);
+      console.log(formData);
+      const api = "http://localhost:5000";
+      const options = {
+        method: "POST",
+        body: formData,
+      };
+
+      const response = await fetch(`${api}/academic-work-2`, options);
+      const data = await response.json();
+      console.log(data);
+      // navigate("/research-and-development/conformation");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
 
   const renderLoadingView = () => {
     return (
@@ -94,28 +165,29 @@ const AcademicWorkII = () => {
           </Paragraph>
         </ParagraphContainer>
         <TextEditorContainer>
-          <Editor
-            apiKey="dqtgiu3aijyl4v7hik9iow01fgs5da0tq2guyz4nder09c5t"
-            onEditorChange={(newValue, editor) =>
-              onEditorInputChange(newValue, editor)
-            }
-            onInit={(evt, editor) =>
-              setText(editor.getContent({ format: "text" }))
-            }
-            value={value}
-            initialValue={"Write your thoughts here..."}
-            init={{
-              plugins: plugins,
-              toolbar: toolbars,
-              images_upload_url: "path_to_your_upload_handler.php", // Specify your server-side upload handler URL
-              file_picker_callback: function (callback, value, meta) {
-                // Add your custom file picker logic here
-                // For example, set a default value for the field:
-                callback("my browser value");
-              },
-            }}
+          <ReactQuill
+            theme="snow"
+            value={editorContent}
+            onChange={setEditorContent}
+            modules={modules}
+            formats={formats}
           />
         </TextEditorContainer>
+        <InputFileContainer>
+          <Paragraph>
+            If you wish to provide any supported documents. You can Upload here
+          </Paragraph>
+          <InputFile type="file" onChange={handleFileChange} />
+        </InputFileContainer>
+        <SaveNextButtonContainer className="mt-3">
+          <SaveNextButton
+            className="btn btn-primary"
+            type="submit"
+            onClick={submitAcademicForm2}
+          >
+            Save & Next
+          </SaveNextButton>
+        </SaveNextButtonContainer>
       </>
     );
   };

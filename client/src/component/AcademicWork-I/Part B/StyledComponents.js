@@ -47,7 +47,9 @@ export const SubSectionHeadingContainer = styled.div`
 
 export const SubSectionHeading = styled.h5``;
 
-export const ParagraphContainer = styled.div``;
+export const ParagraphContainer = styled.div`
+  width: 100%;
+`;
 
 export const Paragraph = styled.p``;
 
@@ -62,12 +64,22 @@ export const TextEditorContainer = styled.div`
   text-align: center;
 `;
 
-export const EditorContainer = styled.div`
-  background-color: #fff;
-  padding: 1rem;
-  border: 1px solid #000;
+export const InputFileContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
 `;
 
-export const Toolbar = styled.div`
-  border: 1px solid #ccc;
+export const InputFile = styled.input`
+  background-color: transparent;
+  border: none;
 `;
+
+export const SaveNextButtonContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  width: 100%;
+`;
+export const SaveNextButton = styled.button``;
