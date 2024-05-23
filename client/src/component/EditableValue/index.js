@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Cookies from "js-cookie";
 import {
   TableInput,
   MainContainer,
@@ -10,7 +11,8 @@ const EditableValue = ({ value, onValueChange, validate, type, disabled }) => {
   const [isEditing, setIsEditing] = useState(value == null || value === "");
   const [currentValue, setCurrentValue] = useState(value || "");
   const [error, setError] = useState("");
-
+  const role = Cookies.get("role");
+  const isHOD = role === "HOD";
   useEffect(() => {
     setCurrentValue(String(value));
     if (value != null && value !== "") {
@@ -18,7 +20,11 @@ const EditableValue = ({ value, onValueChange, validate, type, disabled }) => {
     }
   }, [value]);
 
-  const handleFocus = () => setIsEditing(true);
+  const handleFocus = () => {
+    if (!isHOD) {
+      setIsEditing(true);
+    }
+  };
 
   const handleBlur = () => {
     if (currentValue.trim() === "") {
@@ -56,7 +62,7 @@ const EditableValue = ({ value, onValueChange, validate, type, disabled }) => {
 
   return (
     <MainContainer style={{ position: "relative" }}>
-      {isEditing ? (
+      {isEditing && !isHOD ? (
         <TableInput
           type={type}
           value={currentValue}

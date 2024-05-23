@@ -1,12 +1,15 @@
-import Back from "../../Back";
-import React, { useEffect, useState } from "react";
-import Header from "../../Header";
-// import Cookies from "js-cookie";
-import { ThreeDots } from "react-loader-spinner";
-import failure from "../../Images/failure view.png";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
+import { ThreeDots, Oval } from "react-loader-spinner";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { useDropzone } from "react-dropzone";
+import Back from "../../Back";
+import Header from "../../Header";
+import { TiDelete } from "react-icons/ti";
+import failure from "../../Images/failure view.png";
+import { ToastContainer, toast } from "react-toastify";
 import {
   LoaderContainer,
   FailureContainer,
@@ -18,10 +21,15 @@ import {
   ParagraphContainer,
   Paragraph,
   TextEditorContainer,
-  InputFileContainer,
   InputFile,
   SaveNextButton,
   SaveNextButtonContainer,
+  FileContainer,
+  StyledDropzone,
+  UnorderedList,
+  ListItems,
+  SpanEle,
+  DeleteButton, // Add this import for DeleteButton
 } from "./StyledComponents";
 
 const apiStatusConstants = {
@@ -36,20 +44,16 @@ const modules = {
     ["bold", "italic", "underline", "strike"],
     ["blockquote", "code-block"],
     ["link", "image", "video", "formula"],
-
     [{ header: 1 }, { header: 2 }],
     [{ list: "ordered" }, { list: "bullet" }, { list: "check" }],
     [{ script: "sub" }, { script: "super" }],
     [{ indent: "-1" }, { indent: "+1" }],
     [{ direction: "rtl" }],
-
     [{ size: ["small", false, "large", "huge"] }],
     [{ header: [1, 2, 3, 4, 5, 6, false] }],
-
     [{ color: [] }, { background: [] }],
     [{ font: [] }],
     [{ align: [] }],
-
     ["clean"],
   ],
   clipboard: {
@@ -86,44 +90,130 @@ const formats = [
 ];
 
 const AcademicWorkII = () => {
-  const [apiStatus, setApiStatus] = useState(apiStatusConstants.success);
-  const [year, setYear] = useState("");
+  const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [editorContent, setEditorContent] = useState("");
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [deletedFiles, setDeletedFiles] = useState([]); // Add this state
+  const [onClick, setOnClick] = useState(false);
+  const [disabled, setDisabled] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const loadData = async () => {};
+  const role = Cookies.get("role");
 
-    loadData();
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setApiStatus(apiStatusConstants.inProgress);
+        const userId = Cookies.get("user_id");
+        const response = await fetch(
+          `http://localhost:5000/academic-work-2/data/${userId}`,
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.academicWork) {
+            setEditorContent(data.academicWork.editorContent || "");
+            setFiles(data.academicWork.files || []);
+            setApiStatus(apiStatusConstants.success);
+          } else {
+            setEditorContent("");
+            setFiles([]);
+            setApiStatus(apiStatusConstants.success);
+          }
+        } else {
+          setApiStatus(apiStatusConstants.failure);
+        }
+      } catch (error) {
+        console.error(error);
+        setApiStatus(apiStatusConstants.failure);
+      }
+    }
+    fetchData();
   }, []);
 
-  const submitAcademicForm2 = async (event) => {
-    try {
-      event.preventDefault();
+  const onDrop = useCallback((acceptedFiles) => {
+    setFiles((prevFiles) => [
+      ...prevFiles,
+      ...acceptedFiles.map((file) =>
+        Object.assign(file, { preview: URL.createObjectURL(file) }),
+      ),
+    ]);
+  }, []);
 
-      // Create a FormData object
-      const formData = new FormData();
-      formData.append("editorContent", editorContent);
-      formData.append("file", file);
-      console.log(formData);
-      const api = "http://localhost:5000";
-      const options = {
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: "*",
+    maxSize: 50000000,
+    disabled: role === "HOD", // Disable file drop if role is HOD
+  });
+
+  const submitAcademicForm2 = async (event) => {
+    event.preventDefault();
+    setOnClick(true);
+    setDisabled(true);
+    const userId = Cookies.get("user_id");
+    const formData = new FormData();
+    formData.append("userId", userId);
+    formData.append("editorContent", editorContent);
+    files.forEach((file) => {
+      if (!file.fileId) {
+        formData.append("files", file);
+      }
+    });
+    deletedFiles.forEach((fileId) => {
+      formData.append("deletedFiles", fileId);
+    });
+
+    try {
+      const response = await fetch("http://localhost:5000/academic-work-2", {
         method: "POST",
         body: formData,
-      };
-
-      const response = await fetch(`${api}/academic-work-2`, options);
+      });
       const data = await response.json();
       console.log(data);
-      // navigate("/research-and-development/conformation");
+      navigate("/research-and-development/conformation");
     } catch (error) {
       console.error(error);
+      toast.error("Internal Server Error! Please try again later", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
     }
   };
 
-  const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+  const handleOpenInNewTab = async (fileId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/files/${fileId}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, "_blank");
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert("Failed to open file: " + (await response.json()).message);
+      }
+    } catch (error) {
+      console.error("Error opening file:", error);
+      toast.error(
+        "An error occurred while opening the file. Please try again.",
+        {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        },
+      );
+    }
+  };
+
+  const handleDeleteFile = (fileId) => {
+    setFiles((prevFiles) => prevFiles.filter((file) => file.fileId !== fileId));
+    setDeletedFiles((prevDeletedFiles) => [...prevDeletedFiles, fileId]);
   };
 
   const renderLoadingView = () => {
@@ -149,7 +239,7 @@ const AcademicWorkII = () => {
         <SubSectionHeadingContainer>
           <SubSectionHeading>
             b. Please describe instances where you have gone the extra mile in
-            academics during {year}
+            academics
           </SubSectionHeading>
           <SubSectionHeading>(Max. Score: 5)</SubSectionHeading>
         </SubSectionHeadingContainer>
@@ -169,23 +259,66 @@ const AcademicWorkII = () => {
             theme="snow"
             value={editorContent}
             onChange={setEditorContent}
-            modules={modules}
+            modules={role === "HOD" ? { toolbar: false } : modules}
+            readOnly={role === "HOD"}
             formats={formats}
           />
         </TextEditorContainer>
-        <InputFileContainer>
-          <Paragraph>
-            If you wish to provide any supported documents. You can Upload here
-          </Paragraph>
-          <InputFile type="file" onChange={handleFileChange} />
-        </InputFileContainer>
+        <FileContainer className="mt-4">
+          <SubSectionHeading>
+            Submit the documentary evidences below
+          </SubSectionHeading>
+          <StyledDropzone {...getRootProps({ isDragActive })}>
+            <InputFile {...getInputProps()} />
+            {isDragActive ? (
+              <>
+                <Paragraph>Drop the files here...</Paragraph>
+                <Paragraph>(Max File size is 50mb)</Paragraph>
+              </>
+            ) : (
+              <>
+                <Paragraph>
+                  Drag or drop some files here, or click to select files
+                </Paragraph>
+                <Paragraph>(Max File size is 50mb)</Paragraph>
+              </>
+            )}
+          </StyledDropzone>
+          <UnorderedList className="mt-3">
+            {files.map((file, index) => (
+              <ListItems key={index}>
+                <SpanEle onClick={() => handleOpenInNewTab(file.fileId)}>
+                  {file.filename || file.name}
+                </SpanEle>
+                <DeleteButton onClick={() => handleDeleteFile(file.fileId)}>
+                  <TiDelete />
+                </DeleteButton>
+              </ListItems>
+            ))}
+          </UnorderedList>
+        </FileContainer>
         <SaveNextButtonContainer className="mt-3">
           <SaveNextButton
-            className="btn btn-primary"
+            className="btn btn-primary text-center"
             type="submit"
             onClick={submitAcademicForm2}
+            display={onClick}
+            disabled={disabled}
           >
-            Save & Next
+            {disabled ? (
+              <Oval
+                visible={true}
+                height="25"
+                width="25"
+                color="#ffffff"
+                ariaLabel="oval-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                className="text-center"
+              />
+            ) : (
+              "Save & Next"
+            )}
           </SaveNextButton>
         </SaveNextButtonContainer>
       </>
@@ -194,14 +327,12 @@ const AcademicWorkII = () => {
 
   const renderFailureView = () => {
     return (
-      <>
-        <FailureContainer>
-          <FailureImage src={failure} />
-          <SubSectionHeading className="mt-4">
-            Failed to load Data. Retry Again!
-          </SubSectionHeading>
-        </FailureContainer>
-      </>
+      <FailureContainer>
+        <FailureImage src={failure} />
+        <SubSectionHeading className="mt-4">
+          Failed to load Data. Retry Again!
+        </SubSectionHeading>
+      </FailureContainer>
     );
   };
 
@@ -215,8 +346,9 @@ const AcademicWorkII = () => {
 
       case apiStatusConstants.failure:
         return renderFailureView();
+
       default:
-        break;
+        return null;
     }
   };
 
@@ -227,6 +359,18 @@ const AcademicWorkII = () => {
         <Back />
         {renderAcademicWorkPartBPage()}
       </MainContainer>
+      <ToastContainer
+        position="bottom-center"
+        autoClose={7000}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover={false}
+        theme="light"
+      />
     </HomeMainContainer>
   );
 };

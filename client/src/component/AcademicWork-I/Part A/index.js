@@ -174,18 +174,22 @@ const AcademicWorkI = () => {
   };
 
   const handleEditCourse = (semesterIndex, courseIndex, updatedCourse) => {
-    updatedCourse.passPercentage = Math.round(
-      parseFloat(updatedCourse.passPercentage),
-    );
-    updatedCourse.studentFeedbackPercentage = Math.round(
-      parseFloat(updatedCourse.studentFeedbackPercentage),
-    );
-    updatedCourse.apiScoreResults = calculateApiScore(
-      updatedCourse.passPercentage,
-    );
-    updatedCourse.studentFeedbackScore = calculateApiScore(
-      updatedCourse.studentFeedbackPercentage,
-    );
+    if (updatedCourse.passPercentage !== "") {
+      updatedCourse.passPercentage = Math.round(
+        parseFloat(updatedCourse.passPercentage),
+      );
+      updatedCourse.apiScoreResults = calculateApiScore(
+        updatedCourse.passPercentage,
+      );
+    }
+    if (updatedCourse.studentFeedbackPercentage !== "") {
+      updatedCourse.studentFeedbackPercentage = Math.round(
+        parseFloat(updatedCourse.studentFeedbackPercentage),
+      );
+      updatedCourse.studentFeedbackScore = calculateApiScore(
+        updatedCourse.studentFeedbackPercentage,
+      );
+    }
 
     const updatedSemesters = tableData.map((semester, sIndex) => {
       if (sIndex === semesterIndex) {
@@ -219,9 +223,12 @@ const AcademicWorkI = () => {
       0,
     );
 
-    const averagePassPercentage = totalPassPercentage / allCourses.length;
-    const averageFeedbackPercentage =
-      totalFeedbackPercentage / allCourses.length;
+    const averagePassPercentage = parseFloat(
+      (totalPassPercentage / allCourses.length).toPrecision(4),
+    );
+    const averageFeedbackPercentage = parseFloat(
+      (totalFeedbackPercentage / allCourses.length).toPrecision(4),
+    );
     const totalApiScore =
       calculateApiScore(averagePassPercentage) +
       calculateApiScore(averageFeedbackPercentage);
@@ -267,6 +274,7 @@ const AcademicWorkI = () => {
         for (const course of semester.courses) {
           if (isAnyFieldEmpty(course)) {
             alert("Please fill out all the fields before submitting.");
+            setDisabled(false);
             return;
           }
         }
@@ -313,6 +321,7 @@ const AcademicWorkI = () => {
           const data = await response.json();
           if (data === null) {
             setApiStatus(apiStatusConstants.success);
+            setDisabled(false);
           } else {
             setTableData(data.academic_work_part_a || tableData);
             setYear(data.academic_year);

@@ -3,8 +3,19 @@ import Cookies from "js-cookie";
 
 const ProtectedRoute = () => {
   const token = Cookies.get("jwt_token");
+  const userRole = Cookies.get("userRole");
 
-  return token === undefined ? <Navigate to="/" /> : <Outlet />;
+  if (!token) {
+    return <Navigate to="/" />;
+  }
+
+  if (userRole === "PROF") {
+    return <Outlet />;
+  }
+  if (userRole === "HOD") {
+    return <Outlet />;
+  }
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

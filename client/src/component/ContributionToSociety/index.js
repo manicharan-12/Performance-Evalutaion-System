@@ -1,10 +1,14 @@
 import Back from "../Back";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Header from "../Header";
 import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useDropzone } from "react-dropzone";
+import { TiDelete } from "react-icons/ti";
 import {
   HomeMainContainer,
   MainContainer,
@@ -26,6 +30,13 @@ import {
   HeadingContainer,
   SectionHeading,
   MarksHeading,
+  FileContainer,
+  StyledDropzone,
+  UnorderedList,
+  ListItems,
+  SpanEle,
+  DeleteButton,
+  InputFile,
 } from "./StyledComponents";
 import EditableValue from "../EditableValue";
 
@@ -38,12 +49,9 @@ const apiStatusConstants = {
 
 const ContributionToSociety = () => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
+  const [files, setFiles] = useState([]);
+  const [deletedFiles, setDeletedFiles] = useState([]);
   const [tableData, setTableData] = useState([
-    {
-      nameOfTheResponsibility: "",
-      contribution: "",
-      apiScore: "",
-    },
     {
       nameOfTheResponsibility: "",
       contribution: "",
@@ -104,6 +112,53 @@ const ContributionToSociety = () => {
     try {
       navigate("/");
     } catch (error) {}
+  };
+
+  const onDrop = useCallback((acceptedFiles) => {
+    setFiles((prevFiles) => [
+      ...prevFiles,
+      ...acceptedFiles.map((file) =>
+        Object.assign(file, { preview: URL.createObjectURL(file) }),
+      ),
+    ]);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: "*",
+    maxSize: 50000000,
+  });
+
+  const handleOpenInNewTab = async (fileId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/files/${fileId}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, "_blank");
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert("Failed to open file: " + (await response.json()).message);
+      }
+    } catch (error) {
+      console.error("Error opening file:", error);
+      toast.error(
+        "An error occurred while opening the file. Please try again.",
+        {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        },
+      );
+    }
+  };
+
+  const handleDeleteFile = (fileId) => {
+    setFiles((prevFiles) => prevFiles.filter((file) => file.fileId !== fileId));
+    setDeletedFiles((prevDeletedFiles) => [...prevDeletedFiles, fileId]);
   };
 
   const renderLoadingView = () => {
@@ -205,6 +260,39 @@ const ContributionToSociety = () => {
             </SaveNextButton>
           )}
         </TableContainer>
+        <FileContainer className="mt-4">
+          <SubSectionHeading>
+            Submit the documentary evidences below
+          </SubSectionHeading>
+          <StyledDropzone {...getRootProps({ isDragActive })}>
+            <InputFile {...getInputProps()} />
+            {isDragActive ? (
+              <>
+                <Paragraph>Drop the files here...</Paragraph>
+                <Paragraph>(Max File size is 50mb)</Paragraph>
+              </>
+            ) : (
+              <>
+                <Paragraph>
+                  Drag or drop some files here, or click to select files
+                </Paragraph>
+                <Paragraph>(Max File size is 50mb)</Paragraph>
+              </>
+            )}
+          </StyledDropzone>
+          <UnorderedList className="mt-3">
+            {files.map((file, index) => (
+              <ListItems key={index}>
+                <SpanEle onClick={() => handleOpenInNewTab(file.fileId)}>
+                  {file.filename || file.name}
+                </SpanEle>
+                <DeleteButton onClick={() => handleDeleteFile(file.fileId)}>
+                  <TiDelete />
+                </DeleteButton>
+              </ListItems>
+            ))}
+          </UnorderedList>
+        </FileContainer>
         <SaveNextButtonContainer className="mt-3">
           <SaveNextButton
             className="btn btn-primary"

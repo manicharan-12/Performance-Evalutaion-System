@@ -64,17 +64,7 @@ export const TextEditorContainer = styled.div`
   text-align: center;
 `;
 
-export const InputFileContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-`;
-
-export const InputFile = styled.input`
-  background-color: transparent;
-  border: none;
-`;
+export const InputFile = styled.input``;
 
 export const SaveNextButtonContainer = styled.div`
   display: flex;
@@ -83,3 +73,56 @@ export const SaveNextButtonContainer = styled.div`
   width: 100%;
 `;
 export const SaveNextButton = styled.button``;
+
+const getColor = (props) => {
+  if (props.isDragAccept) {
+    return "#00e676";
+  }
+  if (props.isDragReject) {
+    return "#ff1744";
+  }
+  if (props.isFocused) {
+    return "#2196f3";
+  }
+  return "#eeeeee";
+};
+
+export const FileContainer = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+export const StyledDropzone = styled.div`
+  flex: 1;
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  border-width: 2px;
+  border-radius: 2px;
+  border-color: ${(props) => getColor(props)};
+  border-style: dashed;
+  background-color: #fafafa;
+  color: #bdbdbd;
+  outline: none;
+  transition: border 0.24s ease-in-out;
+  cursor: pointer;
+`;
+
+export const UnorderedList = styled.ul``;
+
+export const ListItems = styled.li``;
+
+export const SpanEle = styled.span`
+  cursor: pointer;
+  color: brown;
+`;
+
+export const DeleteButton = styled.button`
+  border: none;
+  background-color: transparent;
+  font-size: 22px;
+`;

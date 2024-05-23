@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -5,9 +6,9 @@ const cors = require("cors");
 const app = express();
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
+const GridFSBucket = require("mongodb").GridFSBucket;
 const multer = require("multer");
-const { GridFsStorage } = require("multer-gridfs-storage");
-const Grid = require("gridfs-stream");
+const { Readable } = require("stream");
 const mongoose = require("mongoose");
 
 const User = require("./models/user");
@@ -18,40 +19,46 @@ const PhdConformation = require("./models/Research And Development/rdConformatio
 const ResearchAndDevelopmentPartB = require("./models/Research And Development/partB");
 const ResearchAndDevelopmentPartC = require("./models/Research And Development/partC");
 
-const conn = mongoose.connection;
-Grid.mongo = mongoose.mongo;
-let gfs;
+const mongoURI =
+  "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority";
 
+const conn = mongoose.createConnection(mongoURI);
+let gfs, gridFSBucket;
 conn.once("open", () => {
-  gfs = Grid(conn.db, mongoose.mongo);
+  gridFSBucket = new GridFSBucket(conn.db, {
+    bucketName: "uploads",
+  });
+  gfs = gridFSBucket;
+  console.log("GridFS initialized");
 });
 
-const storage = new GridFsStorage({
-  url: "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority",
-  file: (req, file) => {
-    return {
-      filename: "file_" + Date.now(),
-    };
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // Limit file size to 50MB
+    fieldSize: 10 * 1024 * 1024, // Limit field size to 10MB
   },
 });
-
-const upload = multer({ storage });
 
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Internal Server Error" });
+});
+
 const initializeDbAndServer = async () => {
   try {
-    await mongoose.connect(
-      "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority",
-      { useNewUrlParser: true, useUnifiedTopology: true },
-    );
-    app.listen(5000, () => {
-      console.log("Server Running at http://localhost:5000");
+    await mongoose.connect(mongoURI);
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server Running at http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.log(`Database Error: ${error.message}`);
+    console.error(`Database Error: ${error.message}`);
     process.exit(1);
   }
 };
@@ -68,7 +75,7 @@ app.post("/check-username", async (request, response) => {
       response.json({ status: false });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response.status(500);
     response.json({
       error_msg: "Internal Server Error! Please Try again Later",
@@ -119,7 +126,11 @@ app.post("/login", async (request, response) => {
       if (checkPassword === true) {
         const payload = { username: checkUsername.username };
         const jwt_token = jwt.sign(payload, "Anurag University");
-        response.json({ jwt_token, id: checkUsername.id });
+        response.json({
+          jwt_token,
+          id: checkUsername.id,
+          role: checkUsername.designation,
+        });
       } else {
         response.status(401).json({ error_msg: "Incorrect Password" });
       }
@@ -127,7 +138,7 @@ app.post("/login", async (request, response) => {
       response.status(401).json({ error_msg: "Username Doesn't exist" });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response.status(500).json({
       error_msg: "Internal Server Error! Please Try again Later",
     });
@@ -140,9 +151,7 @@ app.post("/forgot-password", async (request, response) => {
     const checkEmailExist = await User.findOne({ email: `${email}` });
     if (checkEmailExist !== null) {
       const token = crypto.randomBytes(32).toString("hex");
-      console.log("Token:", token);
       const created_at = new Date();
-      console.log("Expires at:", created_at);
       try {
         const newToken = new Token({
           email,
@@ -171,7 +180,7 @@ app.post("/forgot-password", async (request, response) => {
 
         transporter.sendMail(options, async (error, info) => {
           if (error) {
-            console.log(error);
+            console.error(error);
           } else {
             response.status(200).json({
               success_msg: "Please check your email for the reset link",
@@ -191,7 +200,7 @@ app.post("/forgot-password", async (request, response) => {
         .json({ error_msg: "Email Doesn't Exist! Please Check" });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response.status(500).json({
       error_msg: "Internal Server Error! Please Try again Later",
     });
@@ -208,7 +217,7 @@ app.post("/check/:token", async (request, response) => {
       response.status(400).json("Invalid URl");
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response.status(500).json({
       error_msg: "Internal Server Error! Please Try again Later",
     });
@@ -235,7 +244,7 @@ app.post("/resetPassword/:token", async (request, response) => {
       });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response.status(500).json({
       error_msg: "Internal Server Error! Please Try again Later",
     });
@@ -256,7 +265,7 @@ app.get("/profile/details/:userId", async (request, response) => {
       total_experience: getUserDetails.total_experience,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response.status(500).json({
       error_msg: "Internal Server Error! Please Try again Later",
     });
@@ -283,7 +292,7 @@ app.post("/update/profile", async (request, response) => {
     );
     response.json("Status Updated");
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response.status(500).json({
       error_msg: "Internal Server Error! Please Try again Later",
     });
@@ -299,7 +308,7 @@ app.get("/year/:userId", async (request, response) => {
     );
     response.json(getYear);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });
@@ -340,7 +349,7 @@ app.post("/academic-work-1", async (request, response) => {
 
     response.status(200).json({ message: "Data saved successfully!" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });
@@ -353,62 +362,251 @@ app.get("/academic-work-1/data/:userId", async (request, response) => {
     const getUserDetails = await AcademicWorkPartA.findOne({ userId });
     response.json(getUserDetails);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });
   }
 });
 
-app.post("/academic-work-2", upload.single("file"), async (req, res) => {
-  try {
-    console.log(req.body);
-    const editorContent = req.body.editorContent;
-    const uploadedFile = req.file;
+app.post("/academic-work-2", upload.array("files"), async (req, res) => {
+  const { userId, editorContent, deletedFiles } = req.body;
+  const files = req.files;
 
-    const data = new AcademicWorkPartB({
-      editorContent,
-      filename: uploadedFile.filename,
-      mimetype: uploadedFile.mimetype,
-      size: uploadedFile.size,
+  try {
+    let academicWork = await AcademicWorkPartB.findOne({ userId });
+
+    if (deletedFiles && deletedFiles.length > 0) {
+      const deletedFilesArray = Array.isArray(deletedFiles)
+        ? deletedFiles
+        : [deletedFiles];
+      for (const fileId of deletedFilesArray) {
+        try {
+          await gridFSBucket.delete(new mongoose.Types.ObjectId(fileId));
+        } catch (err) {
+          console.error(`Error deleting file with ID: ${fileId}`, err);
+        }
+      }
+    }
+
+    const fileUploadPromises = files.map((file) => {
+      const readableStream = new Readable();
+      readableStream.push(file.buffer);
+      readableStream.push(null);
+      return new Promise((resolve, reject) => {
+        const uploadStream = gridFSBucket.openUploadStream(file.originalname, {
+          contentType: file.mimetype,
+        });
+
+        readableStream
+          .pipe(uploadStream)
+          .on("error", reject)
+          .on("finish", () => {
+            resolve({
+              filename: file.originalname,
+              mimetype: file.mimetype,
+              fileId: uploadStream.id,
+            });
+          });
+      });
     });
 
-    await data.save();
+    const fileData = await Promise.all(fileUploadPromises);
 
-    res
-      .status(200)
-      .json({ message: "File and editor content uploaded successfully" });
+    if (academicWork) {
+      academicWork.editorContent = editorContent;
+      if (Array.isArray(deletedFiles)) {
+        academicWork.files = academicWork.files.filter(
+          (file) => !deletedFiles.includes(file.fileId.toString()),
+        );
+      }
+      academicWork.files.push(...fileData);
+      await academicWork.save();
+    } else {
+      academicWork = new AcademicWorkPartB({
+        userId,
+        editorContent,
+        files: fileData,
+      });
+      await academicWork.save();
+    }
+
+    res.json({ message: "Data saved successfully", data: academicWork });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Upload failed" });
+    console.error("Error saving data:", error);
+    res.status(500).json({ message: "Error saving data" });
   }
 });
 
-app.post("/rdConfo", async (request, response) => {
+app.get("/academic-work-2/data/:userId", async (req, res) => {
   try {
-    const { userId, possesPhD, registerPhD, receivedPhd, tableData } =
-      request.body;
+    const { userId } = req.params;
+    const academicWork = await AcademicWorkPartB.findOne({ userId });
+
+    if (academicWork) {
+      const filePromises = academicWork.files.map((file) => {
+        return new Promise((resolve, reject) => {
+          try {
+            const fileStream = gfs.openDownloadStream(file.fileId);
+            let fileBuffer = Buffer.from([]);
+            fileStream.on("data", (chunk) => {
+              fileBuffer = Buffer.concat([fileBuffer, chunk]);
+            });
+
+            fileStream.on("end", () => {
+              resolve({
+                ...file.toObject(),
+                fileContent: fileBuffer.toString("base64"),
+              });
+            });
+
+            fileStream.on("error", (error) => {
+              console.error(
+                `Error downloading file with ID: ${file.fileId}`,
+                error,
+              );
+              reject(error);
+            });
+          } catch (error) {
+            console.error(
+              `Error opening download stream for file with ID: ${file.fileId}`,
+              error,
+            );
+            reject(error);
+          }
+        });
+      });
+
+      const filesData = await Promise.allSettled(filePromises);
+      const successfulFiles = filesData
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+
+      res.status(200).json({
+        academicWork: {
+          editorContent: academicWork.editorContent,
+          files: successfulFiles,
+        },
+      });
+    } else {
+      res.status(200).json({
+        academicWork: {
+          editorContent: "",
+          files: [],
+        },
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to retrieve data" });
+  }
+});
+
+app.get("/files/:fileId", async (req, res) => {
+  const { fileId } = req.params;
+  try {
+    const file = await gfs
+      .find({ _id: new mongoose.Types.ObjectId(fileId) })
+      .toArray();
+
+    if (!file || file.length === 0) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.set("Content-Type", file[0].contentType);
+    const readStream = gfs.openDownloadStream(
+      new mongoose.Types.ObjectId(fileId),
+    );
+    readStream.pipe(res);
+  } catch (error) {
+    console.error(`Error retrieving file with ID: ${fileId}`, error);
+    res.status(500).json({ message: "Error retrieving file" });
+  }
+});
+
+app.post("/rdConfo", upload.array("files"), async (req, res) => {
+  try {
+    const { userId, possesPhD, registerPhD, receivedPhd, tableData } = req.body;
+    let { deletedFiles } = req.body;
+    const files = req.files;
+    let parsedTableData;
+    if (typeof tableData === "string") {
+      try {
+        parsedTableData = JSON.parse(tableData);
+      } catch (err) {
+        console.error("Error parsing tableData:", err);
+        return res.status(400).json({ message: "Invalid tableData format" });
+      }
+    } else {
+      parsedTableData = tableData;
+    }
+
+    if (deletedFiles && deletedFiles.length > 0) {
+      const deletedFilesArray = Array.isArray(deletedFiles)
+        ? deletedFiles
+        : [deletedFiles];
+      for (const fileId of deletedFilesArray) {
+        try {
+          await gridFSBucket.delete(new mongoose.Types.ObjectId(fileId));
+        } catch (err) {
+          return res.status(500).json({ message: "Error deleting file" });
+        }
+      }
+    }
+
+    const fileUploadPromises = files.map((file) => {
+      const readableStream = new Readable();
+      readableStream.push(file.buffer);
+      readableStream.push(null);
+      return new Promise((resolve, reject) => {
+        const uploadStream = gridFSBucket.openUploadStream(file.originalname, {
+          contentType: file.mimetype,
+        });
+
+        readableStream
+          .pipe(uploadStream)
+          .on("error", reject)
+          .on("finish", () => {
+            resolve({
+              filename: file.originalname,
+              mimetype: file.mimetype,
+              fileId: uploadStream.id,
+            });
+          });
+      });
+    });
+
+    const fileData = await Promise.all(fileUploadPromises);
+
     const existingData = await PhdConformation.findOne({ userId });
     if (existingData) {
+      existingData.possesPhD = possesPhD;
       existingData.registerPhD = registerPhD;
       existingData.receivedPhd = receivedPhd;
-      existingData.phDDetails = tableData;
-      const res = await existingData.save();
+      existingData.phDDetails = parsedTableData;
+      if (Array.isArray(deletedFiles)) {
+        existingData.files = existingData.files.filter(
+          (file) => !deletedFiles.includes(file.fileId.toString()),
+        );
+      }
+      existingData.files.push(...fileData);
+      await existingData.save();
     } else {
       const newPhdConformationData = new PhdConformation({
         userId,
         possesPhD,
         registerPhD,
         receivedPhd,
-        phDDetails: tableData,
+        phDDetails: parsedTableData,
+        files: fileData,
       });
-
-      const res = await newPhdConformationData.save();
+      await newPhdConformationData.save();
     }
-    response.json("Saved Successfully");
+
+    res.json({ message: "Data saved successfully" });
   } catch (error) {
-    console.log(error);
-    response
+    console.error(error);
+    res
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });
   }
@@ -418,33 +616,154 @@ app.get("/rdConfo/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
     const getPhdConformationDetails = await PhdConformation.findOne({ userId });
-    response.json(getPhdConformationDetails);
+
+    if (getPhdConformationDetails) {
+      const filePromises = getPhdConformationDetails.files.map((file) => {
+        return new Promise((resolve, reject) => {
+          try {
+            const fileStream = gfs.openDownloadStream(file.fileId);
+            let fileBuffer = Buffer.from([]);
+            fileStream.on("data", (chunk) => {
+              fileBuffer = Buffer.concat([fileBuffer, chunk]);
+            });
+
+            fileStream.on("end", () => {
+              resolve({
+                ...file.toObject(),
+                fileContent: fileBuffer.toString("base64"),
+              });
+            });
+
+            fileStream.on("error", (error) => {
+              console.error(
+                `Error downloading file with ID: ${file.fileId}`,
+                error,
+              );
+              reject(error);
+            });
+          } catch (error) {
+            console.error(
+              `Error opening download stream for file with ID: ${file.fileId}`,
+              error,
+            );
+            reject(error);
+          }
+        });
+      });
+
+      const filesData = await Promise.allSettled(filePromises);
+      const successfulFiles = filesData
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+
+      response.status(200).json({
+        phdConformation: {
+          phDDetails: getPhdConformationDetails.phDDetails,
+          possesPhD: getPhdConformationDetails.possesPhD,
+          receivedPhd: getPhdConformationDetails.receivedPhd,
+          registerPhD: getPhdConformationDetails.registerPhD,
+          files: successfulFiles,
+        },
+      });
+    } else {
+      response.status(200).json({
+        phdConformation: {
+          phDDetails: getPhdConformationDetails.phDDetails,
+          possesPhD: getPhdConformationDetails.possesPhD,
+          receivedPhd: getPhdConformationDetails.receivedPhd,
+          registerPhD: getPhdConformationDetails.registerPhD,
+          files: successfulFiles,
+        },
+      });
+    }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });
   }
 });
 
-app.post("/RD/PartB", async (request, response) => {
+app.post("/RD/PartB", upload.array("files"), async (request, response) => {
   try {
     const { userId, tableData } = request.body;
+    let { deletedFiles } = request.body;
+    const files = request.files;
+    let parsedTableData;
+
+    // Parse tableData if it is a string
+    if (typeof tableData === "string") {
+      try {
+        parsedTableData = JSON.parse(tableData);
+      } catch (err) {
+        console.error("Error parsing tableData:", err);
+        return response
+          .status(400)
+          .json({ message: "Invalid tableData format" });
+      }
+    } else {
+      parsedTableData = tableData;
+    }
+
+    if (deletedFiles && deletedFiles.length > 0) {
+      const deletedFilesArray = Array.isArray(deletedFiles)
+        ? deletedFiles
+        : [deletedFiles];
+      for (const fileId of deletedFilesArray) {
+        try {
+          await gridFSBucket.delete(new mongoose.Types.ObjectId(fileId));
+        } catch (err) {
+          return res.status(500).json({ message: "Error deleting file" });
+        }
+      }
+    }
+
+    const fileUploadPromises = files.map((file) => {
+      const readableStream = new Readable();
+      readableStream.push(file.buffer);
+      readableStream.push(null);
+      return new Promise((resolve, reject) => {
+        const uploadStream = gridFSBucket.openUploadStream(file.originalname, {
+          contentType: file.mimetype,
+        });
+
+        readableStream
+          .pipe(uploadStream)
+          .on("error", reject)
+          .on("finish", () => {
+            resolve({
+              filename: file.originalname,
+              mimetype: file.mimetype,
+              fileId: uploadStream.id,
+            });
+          });
+      });
+    });
+
+    const fileData = await Promise.all(fileUploadPromises);
     const existingData = await ResearchAndDevelopmentPartB.findOne({ userId });
+
     if (existingData) {
-      existingData.presentation_data = tableData;
+      existingData.presentation_data = parsedTableData; // Use parsed table data
+      if (Array.isArray(deletedFiles)) {
+        existingData.files = existingData.files.filter(
+          (file) => !deletedFiles.includes(file.fileId.toString()),
+        );
+      }
+      existingData.files = existingData.files || [];
+      existingData.files.push(...fileData);
       await existingData.save();
     } else {
       const newResearchAndDevelopmentPartB = new ResearchAndDevelopmentPartB({
         userId,
-        presentation_data: tableData,
+        presentation_data: parsedTableData, // Use parsed table data
+        files: fileData,
       });
-      const res = await newResearchAndDevelopmentPartB.save();
+      await newResearchAndDevelopmentPartB.save();
     }
-    response.status(200).json({ success_msg: "Successfully Saved1" });
-    console.log("Success");
+    response.status(200).json({ success_msg: "Successfully Saved" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });
@@ -454,35 +773,152 @@ app.post("/RD/PartB", async (request, response) => {
 app.get("/RD/PartB/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
-    const ResearchAndDevelopmentPartBDetails =
+    const researchAndDevelopmentPartBDetails =
       await ResearchAndDevelopmentPartB.findOne({ userId });
-    response.json(ResearchAndDevelopmentPartBDetails);
+    if (researchAndDevelopmentPartBDetails) {
+      const filePromises = researchAndDevelopmentPartBDetails.files.map(
+        (file) => {
+          return new Promise((resolve, reject) => {
+            try {
+              const fileStream = gfs.openDownloadStream(file.fileId);
+              let fileBuffer = Buffer.from([]);
+              fileStream.on("data", (chunk) => {
+                fileBuffer = Buffer.concat([fileBuffer, chunk]);
+              });
+
+              fileStream.on("end", () => {
+                resolve({
+                  ...file.toObject(),
+                  fileContent: fileBuffer.toString("base64"),
+                });
+              });
+
+              fileStream.on("error", (error) => {
+                console.error(
+                  `Error downloading file with ID: ${file.fileId}`,
+                  error,
+                );
+                reject(error);
+              });
+            } catch (error) {
+              console.error(
+                `Error opening download stream for file with ID: ${file.fileId}`,
+                error,
+              );
+              reject(error);
+            }
+          });
+        },
+      );
+
+      const filesData = await Promise.allSettled(filePromises);
+      const successfulFiles = filesData
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+
+      response.status(200).json({
+        phdPartB: {
+          presentation_data:
+            researchAndDevelopmentPartBDetails.presentation_data,
+          files: successfulFiles,
+        },
+      });
+    } else {
+      response.status(200).json({
+        phdPartB: {
+          presentation_data:
+            researchAndDevelopmentPartBDetails.presentation_data,
+          files: successfulFiles,
+        },
+      });
+    }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });
   }
 });
 
-app.post("/RD/PartC", async (request, response) => {
+app.post("/RD/PartC", upload.array("files"), async (request, response) => {
   try {
     const { userId, tableData } = request.body;
+    let { deletedFiles } = request.body;
+    const files = request.files;
+    let parsedTableData;
+
+    // Parse tableData if it is a string
+    if (typeof tableData === "string") {
+      try {
+        parsedTableData = JSON.parse(tableData);
+      } catch (err) {
+        console.error("Error parsing tableData:", err);
+        return response
+          .status(400)
+          .json({ message: "Invalid tableData format" });
+      }
+    } else {
+      parsedTableData = tableData;
+    }
+
+    if (deletedFiles && deletedFiles.length > 0) {
+      const deletedFilesArray = Array.isArray(deletedFiles)
+        ? deletedFiles
+        : [deletedFiles];
+      for (const fileId of deletedFilesArray) {
+        try {
+          await gridFSBucket.delete(new mongoose.Types.ObjectId(fileId));
+        } catch (err) {
+          return res.status(500).json({ message: "Error deleting file" });
+        }
+      }
+    }
+
+    const fileUploadPromises = files.map((file) => {
+      const readableStream = new Readable();
+      readableStream.push(file.buffer);
+      readableStream.push(null);
+      return new Promise((resolve, reject) => {
+        const uploadStream = gridFSBucket.openUploadStream(file.originalname, {
+          contentType: file.mimetype,
+        });
+
+        readableStream
+          .pipe(uploadStream)
+          .on("error", reject)
+          .on("finish", () => {
+            resolve({
+              filename: file.originalname,
+              mimetype: file.mimetype,
+              fileId: uploadStream.id,
+            });
+          });
+      });
+    });
+
+    const fileData = await Promise.all(fileUploadPromises);
     const existingData = await ResearchAndDevelopmentPartC.findOne({ userId });
     if (existingData) {
-      existingData.projects_data = tableData;
+      existingData.projects_data = parsedTableData;
+      if (Array.isArray(deletedFiles)) {
+        existingData.files = existingData.files.filter(
+          (file) => !deletedFiles.includes(file.fileId.toString()),
+        );
+      }
+      existingData.files = existingData.files || [];
+      existingData.files.push(...fileData);
       await existingData.save();
     } else {
       const newResearchAndDevelopmentPartC = new ResearchAndDevelopmentPartC({
         userId,
-        projects_data: tableData,
+        projects_data: parsedTableData, // Use parsed table data
+        files: fileData,
       });
       const res = await newResearchAndDevelopmentPartC.save();
     }
     response.status(200).json({ success_msg: "Successfully Saved1" });
-    console.log("Success");
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });
@@ -492,11 +928,65 @@ app.post("/RD/PartC", async (request, response) => {
 app.get("/RD/PartC/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
-    const ResearchAndDevelopmentPartCDetails =
+    const researchAndDevelopmentPartCDetails =
       await ResearchAndDevelopmentPartC.findOne({ userId });
-    response.json(ResearchAndDevelopmentPartCDetails);
+    if (researchAndDevelopmentPartCDetails) {
+      const filePromises = researchAndDevelopmentPartCDetails.files.map(
+        (file) => {
+          return new Promise((resolve, reject) => {
+            try {
+              const fileStream = gfs.openDownloadStream(file.fileId);
+              let fileBuffer = Buffer.from([]);
+              fileStream.on("data", (chunk) => {
+                fileBuffer = Buffer.concat([fileBuffer, chunk]);
+              });
+
+              fileStream.on("end", () => {
+                resolve({
+                  ...file.toObject(),
+                  fileContent: fileBuffer.toString("base64"),
+                });
+              });
+
+              fileStream.on("error", (error) => {
+                console.error(
+                  `Error downloading file with ID: ${file.fileId}`,
+                  error,
+                );
+                reject(error);
+              });
+            } catch (error) {
+              console.error(
+                `Error opening download stream for file with ID: ${file.fileId}`,
+                error,
+              );
+              reject(error);
+            }
+          });
+        },
+      );
+
+      const filesData = await Promise.allSettled(filePromises);
+      const successfulFiles = filesData
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+
+      response.status(200).json({
+        phdPartB: {
+          projects_data: researchAndDevelopmentPartCDetails.projects_data,
+          files: successfulFiles,
+        },
+      });
+    } else {
+      response.status(200).json({
+        phdPartB: {
+          projects_data: researchAndDevelopmentPartCDetails.projects_data,
+          files: successfulFiles,
+        },
+      });
+    }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     response
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });

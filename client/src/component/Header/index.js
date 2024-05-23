@@ -1,15 +1,42 @@
+import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import {
   LoginButtonContainer,
-  LogoutButton,
   MainNavContainer,
   NavImage,
+  ProfileButton,
+  ProfileIcon,
+  Dropdown,
+  DropdownList,
+  DropdownItem,
 } from "./StyledComponents";
 import logo from "../Images/AU LOGO.png";
 
 const Header = () => {
   const navigate = useNavigate();
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+
+  const handleProfileClick = () => {
+    setIsDropdownVisible(!isDropdownVisible);
+  };
+
+  const handleOutsideClick = (e) => {
+    if (e.target.closest(".dropdown-container")) return;
+    setIsDropdownVisible(false);
+  };
+
+  useEffect(() => {
+    if (isDropdownVisible) {
+      document.addEventListener("click", handleOutsideClick);
+    } else {
+      document.removeEventListener("click", handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, [isDropdownVisible]);
 
   const onClickLogout = () => {
     Cookies.remove("jwt_token");
@@ -19,10 +46,18 @@ const Header = () => {
   return (
     <MainNavContainer className="shadow">
       <NavImage src={logo} alt="Anurag University" />
-      <LoginButtonContainer>
-        <LogoutButton onClick={onClickLogout} className="btn btn-secondary">
-          Logout
-        </LogoutButton>
+      <LoginButtonContainer className="dropdown-container">
+        <ProfileButton onClick={handleProfileClick}>
+          <ProfileIcon />
+        </ProfileButton>
+        {isDropdownVisible && (
+          <Dropdown>
+            <DropdownList>
+              <DropdownItem>Profile</DropdownItem>
+              <DropdownItem onClick={onClickLogout}>Logout</DropdownItem>
+            </DropdownList>
+          </Dropdown>
+        )}
       </LoginButtonContainer>
     </MainNavContainer>
   );

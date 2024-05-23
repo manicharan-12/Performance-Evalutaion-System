@@ -1,10 +1,16 @@
-import Back from "../../Back";
-import React, { useEffect, useState } from "react";
-import Header from "../../Header";
+import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDropzone } from "react-dropzone";
 import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
-import failure from "../../Images/failure view.png";
-import { useNavigate } from "react-router-dom";
+import { TiDelete } from "react-icons/ti";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import Back from "../../Back";
+import Header from "../../Header";
+import failureImage from "../../Images/failure view.png";
+import EditableValue from "../../EditableValue";
 import {
   HomeMainContainer,
   MainContainer,
@@ -26,8 +32,14 @@ import {
   SaveNextButtonContainer,
   SelectEle,
   OptionEle,
+  FileContainer,
+  StyledDropzone,
+  UnorderedList,
+  ListItems,
+  SpanEle,
+  DeleteButton,
+  InputFile,
 } from "./StyledComponents";
-import EditableValue from "../../EditableValue";
 
 const apiStatusConstants = {
   initial: "INITIAL",
@@ -39,20 +51,15 @@ const apiStatusConstants = {
 const RDPartA = () => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [year, setYear] = useState("");
+  const [files, setFiles] = useState([]);
+  const [deletedFiles, setDeletedFiles] = useState([]);
   const [tableData, setTableData] = useState([
     {
-      articleTitle: "Hello World",
+      articleTitle: "",
       journalName: "",
       indexedIn: "",
       dateOfPublication: "",
-      OneOrCorrespondingAuthor: "",
-      apiScore: "",
-    },
-    {
-      articleTitle: "",
-      indexedIn: "",
-      dateOfPublication: "",
-      OneOrCorrespondingAuthor: "",
+      oneOrCorrespondingAuthor: "",
       apiScore: "",
     },
   ]);
@@ -60,13 +67,12 @@ const RDPartA = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchYear() {
+    const fetchYear = async () => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
-        const api = "http://localhost:5000";
-        const response = await fetch(`${api}/year/${userId}`);
-        if (response.ok === true) {
+        const response = await fetch(`http://localhost:5000/year/${userId}`);
+        if (response.ok) {
           const data = await response.json();
           setYear(data.academic_year);
           setApiStatus(apiStatusConstants.success);
@@ -74,237 +80,321 @@ const RDPartA = () => {
           setApiStatus(apiStatusConstants.failure);
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setApiStatus(apiStatusConstants.failure);
       }
-    }
+    };
+
     fetchYear();
   }, []);
 
-  const handleEditArticle = (articleIndex, updatedArticle) => {
-    const updatedState = tableData.map((eachArticle, aIndex) => {
-      if (aIndex === articleIndex) {
-        return updatedArticle;
+  const onDrop = useCallback((acceptedFiles) => {
+    setFiles((prevFiles) =>
+      prevFiles.concat(
+        acceptedFiles.map((file) => ({
+          ...file,
+          preview: URL.createObjectURL(file),
+        })),
+      ),
+    );
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: "*",
+    maxSize: 50000000,
+  });
+
+  const handleOpenInNewTab = async (fileId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/files/${fileId}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, "_blank");
+        window.URL.revokeObjectURL(url);
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to open file: ${errorData.message}`);
       }
-      return eachArticle;
-    });
-    setTableData(updatedState);
+    } catch (error) {
+      console.error("Error opening file:", error);
+      toast.error(
+        "An error occurred while opening the file. Please try again.",
+        {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        },
+      );
+    }
   };
 
-  const handleSelectOption = (event, articles, articlesIndex) => {
-    const updatedTableData = [...tableData];
-    updatedTableData[articlesIndex].indexedIn = event.target.value;
-    setTableData(updatedTableData);
+  const handleDeleteFile = (fileId) => {
+    setFiles((prevFiles) => prevFiles.filter((file) => file.fileId !== fileId));
+    setDeletedFiles((prevDeletedFiles) => prevDeletedFiles.concat(fileId));
+  };
+
+  const handleEditArticle = (articleIndex, updatedArticle) => {
+    setTableData((prevData) =>
+      prevData.map((article, index) =>
+        index === articleIndex ? updatedArticle : article,
+      ),
+    );
+  };
+
+  const handleSelectOption = (event, articleIndex) => {
+    const { value } = event.target;
+    setTableData((prevData) =>
+      prevData.map((article, index) =>
+        index === articleIndex ? { ...article, indexedIn: value } : article,
+      ),
+    );
   };
 
   const handleAddArticle = () => {
-    const newArticle = {
-      articleTitle: "",
-      indexedIn: "",
-      dateOfPublication: "",
-      OneOrCorrespondingAuthor: "",
-      apiScore: "",
-    };
-    setTableData([...tableData, newArticle]);
+    setTableData((prevData) => [
+      ...prevData,
+      {
+        articleTitle: "",
+        journalName: "",
+        indexedIn: "",
+        dateOfPublication: "",
+        oneOrCorrespondingAuthor: "",
+        apiScore: "",
+      },
+    ]);
   };
 
   const handleDeleteArticle = () => {
-    const articleIndex = tableData.length - 1;
-    const newTableData = tableData.filter((_, index) => index !== articleIndex);
-    setTableData(newTableData);
+    setTableData((prevData) => prevData.slice(0, -1));
   };
 
-  const submitRDPartA = () => {
+  const submitRDPartA = async () => {
     try {
+      const formData = new FormData();
+      const userId = Cookies.get("user_id");
+      formData.append("userId", userId);
+      formData.append("tableData", JSON.stringify(tableData));
+      files.forEach((file) => {
+        if (!file.fileId) {
+          formData.append("files", file);
+        }
+      });
+      deletedFiles.forEach((fileId) => {
+        formData.append("deletedFiles", fileId);
+      });
       navigate("/research-and-development/partB");
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error submitting RD Part A:", error);
+      toast.error("An error occurred during submission. Please try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+    }
   };
 
-  const renderLoadingView = () => {
-    return (
-      <LoaderContainer data-testid="loader">
-        <ThreeDots
-          visible={true}
-          height="50"
-          width="50"
-          color="#0b69ff"
-          radius="9"
-          ariaLabel="three-dots-loading"
-          wrapperStyle={{}}
-          wrapperClass=""
-        />
-      </LoaderContainer>
-    );
-  };
+  const renderLoadingView = () => (
+    <LoaderContainer data-testid="loader">
+      <ThreeDots
+        visible={true}
+        height="50"
+        width="50"
+        color="#0b69ff"
+        radius="9"
+        ariaLabel="three-dots-loading"
+        wrapperStyle={{}}
+      />
+    </LoaderContainer>
+  );
 
-  const renderSuccessView = () => {
-    return (
-      <>
-        <SubSectionHeadingContainer>
-          <SubSectionHeading>
-            a. Details of Research Publications (Articles/Book
-            chapters/Books/Patents) in {year}:
-          </SubSectionHeading>
-        </SubSectionHeadingContainer>
-        <ParagraphContainer className="mt-3">
-          <Paragraph>
-            The section summarizes the Research Publications of the candidate
-            which will earn up to a maximum of ten points. For each article
-            publication indexed in Web of Science (WoS) carries five points,
-            Scopus carries three points, UGC publication carries one point, Book
-            Chapter carries one point, Book publication carries two points,
-            Patent Grant carries four points and Patent publication carries two
-            points. Furnish the documentary evidence (Proof of index in WoS /
-            Scopus / Patent / Book Chapter) of your claims.
-          </Paragraph>
-        </ParagraphContainer>
-        <TableContainer className="mt-3">
-          <Table>
-            <TableMainHead>
-              <TableRow>
-                <TableHead>Article title</TableHead>
-                <TableHead>Journal name with ISSN/ISBN No.</TableHead>
-                <TableHead>Indexed in? (WoS, Scopus, UGC approved)</TableHead>
-                <TableHead>Date of Publication</TableHead>
-                <TableHead>
-                  Whether you are the 1st or corresponding author?
-                </TableHead>
-                <TableHead>API Score (Max.15)</TableHead>
+  const renderSuccessView = () => (
+    <>
+      <SubSectionHeadingContainer>
+        <SubSectionHeading>
+          a. Details of Research Publications (Articles/Book
+          chapters/Books/Patents) in {year}:
+        </SubSectionHeading>
+      </SubSectionHeadingContainer>
+      <ParagraphContainer className="mt-3">
+        <Paragraph>
+          The section summarizes the Research Publications of the candidate
+          which will earn up to a maximum of ten points. For each article
+          publication indexed in Web of Science (WoS) carries five points,
+          Scopus carries three points, UGC publication carries one point, Book
+          Chapter carries one point, Book publication carries two points, Patent
+          Grant carries four points and Patent publication carries two points.
+          Furnish the documentary evidence (Proof of index in WoS / Scopus /
+          Patent / Book Chapter) of your claims.
+        </Paragraph>
+      </ParagraphContainer>
+      <TableContainer className="mt-3">
+        <Table>
+          <TableMainHead>
+            <TableRow>
+              <TableHead>Article title</TableHead>
+              <TableHead>Journal name with ISSN/ISBN No.</TableHead>
+              <TableHead>Indexed in? (WoS, Scopus, UGC approved)</TableHead>
+              <TableHead>Date of Publication</TableHead>
+              <TableHead>
+                Whether you are the 1st or corresponding author?
+              </TableHead>
+              <TableHead>API Score (Max.15)</TableHead>
+            </TableRow>
+          </TableMainHead>
+          <TableBody>
+            {tableData.map((article, index) => (
+              <TableRow key={index}>
+                <TableData>
+                  <EditableValue
+                    value={article.articleTitle || ""}
+                    onValueChange={(newValue) =>
+                      handleEditArticle(index, {
+                        ...article,
+                        articleTitle: newValue,
+                      })
+                    }
+                    validate={(input) => /^[A-Za-z\s]+$/.test(input)}
+                    type="text"
+                  />
+                </TableData>
+                <TableData>
+                  <EditableValue
+                    value={article.journalName || ""}
+                    onValueChange={(newValue) =>
+                      handleEditArticle(index, {
+                        ...article,
+                        journalName: newValue,
+                      })
+                    }
+                    validate={(input) => /^[A-Za-z\s]+$/.test(input)}
+                    type="text"
+                  />
+                </TableData>
+                <TableData>
+                  <SelectEle
+                    value={article.indexedIn || ""}
+                    onChange={(event) => handleSelectOption(event, index)}
+                  >
+                    <OptionEle value="">Select an Option</OptionEle>
+                    <OptionEle value="wos">WoS</OptionEle>
+                    <OptionEle value="scopus">Scopus</OptionEle>
+                    <OptionEle value="ugc">UGC</OptionEle>
+                  </SelectEle>
+                </TableData>
+                <TableData>
+                  <EditableValue
+                    value={article.dateOfPublication || ""}
+                    onValueChange={(newValue) =>
+                      handleEditArticle(index, {
+                        ...article,
+                        dateOfPublication: newValue,
+                      })
+                    }
+                    validate={(input) => /^[A-Za-z\s]+$/.test(input)}
+                    type="text"
+                  />
+                </TableData>
+                <TableData>
+                  <EditableValue
+                    value={article.oneOrCorrespondingAuthor || ""}
+                    onValueChange={(newValue) =>
+                      handleEditArticle(index, {
+                        ...article,
+                        oneOrCorrespondingAuthor: newValue,
+                      })
+                    }
+                    validate={(input) => /^[A-Za-z\s]+$/.test(input)}
+                    type="text"
+                  />
+                </TableData>
+                <TableData>{article.apiScore}</TableData>
               </TableRow>
-            </TableMainHead>
-            <TableBody>
-              {tableData.map((articles, articlesIndex) => {
-                return (
-                  <TableRow key={articlesIndex}>
-                    <TableData>
-                      <EditableValue
-                        value={articles.articleTitle || ""}
-                        onValueChange={(newValue) =>
-                          handleEditArticle(articlesIndex, {
-                            ...articles,
-                            articleTitle: newValue,
-                          })
-                        }
-                        validate={(input) => /^[A-Za-z\s]+$/.test(input)}
-                        type="text"
-                        disabled={false}
-                      />
-                    </TableData>
-                    <TableData>
-                      <EditableValue
-                        value={articles.journalName || ""}
-                        onValueChange={(newValue) =>
-                          handleEditArticle(articlesIndex, {
-                            ...articles,
-                            journalName: newValue,
-                          })
-                        }
-                        validate={(input) => /^[A-Za-z\s]+$/.test(input)}
-                        type="text"
-                        disabled={false}
-                      />
-                    </TableData>
-                    <TableData>
-                      <SelectEle
-                        defaultValue={articles.indexedIn || ""}
-                        onChange={(event) =>
-                          handleSelectOption(event, articles, articlesIndex)
-                        }
-                        validate={(input) => true}
-                        className="form-control w-100"
-                      >
-                        <OptionEle value="">Select an Option</OptionEle>
-                        <OptionEle value="wos">WoS</OptionEle>
-                        <OptionEle value="scopus">Scopus</OptionEle>
-                        <OptionEle value="ugc">UGC</OptionEle>
-                      </SelectEle>
-                    </TableData>
-                    <TableData>
-                      <EditableValue
-                        value={articles.dateOfPublication || ""}
-                        onValueChange={(newValue) =>
-                          handleEditArticle(articlesIndex, {
-                            ...articles,
-                            dateOfPublication: newValue,
-                          })
-                        }
-                        validate={(input) => /^[A-Za-z\s]+$/.test(input)}
-                        type="text"
-                        disabled={false}
-                      />
-                    </TableData>
-                    <TableData>
-                      <EditableValue
-                        value={articles.OneOrCorrespondingAuthor || ""}
-                        onValueChange={(newValue) =>
-                          handleEditArticle(articlesIndex, {
-                            ...articles,
-                            OneOrCorrespondingAuthor: newValue,
-                          })
-                        }
-                        validate={(input) => /^[A-Za-z\s]+$/.test(input)}
-                        type="text"
-                        disabled={false}
-                      />
-                    </TableData>
-                    <TableData>{articles.apiScore}</TableData>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+            ))}
+          </TableBody>
+        </Table>
+        <SaveNextButton
+          onClick={handleAddArticle}
+          className="btn btn-primary mt-3 mr-3"
+        >
+          Add Article
+        </SaveNextButton>
+        {tableData.length > 1 && (
           <SaveNextButton
-            onClick={handleAddArticle}
-            className="btn btn-primary mt-3 mr-3"
+            onClick={handleDeleteArticle}
+            className="btn btn-danger mt-3"
           >
-            Add Article
+            Delete Last Article
           </SaveNextButton>
-          {tableData.length > 1 && (
-            <SaveNextButton
-              onClick={() => handleDeleteArticle(tableData.length - 1)}
-              className="btn btn-danger mt-3"
-            >
-              Delete Last Article
-            </SaveNextButton>
+        )}
+      </TableContainer>
+      <FileContainer className="mt-4">
+        <SubSectionHeading>
+          Submit the documentary evidences below
+        </SubSectionHeading>
+        <StyledDropzone {...getRootProps({ isDragActive })}>
+          <InputFile {...getInputProps()} />
+          {isDragActive ? (
+            <>
+              <Paragraph>Drop the files here...</Paragraph>
+              <Paragraph>(Max File size is 50mb)</Paragraph>
+            </>
+          ) : (
+            <>
+              <Paragraph>
+                Drag or drop some files here, or click to select files
+              </Paragraph>
+              <Paragraph>(Max File size is 50mb)</Paragraph>
+            </>
           )}
-        </TableContainer>
-        <SaveNextButtonContainer className="mt-3">
-          <SaveNextButton
-            className="btn btn-primary"
-            type="submit"
-            onClick={submitRDPartA}
-          >
-            Save & Next
-          </SaveNextButton>
-        </SaveNextButtonContainer>
-      </>
-    );
-  };
+        </StyledDropzone>
+        <UnorderedList className="mt-3">
+          {files.map((file, index) => (
+            <ListItems key={index}>
+              <SpanEle onClick={() => handleOpenInNewTab(file.fileId)}>
+                {file.filename || file.name}
+              </SpanEle>
+              <DeleteButton onClick={() => handleDeleteFile(file.fileId)}>
+                <TiDelete />
+              </DeleteButton>
+            </ListItems>
+          ))}
+        </UnorderedList>
+      </FileContainer>
+      <SaveNextButtonContainer className="mt-3">
+        <SaveNextButton className="btn btn-primary" onClick={submitRDPartA}>
+          Save & Next
+        </SaveNextButton>
+      </SaveNextButtonContainer>
+    </>
+  );
 
-  const renderFailureView = () => {
-    return (
-      <>
-        <FailureContainer>
-          <FailureImage src={failure} />
-          <SubSectionHeading className="mt-4">
-            Failed to load Data. Retry Again!
-          </SubSectionHeading>
-        </FailureContainer>
-      </>
-    );
-  };
+  const renderFailureView = () => (
+    <FailureContainer>
+      <FailureImage src={failureImage} alt="failure" />
+      <SubSectionHeading className="mt-4">
+        Failed to load Data. Retry Again!
+      </SubSectionHeading>
+    </FailureContainer>
+  );
+
   const renderRDPartAPage = () => {
     switch (apiStatus) {
       case apiStatusConstants.inProgress:
         return renderLoadingView();
-
       case apiStatusConstants.success:
         return renderSuccessView();
-
       case apiStatusConstants.failure:
         return renderFailureView();
       default:
-        break;
+        return null;
     }
   };
 
@@ -315,6 +405,18 @@ const RDPartA = () => {
         <Back />
         {renderRDPartAPage()}
       </MainContainer>
+      <ToastContainer
+        position="bottom-center"
+        autoClose={7000}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover={false}
+        theme="light"
+      />
     </HomeMainContainer>
   );
 };

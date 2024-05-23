@@ -33,6 +33,14 @@ const phdConformationSchema = new Schema({
       received: { type: String },
     },
   },
+  files: [
+    {
+      filename: { type: String, required: true },
+      mimetype: { type: String, required: true },
+      fileId: { type: mongoose.Schema.Types.ObjectId, required: true },
+      fileContent: { type: String },
+    },
+  ],
 });
 
 module.exports = mongoose.model("PhdConformation", phdConformationSchema);
