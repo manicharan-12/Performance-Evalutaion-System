@@ -43,9 +43,17 @@ const Header = () => {
     navigate("/");
   };
 
+  const onClickProfile = () => {
+    navigate("/profile");
+  };
+
+  const onClickImage = () => {
+    navigate("/home");
+  };
+
   return (
     <MainNavContainer className="shadow">
-      <NavImage src={logo} alt="Anurag University" />
+      <NavImage src={logo} alt="Anurag University" onClick={onClickImage} />
       <LoginButtonContainer className="dropdown-container">
         <ProfileButton onClick={handleProfileClick}>
           <ProfileIcon />
@@ -53,7 +61,7 @@ const Header = () => {
         {isDropdownVisible && (
           <Dropdown>
             <DropdownList>
-              <DropdownItem>Profile</DropdownItem>
+              <DropdownItem onClick={onClickProfile}>Profile</DropdownItem>
               <DropdownItem onClick={onClickLogout}>Logout</DropdownItem>
             </DropdownList>
           </Dropdown>

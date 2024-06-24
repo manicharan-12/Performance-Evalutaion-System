@@ -13,6 +13,7 @@ const mongoose = require("mongoose");
 
 const User = require("./models/user");
 const Token = require("./models/token");
+const Form = require("./models/newForm");
 const AcademicWorkPartA = require("./models/Academic Work/partA");
 const AcademicWorkPartB = require("./models/Academic Work/partB");
 const PhdConformation = require("./models/Research And Development/rdConformation");
@@ -251,6 +252,80 @@ app.post("/resetPassword/:token", async (request, response) => {
   }
 });
 
+app.post("/add/form/:userId", async (request, response) => {
+  try {
+    const { userId } = request.params;
+    const { formName } = request.body;
+    const createForm = new Form({
+      user_id: userId,
+      formName,
+    });
+    const data = await createForm.save();
+    response.json({ formId: data._id });
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({
+      error_msg: "Internal Server Error! Please Try again Later",
+    });
+  }
+});
+
+app.get("/user/forms/:userId", async (request, response) => {
+  try {
+    const userId = request.params;
+    const getForms = await Form.find({ user_id: `${userId.userId}` });
+    response.json({ getForms });
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({
+      error_msg: "Internal Server Error! Please Try again Later",
+    });
+  }
+});
+
+app.put("/update/form/:formId", async (request, response) => {
+  try {
+    const { formId } = request.params;
+    const { formName } = request.body;
+
+    const updatedForm = await Form.findByIdAndUpdate(
+      formId,
+      { formName },
+      { new: true },
+    );
+
+    if (updatedForm) {
+      response.json({ success: true, form: updatedForm });
+    } else {
+      response.status(404).json({ error_msg: "Form not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({
+      error_msg: "Internal Server Error! Please Try again Later",
+    });
+  }
+});
+
+app.delete("/delete/form/:formId", async (request, response) => {
+  try {
+    const { formId } = request.params;
+
+    const deletedForm = await Form.findByIdAndDelete(formId);
+
+    if (deletedForm) {
+      response.json({ success: true });
+    } else {
+      response.status(404).json({ error_msg: "Form not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({
+      error_msg: "Internal Server Error! Please Try again Later",
+    });
+  }
+});
+
 app.get("/profile/details/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
@@ -302,8 +377,9 @@ app.post("/update/profile", async (request, response) => {
 app.get("/year/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
+    const { formId } = request.query;
     const getYear = await AcademicWorkPartA.findOne(
-      { userId },
+      { userId, formId },
       { academic_year: 1 },
     );
     response.json(getYear);
@@ -319,6 +395,7 @@ app.post("/academic-work-1", async (request, response) => {
   try {
     const {
       userId,
+      formId,
       tableData,
       year,
       averageResultPercentage,
@@ -327,10 +404,11 @@ app.post("/academic-work-1", async (request, response) => {
     } = request.body;
     const existingData = await AcademicWorkPartA.findOne({
       userId,
+      formId,
       academic_year: year,
     });
     if (existingData) {
-      existingData.tableData = tableData;
+      existingData.academic_work_part_a = tableData;
       existingData.averageResultPercentage = averageResultPercentage;
       existingData.averageFeedbackPercentage = averageFeedbackPercentage;
       existingData.totalApiScore = totalApiScore;
@@ -338,6 +416,7 @@ app.post("/academic-work-1", async (request, response) => {
     } else {
       const newAcademicWork = new AcademicWorkPartA({
         userId,
+        formId,
         academic_year: year,
         academic_work_part_a: tableData,
         averageResultPercentage,
@@ -359,7 +438,8 @@ app.post("/academic-work-1", async (request, response) => {
 app.get("/academic-work-1/data/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
-    const getUserDetails = await AcademicWorkPartA.findOne({ userId });
+    const { formId } = request.query;
+    const getUserDetails = await AcademicWorkPartA.findOne({ userId, formId });
     response.json(getUserDetails);
   } catch (error) {
     console.error(error);
@@ -370,11 +450,11 @@ app.get("/academic-work-1/data/:userId", async (request, response) => {
 });
 
 app.post("/academic-work-2", upload.array("files"), async (req, res) => {
-  const { userId, editorContent, deletedFiles } = req.body;
-  const files = req.files;
+  const { userId, formId, editorContent, deletedFiles } = req.body;
+  const files = req.files || [];
 
   try {
-    let academicWork = await AcademicWorkPartB.findOne({ userId });
+    let academicWork = await AcademicWorkPartB.findOne({ userId, formId });
 
     if (deletedFiles && deletedFiles.length > 0) {
       const deletedFilesArray = Array.isArray(deletedFiles)
@@ -425,6 +505,7 @@ app.post("/academic-work-2", upload.array("files"), async (req, res) => {
     } else {
       academicWork = new AcademicWorkPartB({
         userId,
+        formId,
         editorContent,
         files: fileData,
       });
@@ -441,7 +522,8 @@ app.post("/academic-work-2", upload.array("files"), async (req, res) => {
 app.get("/academic-work-2/data/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const academicWork = await AcademicWorkPartB.findOne({ userId });
+    const { formId } = req.query;
+    const academicWork = await AcademicWorkPartB.findOne({ userId, formId });
 
     if (academicWork) {
       const filePromises = academicWork.files.map((file) => {
@@ -526,10 +608,27 @@ app.get("/files/:fileId", async (req, res) => {
 
 app.post("/rdConfo", upload.array("files"), async (req, res) => {
   try {
-    const { userId, possesPhD, registerPhD, receivedPhd, tableData } = req.body;
-    let { deletedFiles } = req.body;
-    const files = req.files;
-    let parsedTableData;
+    const {
+      userId,
+      formId,
+      possesPhD,
+      registerPhD,
+      receivedPhd,
+      tableData,
+      deletedFiles,
+    } = req.body;
+
+    if (!userId || !possesPhD) {
+      return res
+        .status(400)
+        .json({ message: "userId and possesPhD are required" });
+    }
+
+    if (possesPhD !== "yes") {
+      return res.status(400).json({ message: "possesPhD must be 'yes'" });
+    }
+
+    let parsedTableData = [];
     if (typeof tableData === "string") {
       try {
         parsedTableData = JSON.parse(tableData);
@@ -538,8 +637,21 @@ app.post("/rdConfo", upload.array("files"), async (req, res) => {
         return res.status(400).json({ message: "Invalid tableData format" });
       }
     } else {
-      parsedTableData = tableData;
+      parsedTableData = tableData || [];
     }
+
+    let phdConformationData = await PhdConformation.findOne({ userId, formId });
+    if (!phdConformationData) {
+      phdConformationData = new PhdConformation({ userId, formId, possesPhD });
+    }
+
+    if (registerPhD === "yes" || receivedPhd === "yes") {
+      phdConformationData.registerPhD = registerPhD;
+      phdConformationData.receivedPhd = receivedPhd;
+    }
+
+    phdConformationData.phDDetails =
+      parsedTableData || phdConformationData.phDDetails || [];
 
     if (deletedFiles && deletedFiles.length > 0) {
       const deletedFilesArray = Array.isArray(deletedFiles)
@@ -549,15 +661,21 @@ app.post("/rdConfo", upload.array("files"), async (req, res) => {
         try {
           await gridFSBucket.delete(new mongoose.Types.ObjectId(fileId));
         } catch (err) {
+          console.error("Error deleting file:", err);
           return res.status(500).json({ message: "Error deleting file" });
         }
       }
+      phdConformationData.files = phdConformationData.files.filter(
+        (file) => !deletedFiles.includes(file.fileId.toString()),
+      );
     }
 
+    const files = req.files || [];
     const fileUploadPromises = files.map((file) => {
       const readableStream = new Readable();
       readableStream.push(file.buffer);
       readableStream.push(null);
+
       return new Promise((resolve, reject) => {
         const uploadStream = gridFSBucket.openUploadStream(file.originalname, {
           contentType: file.mimetype,
@@ -577,35 +695,13 @@ app.post("/rdConfo", upload.array("files"), async (req, res) => {
     });
 
     const fileData = await Promise.all(fileUploadPromises);
+    phdConformationData.files.push(...fileData);
 
-    const existingData = await PhdConformation.findOne({ userId });
-    if (existingData) {
-      existingData.possesPhD = possesPhD;
-      existingData.registerPhD = registerPhD;
-      existingData.receivedPhd = receivedPhd;
-      existingData.phDDetails = parsedTableData;
-      if (Array.isArray(deletedFiles)) {
-        existingData.files = existingData.files.filter(
-          (file) => !deletedFiles.includes(file.fileId.toString()),
-        );
-      }
-      existingData.files.push(...fileData);
-      await existingData.save();
-    } else {
-      const newPhdConformationData = new PhdConformation({
-        userId,
-        possesPhD,
-        registerPhD,
-        receivedPhd,
-        phDDetails: parsedTableData,
-        files: fileData,
-      });
-      await newPhdConformationData.save();
-    }
+    await phdConformationData.save();
 
     res.json({ message: "Data saved successfully" });
   } catch (error) {
-    console.error(error);
+    console.error("Error in /rdConfo route:", error);
     res
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });
@@ -615,7 +711,11 @@ app.post("/rdConfo", upload.array("files"), async (req, res) => {
 app.get("/rdConfo/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
-    const getPhdConformationDetails = await PhdConformation.findOne({ userId });
+    const { formId } = request.query;
+    const getPhdConformationDetails = await PhdConformation.findOne({
+      userId,
+      formId,
+    });
 
     if (getPhdConformationDetails) {
       const filePromises = getPhdConformationDetails.files.map((file) => {
@@ -668,11 +768,11 @@ app.get("/rdConfo/:userId", async (request, response) => {
     } else {
       response.status(200).json({
         phdConformation: {
-          phDDetails: getPhdConformationDetails.phDDetails,
-          possesPhD: getPhdConformationDetails.possesPhD,
-          receivedPhd: getPhdConformationDetails.receivedPhd,
-          registerPhD: getPhdConformationDetails.registerPhD,
-          files: successfulFiles,
+          phDDetails: "",
+          possesPhD: "",
+          receivedPhd: "",
+          registerPhD: "",
+          files: [],
         },
       });
     }
@@ -686,12 +786,11 @@ app.get("/rdConfo/:userId", async (request, response) => {
 
 app.post("/RD/PartB", upload.array("files"), async (request, response) => {
   try {
-    const { userId, tableData } = request.body;
+    const { userId, formId, tableData } = request.body;
     let { deletedFiles } = request.body;
     const files = request.files;
     let parsedTableData;
 
-    // Parse tableData if it is a string
     if (typeof tableData === "string") {
       try {
         parsedTableData = JSON.parse(tableData);
@@ -741,7 +840,10 @@ app.post("/RD/PartB", upload.array("files"), async (request, response) => {
     });
 
     const fileData = await Promise.all(fileUploadPromises);
-    const existingData = await ResearchAndDevelopmentPartB.findOne({ userId });
+    const existingData = await ResearchAndDevelopmentPartB.findOne({
+      userId,
+      formId,
+    });
 
     if (existingData) {
       existingData.presentation_data = parsedTableData; // Use parsed table data
@@ -756,6 +858,7 @@ app.post("/RD/PartB", upload.array("files"), async (request, response) => {
     } else {
       const newResearchAndDevelopmentPartB = new ResearchAndDevelopmentPartB({
         userId,
+        formId,
         presentation_data: parsedTableData, // Use parsed table data
         files: fileData,
       });
@@ -773,8 +876,9 @@ app.post("/RD/PartB", upload.array("files"), async (request, response) => {
 app.get("/RD/PartB/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
+    const { formId } = request.query;
     const researchAndDevelopmentPartBDetails =
-      await ResearchAndDevelopmentPartB.findOne({ userId });
+      await ResearchAndDevelopmentPartB.findOne({ userId, formId });
     if (researchAndDevelopmentPartBDetails) {
       const filePromises = researchAndDevelopmentPartBDetails.files.map(
         (file) => {
@@ -826,9 +930,17 @@ app.get("/RD/PartB/:userId", async (request, response) => {
     } else {
       response.status(200).json({
         phdPartB: {
-          presentation_data:
-            researchAndDevelopmentPartBDetails.presentation_data,
-          files: successfulFiles,
+          presentation_data: [
+            {
+              titleOfThePaper: "",
+              titleOfTheme: "",
+              organizedBy: "",
+              indexedIn: "",
+              noOfDays: "",
+              apiScore: "",
+            },
+          ],
+          files: [],
         },
       });
     }
@@ -842,12 +954,11 @@ app.get("/RD/PartB/:userId", async (request, response) => {
 
 app.post("/RD/PartC", upload.array("files"), async (request, response) => {
   try {
-    const { userId, tableData } = request.body;
+    const { userId, tableData, formId } = request.body;
     let { deletedFiles } = request.body;
     const files = request.files;
     let parsedTableData;
 
-    // Parse tableData if it is a string
     if (typeof tableData === "string") {
       try {
         parsedTableData = JSON.parse(tableData);
@@ -897,7 +1008,10 @@ app.post("/RD/PartC", upload.array("files"), async (request, response) => {
     });
 
     const fileData = await Promise.all(fileUploadPromises);
-    const existingData = await ResearchAndDevelopmentPartC.findOne({ userId });
+    const existingData = await ResearchAndDevelopmentPartC.findOne({
+      userId,
+      formId,
+    });
     if (existingData) {
       existingData.projects_data = parsedTableData;
       if (Array.isArray(deletedFiles)) {
@@ -911,7 +1025,8 @@ app.post("/RD/PartC", upload.array("files"), async (request, response) => {
     } else {
       const newResearchAndDevelopmentPartC = new ResearchAndDevelopmentPartC({
         userId,
-        projects_data: parsedTableData, // Use parsed table data
+        formId,
+        projects_data: parsedTableData,
         files: fileData,
       });
       const res = await newResearchAndDevelopmentPartC.save();
@@ -970,18 +1085,25 @@ app.get("/RD/PartC/:userId", async (request, response) => {
       const successfulFiles = filesData
         .filter((result) => result.status === "fulfilled")
         .map((result) => result.value);
-
       response.status(200).json({
-        phdPartB: {
+        phdPartC: {
           projects_data: researchAndDevelopmentPartCDetails.projects_data,
           files: successfulFiles,
         },
       });
     } else {
       response.status(200).json({
-        phdPartB: {
-          projects_data: researchAndDevelopmentPartCDetails.projects_data,
-          files: successfulFiles,
+        phdPartC: {
+          projects_data: [
+            {
+              titleOfTheFundingProject: "",
+              fundingAgencyDetails: "",
+              grant: "",
+              status: "",
+              apiScore: "",
+            },
+          ],
+          files: [],
         },
       });
     }

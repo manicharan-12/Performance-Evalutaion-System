@@ -5,7 +5,7 @@ import EditableValue from "../../EditableValue";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   HeadingContainer,
   SectionHeading,
@@ -29,6 +29,7 @@ import {
   FailureContainer,
   FailureImage,
 } from "./StyledComponents";
+import { toast } from "react-toastify";
 
 const apiStatusConstants = {
   initial: "INITIAL",
@@ -53,16 +54,6 @@ const AcademicWorkI = () => {
           studentFeedbackPercentage: "",
           studentFeedbackScore: "",
         },
-        {
-          name: "Course-2",
-          courseTaught: "",
-          scheduledClasses: "",
-          actualClasses: "",
-          passPercentage: "",
-          apiScoreResults: "",
-          studentFeedbackPercentage: "",
-          studentFeedbackScore: "",
-        },
       ],
     },
     {
@@ -70,16 +61,6 @@ const AcademicWorkI = () => {
       courses: [
         {
           name: "Course-1",
-          courseTaught: "",
-          scheduledClasses: "",
-          actualClasses: "",
-          passPercentage: "",
-          apiScoreResults: "",
-          studentFeedbackPercentage: "",
-          studentFeedbackScore: "",
-        },
-        {
-          name: "Course-2",
           courseTaught: "",
           scheduledClasses: "",
           actualClasses: "",
@@ -96,8 +77,10 @@ const AcademicWorkI = () => {
   const [averageFeedbackPercentage, setAverageFeedbackPercentage] = useState();
   const [totalApiScore, setTotalApiScore] = useState();
   const [disabled, setDisabled] = useState(false);
+  const [formId, setFormId] = useState("");
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const handleYearChange = (event) => {
     setYear(event.target.value);
@@ -145,26 +128,31 @@ const AcademicWorkI = () => {
   };
 
   const handleAddCourse = (semesterIndex) => {
-    const newTableData = [...tableData];
-    const currentSemester = newTableData[semesterIndex];
-    const newCourseIndex = currentSemester.courses.length + 1;
-    const newCourse = {
-      name: `Course-${newCourseIndex}`,
-      courseTaught: "",
-      scheduledClasses: "",
-      actualClasses: "",
-      passPercentage: "",
-      apiScoreResults: "",
-      studentFeedbackPercentage: "",
-      studentFeedbackScore: "",
-    };
-    currentSemester.courses.push(newCourse);
+    const newTableData = tableData.map((semester, sIndex) => {
+      if (sIndex === semesterIndex) {
+        const newCourses = [
+          ...semester.courses,
+          {
+            name: `Course-${semester.courses.length + 1}`,
+            courseTaught: "",
+            scheduledClasses: "",
+            actualClasses: "",
+            passPercentage: "",
+            apiScoreResults: "",
+            studentFeedbackPercentage: "",
+            studentFeedbackScore: "",
+          },
+        ];
+        return { ...semester, courses: newCourses };
+      }
+      return semester;
+    });
     setTableData(newTableData);
   };
 
   const handleDeleteCourse = (semesterIndex) => {
     const currentSemester = tableData[semesterIndex];
-    if (currentSemester.courses.length > 2) {
+    if (currentSemester.courses.length > 1) {
       const newTableData = [...tableData];
       currentSemester.courses.pop();
       setTableData(newTableData);
@@ -281,12 +269,14 @@ const AcademicWorkI = () => {
         const userId = Cookies.get("user_id");
         const postData = {
           userId,
+          formId,
           tableData,
           year,
           averageResultPercentage,
           averageFeedbackPercentage,
           totalApiScore,
         };
+        console.log(tableData);
         const api = "http://localhost:5000";
         const option = {
           method: "POST",
@@ -295,28 +285,62 @@ const AcademicWorkI = () => {
           },
           body: JSON.stringify(postData),
         };
-        await fetch(`${api}/academic-work-1`, option);
-        setDisabled(false);
-        navigate("/academicWork/part-b");
+        const response = await fetch(`${api}/academic-work-1`, option);
+        if (response.ok === true) {
+          navigate(`/academicWork/part-b/?f_id=${formId}`);
+        } else {
+          setDisabled(false);
+          toast.error("Failed to save data! Please try again later", {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          });
+        }
       }
     } catch (error) {
       console.log(error);
-      setApiStatus(apiStatusConstants.failure);
+      setDisabled(false);
+      toast.error("Failed to save data! Please try again later", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
     }
   };
 
   useEffect(() => {
     recalculateAveragesAndTotalApiScore();
   }, [tableData, recalculateAveragesAndTotalApiScore]);
-
   useEffect(() => {
+    let id;
     async function fetchData() {
+      try {
+        const formId = searchParams.get("f_id");
+        id = formId;
+        console.log(id);
+        await setFormId(id);
+      } catch (error) {
+        console.error(error);
+        navigate("/home");
+      }
       try {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
-        const response = await fetch(`${api}/academic-work-1/data/${userId}`);
+        const response = await fetch(
+          `${api}/academic-work-1/data/${userId}/?formId=${id}`,
+        );
         if (response.ok === true) {
           const data = await response.json();
           if (data === null) {
@@ -504,14 +528,32 @@ const AcademicWorkI = () => {
                       <TableData rowSpan={semesterCoursesCount}>
                         <SaveNextButton
                           onClick={() => handleAddCourse(semesterIndex)}
-                          className="btn btn-primary mb-2"
+                          className="mb-2"
+                          style={{
+                            width: "100%",
+                            padding: "6px",
+                            borderRadius: "8px",
+                            backgroundImage:
+                              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                            color: "#fff",
+                            border: "none",
+                          }}
                         >
                           Add Course
                         </SaveNextButton>
-                        {semester.courses.length > 2 ? (
+                        {semester.courses.length > 1 ? (
                           <SaveNextButton
                             onClick={() => handleDeleteCourse(semesterIndex)}
-                            className="btn btn-danger  mb-2"
+                            className="mb-2"
+                            style={{
+                              width: "100%",
+                              padding: "6px",
+                              borderRadius: "8px",
+                              backgroundImage:
+                                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                              color: "#fff",
+                              border: "none",
+                            }}
                           >
                             Delete Course
                           </SaveNextButton>
@@ -541,16 +583,33 @@ const AcademicWorkI = () => {
           </Table>
           <SaveNextButton
             onClick={handleAddSemester}
-            className="btn btn-primary mt-3 mr-3"
+            className="mt-3"
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
           >
             Add Semester
           </SaveNextButton>
-          {tableData.length > 2 && (
+          {tableData.length > 1 && (
             <SaveNextButton
               onClick={() => handleDeleteSemester(tableData.length - 1)}
-              className="btn btn-danger mt-3"
+              className="mt-3"
+              style={{
+                marginLeft: "12px",
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
             >
-              Delete Last Semester
+              Delete Semester
             </SaveNextButton>
           )}
         </TableContainer>
@@ -597,6 +656,14 @@ const AcademicWorkI = () => {
             type="submit"
             onClick={submitAcademicForm1}
             disabled={disabled}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
           >
             {disabled ? (
               <Oval
@@ -649,7 +716,7 @@ const AcademicWorkI = () => {
   return (
     <HomeMainContainer>
       <Header />
-      <MainContainer className="mt-5">
+      <MainContainer className="mt-5 mb-5">
         <Back />
         {renderAcademicWorkPartAPage()}
       </MainContainer>

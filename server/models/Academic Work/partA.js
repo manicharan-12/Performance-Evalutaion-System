@@ -18,6 +18,7 @@ const semesterSchema = new mongoose.Schema({
 
 const academicWorkSchema = new mongoose.Schema({
   userId: { type: String, required: true },
+  formId: { type: String, required: true },
   academic_year: { type: String, required: true },
   academic_work_part_a: [semesterSchema],
   averageResultPercentage: { type: Number, required: true },

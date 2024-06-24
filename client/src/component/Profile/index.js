@@ -288,7 +288,7 @@ const ProfilePage = () => {
                   className="text-center"
                 />
               ) : (
-                "Save & Next"
+                "Save"
               )}
             </SaveNextButton>
           </SaveNextButtonContainer>
@@ -329,7 +329,7 @@ const ProfilePage = () => {
   return (
     <HomeMainContainer>
       <Header />
-      <MainContainer className="mt-5 center">
+      <MainContainer className="mt-5 mb-5 center">
         {renderProfilePage()}
       </MainContainer>
     </HomeMainContainer>

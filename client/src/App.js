@@ -18,6 +18,8 @@ import RDPartD from "./component/ResearchAndDevelopment/PartD";
 import ContributionToUniversity from "./component/ContributionToUniveristySchool";
 import ContributionToDepartment from "./component/ContributionToDepartment";
 import ContributionToSociety from "./component/ContributionToSociety";
+import Home from "./component/Home";
+import { ToastContainer, toast } from "react-toastify";
 
 function App() {
   const [width, setWidth] = useState(window.innerWidth);
@@ -40,66 +42,59 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginRegister />} />
           <Route path="/" element={<ProtectedRoute />}>
+            <Route path="/home" element={<Home />} />
             <Route path="/profile" element={<ProfilePage />} />
-          </Route>
-          <Route path="/" element={<ProtectedRoute />}>
             <Route path="/academicWork/part-a" element={<AcademicWorkI />} />
-          </Route>
-          <Route path="/" element={<ProtectedRoute />}>
             <Route path="/academicWork/part-b" element={<AcademicWorkII />} />
-          </Route>
-          <Route path="/" element={<ProtectedRoute />}>
             <Route
               path="/research-and-development/conformation"
               element={<Conformation />}
             />
-          </Route>
-          <Route path="/" element={<ProtectedRoute />}>
             <Route
               path="/research-and-development/partA"
               element={<RDPartA />}
             />
-          </Route>
-          <Route path="/" element={<ProtectedRoute />}>
             <Route
               path="/research-and-development/partB"
               element={<RDPartB />}
             />
-          </Route>
-          <Route path="/" element={<ProtectedRoute />}>
             <Route
               path="/research-and-development/partC"
               element={<RDPartC />}
             />
-          </Route>
-          <Route path="/" element={<ProtectedRoute />}>
             <Route
               path="/research-and-development/partD"
               element={<RDPartD />}
             />
-          </Route>
-          <Route path="/" element={<ProtectedRoute />}>
             <Route
               path="/contribution-to-university-school"
               element={<ContributionToUniversity />}
             />
-          </Route>
-          <Route path="/" element={<ProtectedRoute />}>
             <Route
               path="/contribution-to-department"
               element={<ContributionToDepartment />}
             />
-          </Route>
-          <Route path="/" element={<ProtectedRoute />}>
             <Route
               path="/contribution-to-society"
               element={<ContributionToSociety />}
             />
+            <Route path="*" element={<Navigate replace to="/Home" />} />
           </Route>
-          <Route path="*" element={<Navigate replace to="/" />} />
           <Route path="/resetPassword/:token" element={<ResetPassword />} />
         </Routes>
       )}
+      <ToastContainer
+        position="bottom-center"
+        autoClose={7000}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover={false}
+        theme="light"
+      />
     </>
   );
 }

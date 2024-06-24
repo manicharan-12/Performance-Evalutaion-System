@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 
 const researchAndDevelopmentPartB = new Schema({
   userId: { type: String },
+  formId: { type: String },
   presentation_data: [
     {
       titleOfThePaper: { type: String },

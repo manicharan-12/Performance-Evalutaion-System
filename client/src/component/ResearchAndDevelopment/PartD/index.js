@@ -4,7 +4,7 @@ import Header from "../../Header";
 import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDropzone } from "react-dropzone";
@@ -57,23 +57,27 @@ const RDPartD = () => {
       apiScore: "",
     },
   ]);
+  const [formId, setFormId] = useState("");
+
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    let id;
     async function fetchYear() {
+      try {
+        const formId = await searchParams.get("f_id");
+        id = formId;
+        await setFormId(id);
+      } catch (error) {
+        console.error(error);
+        navigate("/home");
+      }
       try {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
-        // Simulating a fetch call here, uncomment the below lines in a real scenario.
-        // const response = await fetch(`${api}/year/${userId}`);
-        // if (response.ok) {
-        //   const data = await response.json();
-        //   setYear(data.academic_year);
-        //   setApiStatus(apiStatusConstants.success);
-        // } else {
-        //   setApiStatus(apiStatusConstants.failure);
-        // }
-        setApiStatus(apiStatusConstants.success); // Simulated success
+
+        setApiStatus(apiStatusConstants.success);
       } catch (error) {
         console.log(error);
         setApiStatus(apiStatusConstants.failure);
@@ -131,7 +135,16 @@ const RDPartD = () => {
         window.open(url, "_blank");
         window.URL.revokeObjectURL(url);
       } else {
-        alert("Failed to open file: " + (await response.json()).message);
+        toast.error("Failed to open file: " + (await response.json()).message, {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
       }
     } catch (error) {
       console.error("Error opening file:", error);
@@ -144,6 +157,8 @@ const RDPartD = () => {
           closeOnClick: true,
           pauseOnHover: false,
           draggable: true,
+          progress: undefined,
+          theme: "light",
         },
       );
     }
@@ -156,7 +171,7 @@ const RDPartD = () => {
 
   const submitRDPartD = () => {
     try {
-      navigate("/contribution-to-university-school");
+      navigate(`/contribution-to-university-school/?f_id=${formId}`);
     } catch (error) {
       console.error("Navigation error:", error);
     }
@@ -249,16 +264,33 @@ const RDPartD = () => {
         </Table>
         <SaveNextButton
           onClick={handleAddCertificate}
-          className="btn btn-primary mt-3 mr-3"
+          className="mt-3 mr-3"
+          style={{
+            padding: "12px",
+            borderRadius: "8px",
+            backgroundImage:
+              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+            color: "#fff",
+            border: "none",
+          }}
         >
           Add Certificate
         </SaveNextButton>
         {tableData.length > 1 && (
           <SaveNextButton
             onClick={handleDeleteCertificate}
-            className="btn btn-danger mt-3"
+            className="mt-3"
+            style={{
+              marginLeft: "12px",
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
           >
-            Delete Last Certificate
+            Delete Certificate
           </SaveNextButton>
         )}
       </TableContainer>
@@ -297,9 +329,16 @@ const RDPartD = () => {
       </FileContainer>
       <SaveNextButtonContainer className="mt-3">
         <SaveNextButton
-          className="btn btn-primary"
           type="submit"
           onClick={submitRDPartD}
+          style={{
+            padding: "12px",
+            borderRadius: "8px",
+            backgroundImage:
+              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+            color: "#fff",
+            border: "none",
+          }}
         >
           Save & Next
         </SaveNextButton>
@@ -332,7 +371,7 @@ const RDPartD = () => {
   return (
     <HomeMainContainer>
       <Header />
-      <MainContainer className="mt-5">
+      <MainContainer className="mt-5 mb-5">
         <Back />
         {renderRDPartDPage()}
       </MainContainer>

@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 
 const phdConformationSchema = new Schema({
   userId: { type: String },
+  formId: { type: String },
   possesPhD: { type: String },
   registerPhD: { type: String },
   receivedPhd: { type: String },

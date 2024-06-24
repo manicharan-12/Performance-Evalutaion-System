@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
@@ -63,15 +63,28 @@ const RDPartA = () => {
       apiScore: "",
     },
   ]);
+  const [formId, setFormId] = useState("");
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    let id;
     const fetchYear = async () => {
+      try {
+        const formId = await searchParams.get("f_id");
+        id = formId;
+        await setFormId(id);
+      } catch (error) {
+        console.error(error);
+        navigate("/home");
+      }
       try {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
-        const response = await fetch(`http://localhost:5000/year/${userId}`);
+        const response = await fetch(
+          `http://localhost:5000/year/${userId}/?formId=${id}`,
+        );
         if (response.ok) {
           const data = await response.json();
           setYear(data.academic_year);
@@ -187,7 +200,8 @@ const RDPartA = () => {
       deletedFiles.forEach((fileId) => {
         formData.append("deletedFiles", fileId);
       });
-      navigate("/research-and-development/partB");
+      console.log(tableData);
+      navigate(`/research-and-development/partB/?f_id=${formId}`);
     } catch (error) {
       console.error("Error submitting RD Part A:", error);
       toast.error("An error occurred during submission. Please try again.", {
@@ -197,6 +211,8 @@ const RDPartA = () => {
         closeOnClick: true,
         pauseOnHover: false,
         draggable: true,
+        progress: undefined,
+        theme: "light",
       });
     }
   };
@@ -274,7 +290,7 @@ const RDPartA = () => {
                         journalName: newValue,
                       })
                     }
-                    validate={(input) => /^[A-Za-z\s]+$/.test(input)}
+                    validate={(input) => /^[A-Za-z0-9\s]+$/.test(input)}
                     type="text"
                   />
                 </TableData>
@@ -322,16 +338,33 @@ const RDPartA = () => {
         </Table>
         <SaveNextButton
           onClick={handleAddArticle}
-          className="btn btn-primary mt-3 mr-3"
+          className="mt-3 mr-3"
+          style={{
+            padding: "12px",
+            borderRadius: "8px",
+            backgroundImage:
+              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+            color: "#fff",
+            border: "none",
+          }}
         >
           Add Article
         </SaveNextButton>
         {tableData.length > 1 && (
           <SaveNextButton
             onClick={handleDeleteArticle}
-            className="btn btn-danger mt-3"
+            className="mt-3"
+            style={{
+              marginLeft: "12px",
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
           >
-            Delete Last Article
+            Delete Article
           </SaveNextButton>
         )}
       </TableContainer>
@@ -369,7 +402,17 @@ const RDPartA = () => {
         </UnorderedList>
       </FileContainer>
       <SaveNextButtonContainer className="mt-3">
-        <SaveNextButton className="btn btn-primary" onClick={submitRDPartA}>
+        <SaveNextButton
+          onClick={submitRDPartA}
+          style={{
+            padding: "12px",
+            borderRadius: "8px",
+            backgroundImage:
+              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+            color: "#fff",
+            border: "none",
+          }}
+        >
           Save & Next
         </SaveNextButton>
       </SaveNextButtonContainer>
@@ -401,22 +444,10 @@ const RDPartA = () => {
   return (
     <HomeMainContainer>
       <Header />
-      <MainContainer className="mt-5">
+      <MainContainer className="mt-5 mb-5">
         <Back />
         {renderRDPartAPage()}
       </MainContainer>
-      <ToastContainer
-        position="bottom-center"
-        autoClose={7000}
-        hideProgressBar
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover={false}
-        theme="light"
-      />
     </HomeMainContainer>
   );
 };

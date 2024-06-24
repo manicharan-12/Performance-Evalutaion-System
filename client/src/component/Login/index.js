@@ -30,7 +30,7 @@ const Login = (props) => {
     Cookies.set("jwt_token", jwtToken, { expires: 1, path: "/" });
     Cookies.set("user_id", userId, { expires: 1, path: "/" });
 
-    navigate("/profile");
+    navigate("/home");
   };
 
   const onSubmitLogin = async (event) => {
@@ -100,7 +100,7 @@ const Login = (props) => {
 
   const jwtToken = Cookies.get("jwt_token");
   if (jwtToken !== undefined) {
-    return <Navigate to="/profile" />;
+    return <Navigate to="/home" />;
   }
   return (
     <>

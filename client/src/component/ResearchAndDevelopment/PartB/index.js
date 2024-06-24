@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import { ToastContainer, toast } from "react-toastify";
@@ -63,22 +63,45 @@ const RDPartB = () => {
       apiScore: "",
     },
   ]);
+  const [formId, setFormId] = useState("");
+
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    let id;
     async function fetchYear() {
+      try {
+        const formId = await searchParams.get("f_id");
+        id = formId;
+        await setFormId(id);
+      } catch (error) {
+        console.error(error);
+        navigate("/home");
+      }
       try {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
-        const response = await fetch(`${api}/year/${userId}`);
+        const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
         if (response.ok) {
           const data = await response.json();
           setYear(data.academic_year);
-          const response2 = await fetch(`${api}/RD/PartB/${userId}`);
+          const response2 = await fetch(
+            `${api}/RD/PartB/${userId}/?formId=${id}`,
+          );
           const data2 = await response2.json();
           if (data2.phdPartB.presentation_data) {
-            setTableData(data2.phdPartB.presentation_data);
+            const presentation_data = data2.phdPartB.presentation_data;
+            const transformedData = presentation_data.map((item) => ({
+              titleOfThePaper: item.titleOfThePaper,
+              titleOfTheme: item.titleOfTheme,
+              organizedBy: item.organizedBy,
+              indexedIn: item.indexedIn,
+              noOfDays: item.noOfDays,
+              apiScore: item.apiScore,
+            }));
+            setTableData(transformedData);
             setFiles(data2.phdPartB.files || []);
           }
           setApiStatus(apiStatusConstants.success);
@@ -133,6 +156,11 @@ const RDPartB = () => {
           position: "bottom-center",
           autoClose: 5000,
           hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
         });
       }
     } catch (error) {
@@ -143,6 +171,11 @@ const RDPartB = () => {
           position: "bottom-center",
           autoClose: 5000,
           hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
         },
       );
     }
@@ -197,6 +230,7 @@ const RDPartB = () => {
         const userId = Cookies.get("user_id");
         const formData = new FormData();
         formData.append("userId", userId);
+        formData.append("formId", formId);
         formData.append("tableData", JSON.stringify(tableData));
         files.forEach((file) => {
           if (!file.fileId) {
@@ -213,13 +247,18 @@ const RDPartB = () => {
         });
         if (response.ok) {
           setDisabled(false);
-          navigate("/research-and-development/partC");
+          navigate(`/research-and-development/partC/?f_id=${formId}`);
         } else {
           setDisabled(false);
-          toast.error("Internal Server Error! Please try again Later", {
+          toast.error("Error while saving the data! Please try again Later", {
             position: "bottom-center",
             autoClose: 5000,
             hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
           });
         }
       } else {
@@ -228,6 +267,11 @@ const RDPartB = () => {
           position: "bottom-center",
           autoClose: 5000,
           hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
         });
       }
     } catch (error) {
@@ -237,6 +281,11 @@ const RDPartB = () => {
         position: "bottom-center",
         autoClose: 5000,
         hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
       });
     }
   };
@@ -370,16 +419,33 @@ const RDPartB = () => {
         </Table>
         <SaveNextButton
           onClick={handleAddPresentation}
-          className="btn btn-primary mt-3 mr-3"
+          className="mt-3 mr-3"
+          style={{
+            padding: "12px",
+            borderRadius: "8px",
+            backgroundImage:
+              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+            color: "#fff",
+            border: "none",
+          }}
         >
           Add Presentation
         </SaveNextButton>
         {tableData.length > 1 && (
           <SaveNextButton
             onClick={handleDeletePresentation}
-            className="btn btn-danger mt-3"
+            className="mt-3"
+            style={{
+              marginLeft: "12px",
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
           >
-            Delete Last Presentation
+            Delete Presentation
           </SaveNextButton>
         )}
       </TableContainer>
@@ -422,6 +488,14 @@ const RDPartB = () => {
           type="submit"
           onClick={submitRDPartB}
           disabled={disabled}
+          style={{
+            padding: "12px",
+            borderRadius: "8px",
+            backgroundImage:
+              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+            color: "#fff",
+            border: "none",
+          }}
         >
           {disabled ? (
             <Oval
@@ -467,22 +541,10 @@ const RDPartB = () => {
   return (
     <HomeMainContainer>
       <Header />
-      <MainContainer className="mt-5">
+      <MainContainer className="mt-5 mb-5">
         <Back />
         {renderRDPartBPage()}
       </MainContainer>
-      <ToastContainer
-        position="bottom-center"
-        autoClose={7000}
-        hideProgressBar
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover={false}
-        theme="light"
-      />
     </HomeMainContainer>
   );
 };

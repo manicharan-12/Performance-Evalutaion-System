@@ -4,7 +4,7 @@ import Header from "../Header";
 import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDropzone } from "react-dropzone";
@@ -58,22 +58,27 @@ const ContributionToSociety = () => {
       apiScore: "",
     },
   ]);
+  const [formId, setFormId] = useState("");
+
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    let id;
     async function fetchYear() {
       try {
+        try {
+          const formId = await searchParams.get("f_id");
+          id = formId;
+          await setFormId(id);
+        } catch (error) {
+          console.error(error);
+          navigate("/home");
+        }
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
-        // const response = await fetch(`${api}/year/${userId}`);
-        // if (response.ok === true) {
-        //   const data = await response.json();
-        //   setYear(data.academic_year);
-        //   setApiStatus(apiStatusConstants.success);
-        // } else {
-        //   setApiStatus(apiStatusConstants.failure);
-        // }
+
         setApiStatus(apiStatusConstants.success);
       } catch (error) {
         console.log(error);
@@ -110,8 +115,32 @@ const ContributionToSociety = () => {
 
   const submitContributionToSociety = () => {
     try {
-      navigate("/");
-    } catch (error) {}
+      toast.success(
+        "Your Form have been successfully submitted and stored in the Database",
+        {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        },
+      );
+      navigate("/home");
+    } catch (error) {
+      toast.error("Internal Server Error! Please try again Later", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
+    }
   };
 
   const onDrop = useCallback((acceptedFiles) => {
@@ -138,7 +167,16 @@ const ContributionToSociety = () => {
         window.open(url, "_blank");
         window.URL.revokeObjectURL(url);
       } else {
-        alert("Failed to open file: " + (await response.json()).message);
+        toast.error("Failed to open file: " + (await response.json()).message, {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
       }
     } catch (error) {
       console.error("Error opening file:", error);
@@ -247,16 +285,33 @@ const ContributionToSociety = () => {
           </Table>
           <SaveNextButton
             onClick={handleAddContribution}
-            className="btn btn-primary mt-3 mr-3"
+            className="mt-3 mr-3"
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
           >
             Add Certificate
           </SaveNextButton>
           {tableData.length > 1 && (
             <SaveNextButton
               onClick={() => handleDeleteContribution(tableData.length - 1)}
-              className="btn btn-danger mt-3"
+              className="mt-3"
+              style={{
+                marginLeft: "12px",
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
             >
-              Delete Last Certificate
+              Delete Certificate
             </SaveNextButton>
           )}
         </TableContainer>
@@ -295,9 +350,16 @@ const ContributionToSociety = () => {
         </FileContainer>
         <SaveNextButtonContainer className="mt-3">
           <SaveNextButton
-            className="btn btn-primary"
             type="submit"
             onClick={submitContributionToSociety}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
           >
             Save & Next
           </SaveNextButton>
@@ -336,7 +398,7 @@ const ContributionToSociety = () => {
   return (
     <HomeMainContainer>
       <Header />
-      <MainContainer className="mt-5">
+      <MainContainer className="mt-5 mb-5">
         <Back />
         {renderContributionToSocietyPage()}
       </MainContainer>

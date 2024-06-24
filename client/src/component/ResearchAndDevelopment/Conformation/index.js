@@ -5,9 +5,8 @@ import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
 import { useDropzone } from "react-dropzone";
-import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import { TiDelete } from "react-icons/ti";
 import EditableValue from "../../EditableValue";
 import {
@@ -90,21 +89,34 @@ const Conformation = () => {
       received: "",
     },
   });
+  const [formId, setFormId] = useState("");
+  const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
 
   useEffect(() => {
+    let id;
     async function fetchYear() {
+      try {
+        const formId = await searchParams.get("f_id");
+        id = formId;
+        await setFormId(id);
+      } catch (error) {
+        console.error(error);
+        navigate("/home");
+      }
       try {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
-        const response = await fetch(`${api}/year/${userId}`);
+        const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
         if (response.ok === true) {
           const data = await response.json();
           setYear(data.academic_year);
-          const response2 = await fetch(`${api}/rdConfo/${userId}`);
+          const response2 = await fetch(
+            `${api}/rdConfo/${userId}/?formId=${id}`,
+          );
           if (response2.ok === true) {
             const data2 = await response2.json();
             if (data2 === null) {
@@ -122,7 +134,45 @@ const Conformation = () => {
               ) {
                 setOnClick2(true);
                 if (data2.phdConformation.phDDetails !== null) {
-                  setTableData(data2.phdConformation.phDDetails);
+                  const phDDetails = data2.phdConformation.phDDetails;
+                  const transformedData = {
+                    nameOfTheUniversity: {
+                      registered:
+                        phDDetails.nameOfTheUniversity.registered || "",
+                      received: phDDetails.nameOfTheUniversity.received || "",
+                    },
+                    dateOfRegistration: {
+                      registered:
+                        phDDetails.dateOfRegistration.registered || "",
+                      received: phDDetails.dateOfRegistration.received || "",
+                    },
+                    supervisorAndCoSupervisorName: {
+                      registered:
+                        phDDetails.supervisorAndCoSupervisorName.registered ||
+                        "",
+                      received:
+                        phDDetails.supervisorAndCoSupervisorName.received || "",
+                    },
+                    prePhDCompletionDate: {
+                      registered:
+                        phDDetails.prePhDCompletionDate.registered || "",
+                      received: phDDetails.prePhDCompletionDate.received || "",
+                    },
+                    noOfResearchReviewsCompleted: {
+                      registered:
+                        phDDetails.noOfResearchReviewsCompleted.registered ||
+                        "",
+                      received:
+                        phDDetails.noOfResearchReviewsCompleted.received || "",
+                    },
+                    dateOfCompletionOfPhD: {
+                      registered:
+                        phDDetails.dateOfCompletionOfPhD.registered || "",
+                      received: phDDetails.dateOfCompletionOfPhD.received || "",
+                    },
+                  };
+
+                  setTableData(transformedData);
                   setFiles(data2.phdConformation.files || []);
                 }
               }
@@ -221,6 +271,7 @@ const Conformation = () => {
         const userId = Cookies.get("user_id");
         const postData = {
           userId,
+          formId,
           possesPhD: value1,
         };
         const api = "http://localhost:5000";
@@ -272,8 +323,12 @@ const Conformation = () => {
           const userId = Cookies.get("user_id");
           const postData = {
             userId,
+            formId,
+            possesPhD: value1,
             registerPhD: value2,
             receivedPhd: value3,
+            tableData: [], // If you have table data, include it here
+            deletedFiles: [],
           };
           const api = "http://localhost:5000";
           const option = {
@@ -327,10 +382,11 @@ const Conformation = () => {
         const userId = Cookies.get("user_id");
         const formData = new FormData();
         formData.append("userId", userId);
+        formData.append("formId", formId);
         formData.append("possesPhD", value1);
         formData.append("registerPhD", value2);
         formData.append("receivedPhd", value3);
-        formData.append("tableData", JSON.stringify(tableData)); // Stringify tableData
+        formData.append("tableData", JSON.stringify(tableData));
         files.forEach((file) => {
           if (!file.fileId) {
             formData.append("files", file);
@@ -347,7 +403,7 @@ const Conformation = () => {
         const response = await fetch(`${api}/rdConfo`, option);
         if (response.ok === true) {
           setDisabled(false);
-          navigate("/research-and-development/partA");
+          navigate(`/research-and-development/partA/?f_id=${formId}`);
         }
       } else {
         setDisabled(false);
@@ -879,22 +935,10 @@ const Conformation = () => {
   return (
     <HomeMainContainer>
       <Header />
-      <MainContainer className="mt-5">
+      <MainContainer className="mt-5 mb-5">
         <Back />
         {renderConformationPage()}
       </MainContainer>
-      <ToastContainer
-        position="bottom-center"
-        autoClose={7000}
-        hideProgressBar
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover={false}
-        theme="light"
-      />
     </HomeMainContainer>
   );
 };

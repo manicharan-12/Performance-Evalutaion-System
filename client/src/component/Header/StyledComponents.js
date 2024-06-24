@@ -24,6 +24,7 @@ export const MainNavContainer = styled.nav`
 export const NavImage = styled.img`
   width: auto;
   height: 77px;
+  cursor: pointer;
 `;
 
 export const ProfileButton = styled.div`

@@ -4,7 +4,7 @@ import Header from "../../Header";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useDropzone } from "react-dropzone";
@@ -62,25 +62,46 @@ const RDPartC = () => {
       apiScore: "",
     },
   ]);
+  const [formId, setFormId] = useState("");
+
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    let id;
     async function fetchYear() {
+      try {
+        const formId = await searchParams.get("f_id");
+        id = formId;
+        await setFormId(id);
+      } catch (error) {
+        console.error(error);
+        navigate("/home");
+      }
       try {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
-        const response = await fetch(`${api}/year/${userId}`);
-        if (response.ok === true) {
+        const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
+        if (response.ok) {
           const data = await response.json();
           setYear(data.academic_year);
-          const response2 = await fetch(`${api}/RD/PartC/${userId}`);
+          const response2 = await fetch(
+            `${api}/RD/PartC/${userId}/?formId=${id}`,
+          );
           const data2 = await response2.json();
-          console.log(data2);
-          if (data2.phdPartB.projects_data) {
-            setTableData(data2.phdPartB.projects_data);
-            setFiles(data2.phdPartB.files || []);
+          if (data2.phdPartC.projects_data !== null) {
+            const projects_data = data2.phdPartC.projects_data;
+            const transformedData = projects_data.map((item) => ({
+              titleOfTheFundingProject: item.titleOfTheFundingProject,
+              fundingAgencyDetails: item.fundingAgencyDetails,
+              grant: item.grant,
+              status: item.status,
+              apiScore: item.apiScore,
+            }));
+            setTableData(transformedData);
+            setFiles(data2.phdPartC.files || []);
           }
           setDisabled(false);
           setApiStatus(apiStatusConstants.success);
@@ -89,7 +110,7 @@ const RDPartC = () => {
           setApiStatus(apiStatusConstants.failure);
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setApiStatus(apiStatusConstants.failure);
       }
     }
@@ -97,7 +118,6 @@ const RDPartC = () => {
   }, []);
 
   const calculateApiScore = (value) => {
-    console.log(value);
     if (value === "sanctioned") {
       return 5;
     } else {
@@ -163,7 +183,16 @@ const RDPartC = () => {
         window.open(url, "_blank");
         window.URL.revokeObjectURL(url);
       } else {
-        alert("Failed to open file: " + (await response.json()).message);
+        toast.error("Failed to open file: " + (await response.json()).message, {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
       }
     } catch (error) {
       console.error("Error opening file:", error);
@@ -176,6 +205,8 @@ const RDPartC = () => {
           closeOnClick: true,
           pauseOnHover: false,
           draggable: true,
+          progress: undefined,
+          theme: "light",
         },
       );
     }
@@ -196,6 +227,7 @@ const RDPartC = () => {
         const userId = Cookies.get("user_id");
         const formData = new FormData();
         formData.append("userId", userId);
+        formData.append("formId", formId);
         formData.append("tableData", JSON.stringify(tableData));
         files.forEach((file) => {
           if (!file.fileId) {
@@ -213,10 +245,10 @@ const RDPartC = () => {
         const response = await fetch(`${api}/RD/PartC`, option);
         if (response.ok === true) {
           setDisabled(false);
-          navigate("/research-and-development/partD");
+          navigate(`/research-and-development/partD/?f_id=${formId}`);
         } else {
           setDisabled(false);
-          toast.error(`Internal Server Error! Please try again Later`, {
+          toast.error(`Failed to save data! Please try again Later`, {
             position: "bottom-center",
             autoClose: 5000,
             hideProgressBar: true,
@@ -242,7 +274,7 @@ const RDPartC = () => {
       }
     } catch (error) {
       setDisabled(false);
-      console.log(error);
+      console.error(error);
       toast.error(`Internal Server Error! Please try again Later`, {
         position: "bottom-center",
         autoClose: 5000,
@@ -371,16 +403,33 @@ const RDPartC = () => {
           </Table>
           <SaveNextButton
             onClick={handleAddSanctionProject}
-            className="btn btn-primary mt-3 mr-3"
+            className="mt-3 mr-3"
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
           >
             Add Project
           </SaveNextButton>
           {tableData.length > 1 && (
             <SaveNextButton
               onClick={() => handleDeleteSanctionProject(tableData.length - 1)}
-              className="btn btn-danger mt-3"
+              className="mt-3"
+              style={{
+                marginLeft: "12px",
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
             >
-              Delete Last Project
+              Delete Project
             </SaveNextButton>
           )}
         </TableContainer>
@@ -419,9 +468,16 @@ const RDPartC = () => {
         </FileContainer>
         <SaveNextButtonContainer className="mt-3">
           <SaveNextButton
-            className="btn btn-primary"
             type="submit"
             onClick={submitRDPartC}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
           >
             {disabled ? (
               <Oval
@@ -473,22 +529,10 @@ const RDPartC = () => {
   return (
     <HomeMainContainer>
       <Header />
-      <MainContainer className="mt-5">
+      <MainContainer className="mt-5 mb-5">
         <Back />
         {renderRDPartCPage()}
       </MainContainer>
-      <ToastContainer
-        position="bottom-center"
-        autoClose={7000}
-        hideProgressBar
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover={false}
-        theme="light"
-      />
     </HomeMainContainer>
   );
 };

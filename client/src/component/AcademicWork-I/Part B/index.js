@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import ReactQuill from "react-quill";
@@ -9,7 +9,7 @@ import Back from "../../Back";
 import Header from "../../Header";
 import { TiDelete } from "react-icons/ti";
 import failure from "../../Images/failure view.png";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import {
   LoaderContainer,
   FailureContainer,
@@ -93,20 +93,32 @@ const AcademicWorkII = () => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [editorContent, setEditorContent] = useState("");
   const [files, setFiles] = useState([]);
-  const [deletedFiles, setDeletedFiles] = useState([]); // Add this state
+  const [deletedFiles, setDeletedFiles] = useState([]);
   const [onClick, setOnClick] = useState(false);
   const [disabled, setDisabled] = useState(false);
+  const [formId, setFormId] = useState("");
+
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const role = Cookies.get("role");
 
   useEffect(() => {
+    let id;
     async function fetchData() {
+      try {
+        const formId = await searchParams.get("f_id");
+        id = formId;
+        await setFormId(id);
+      } catch (error) {
+        console.error(error);
+        navigate("/home");
+      }
       try {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
         const response = await fetch(
-          `http://localhost:5000/academic-work-2/data/${userId}`,
+          `http://localhost:5000/academic-work-2/data/${userId}/?formId=${id}`,
         );
         if (response.ok) {
           const data = await response.json();
@@ -143,7 +155,7 @@ const AcademicWorkII = () => {
     onDrop,
     accept: "*",
     maxSize: 50000000,
-    disabled: role === "HOD", // Disable file drop if role is HOD
+    disabled: role === "HOD",
   });
 
   const submitAcademicForm2 = async (event) => {
@@ -153,6 +165,7 @@ const AcademicWorkII = () => {
     const userId = Cookies.get("user_id");
     const formData = new FormData();
     formData.append("userId", userId);
+    formData.append("formId", formId);
     formData.append("editorContent", editorContent);
     files.forEach((file) => {
       if (!file.fileId) {
@@ -168,9 +181,22 @@ const AcademicWorkII = () => {
         method: "POST",
         body: formData,
       });
-      const data = await response.json();
-      console.log(data);
-      navigate("/research-and-development/conformation");
+      if (response.ok === true) {
+        navigate(`/research-and-development/conformation/?f_id=${formId}`);
+      } else {
+        setOnClick(false);
+        setDisabled(false);
+        toast.error("Error While Saving the data Please try again later", {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+      }
     } catch (error) {
       console.error(error);
       toast.error("Internal Server Error! Please try again later", {
@@ -193,7 +219,16 @@ const AcademicWorkII = () => {
         window.open(url, "_blank");
         window.URL.revokeObjectURL(url);
       } else {
-        alert("Failed to open file: " + (await response.json()).message);
+        toast.error("Failed to open file: " + (await response.json()).message, {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
       }
     } catch (error) {
       console.error("Error opening file:", error);
@@ -206,6 +241,8 @@ const AcademicWorkII = () => {
           closeOnClick: true,
           pauseOnHover: false,
           draggable: true,
+          progress: undefined,
+          theme: "light",
         },
       );
     }
@@ -304,6 +341,14 @@ const AcademicWorkII = () => {
             onClick={submitAcademicForm2}
             display={onClick}
             disabled={disabled}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
           >
             {disabled ? (
               <Oval
@@ -355,22 +400,10 @@ const AcademicWorkII = () => {
   return (
     <HomeMainContainer>
       <Header />
-      <MainContainer className="mt-5">
+      <MainContainer className="mt-5 mb-5">
         <Back />
         {renderAcademicWorkPartBPage()}
       </MainContainer>
-      <ToastContainer
-        position="bottom-center"
-        autoClose={7000}
-        hideProgressBar
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover={false}
-        theme="light"
-      />
     </HomeMainContainer>
   );
 };

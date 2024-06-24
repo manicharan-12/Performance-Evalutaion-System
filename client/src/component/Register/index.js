@@ -317,7 +317,7 @@ const Register = (props) => {
           </SelectInput>
         </InputContainer>
         <InputContainer className="">
-          <LabelElement htmlFor="username">Username</LabelElement>
+          <LabelElement htmlFor="username">Username:</LabelElement>
           <InputElement
             className="form-control mt-1"
             type="text"

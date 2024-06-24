@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 
 const academicWorkPartB = new Schema({
   userId: { type: String, required: true },
+  formId: { type: String, required: true },
   editorContent: { type: String, required: true },
   files: [
     {
