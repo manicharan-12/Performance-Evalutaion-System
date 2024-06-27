@@ -15,6 +15,8 @@ import {
   FormsList,
   FormListButtonContainer,
   OptionButton,
+  NameText,
+  SearchBox
 } from "./StyledComponents";
 import Cookies from "js-cookie";
 import { GrClose } from "react-icons/gr";
@@ -38,6 +40,8 @@ const Home = () => {
   const [editingFormId, setEditingFormId] = useState(null);
   const navigate = useNavigate();
   const [disabled, setDisabled] = useState(false);
+  const [userName,setUserName]=useState("")
+  const [searchText,setSearchText]=useState("")
 
   useEffect(() => {
     async function fetchForms() {
@@ -46,6 +50,7 @@ const Home = () => {
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
         const response = await fetch(`${api}/user/forms/${userId}`);
+        const response2= await fetch(`${api}/profile/details/${userId}`)
         if (response.ok) {
           const data = await response.json();
           setFormList(data.getForms);
@@ -61,8 +66,25 @@ const Home = () => {
             draggable: true,
           });
         }
+        if(response2.ok){
+          const data=await response2.json();
+          setUserName(data.name)
+          setApiStatus(apiStatusConstants.success);
+        }
+        else{
+          setApiStatus(apiStatusConstants.failure);
+          toast.error("Failed to fetch userData", {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+          });
+        }
       } catch (error) {
         setApiStatus(apiStatusConstants.failure);
+        console.error(error);
       }
     }
 
@@ -205,6 +227,10 @@ const Home = () => {
     }
   };
 
+  const onChangeSearchText = (event) => {
+    setSearchText(event.target.value);
+  };
+
   const renderLoadingView = () => (
     <LoaderContainer data-testid="loader">
       <ThreeDots
@@ -220,9 +246,16 @@ const Home = () => {
     </LoaderContainer>
   );
 
-  const renderSuccessView = () => (
+  const renderSuccessView = () => {
+    const filteredForms = formList.filter((form) =>
+      form.formName.toLowerCase().includes(searchText.toLowerCase())
+    );
+    return(
     <>
+    <NameText>Welcome {userName}!</NameText>
       <ButtonContainer>
+      <SearchBox type="search" placeholder="Enter text to find form" value={searchText}
+  onChange={onChangeSearchText}/>
         <button className="btn btn-primary" onClick={openModal}>
           Create a new form
         </button>
@@ -272,38 +305,39 @@ const Home = () => {
           </ButtonContainer>
         </ModelContainer>
       )}
-      <FormsContainer className="pt-3">
-        {formList.map((eachForm) => (
-          <FormsList key={eachForm._id}>
-            <SubSectionHeading
-              onClick={() => handleFormClick(eachForm._id)}
-              style={{
-                cursor: "pointer",
-                wordWrap: "break-word",
-                whiteSpace: "pre-wrap, nowrap",
-                overflow: "hidden",
-                textAlign: "center",
-                width: "100%",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {eachForm.formName}
-            </SubSectionHeading>
-            <FormListButtonContainer>
-              <OptionButton
-                onClick={() => onClickEdit(eachForm._id, eachForm.formName)}
+      <FormsContainer className="pt-3 mt-5">
+      {filteredForms.map((eachForm) => (
+            <FormsList key={eachForm._id}>
+              <SubSectionHeading
+                onClick={() => handleFormClick(eachForm._id)}
+                style={{
+                  cursor: "pointer",
+                  wordWrap: "break-word",
+                  whiteSpace: "pre-wrap, nowrap",
+                  overflow: "hidden",
+                  textAlign: "center",
+                  width: "100%",
+                  textOverflow: "ellipsis",
+                }}
               >
-                Edit Name
-              </OptionButton>
-              <OptionButton onClick={() => onClickDelete(eachForm._id)}>
-                Delete Form
-              </OptionButton>
-            </FormListButtonContainer>
-          </FormsList>
-        ))}
+                {eachForm.formName}
+              </SubSectionHeading>
+              <FormListButtonContainer>
+                <OptionButton
+                  onClick={() => onClickEdit(eachForm._id, eachForm.formName)}
+                >
+                  Edit Name
+                </OptionButton>
+                <OptionButton onClick={() => onClickDelete(eachForm._id)}>
+                  Delete Form
+                </OptionButton>
+              </FormListButtonContainer>
+            </FormsList>
+          ))}
       </FormsContainer>
     </>
-  );
+  )
+}
 
   const renderFailureView = () => (
     <>

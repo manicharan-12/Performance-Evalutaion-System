@@ -298,7 +298,7 @@ const AcademicWorkI = () => {
             pauseOnHover: false,
             draggable: true,
             progress: undefined,
-            theme: "light",
+            theme: "colored",
           });
         }
       }
@@ -313,7 +313,7 @@ const AcademicWorkI = () => {
         pauseOnHover: false,
         draggable: true,
         progress: undefined,
-        theme: "light",
+        theme: "colored"
       });
     }
   };
@@ -713,11 +713,68 @@ const AcademicWorkI = () => {
     }
   };
 
+  const handleSelectChange = (event) => {
+    const selectedOption = event.target.value;
+  
+    switch (selectedOption) {
+      case "AcademicWork I":
+        navigate(`/academicWork/part-a/?f_id=${formId}`);
+        break;
+      case "AcademicWork II":
+        navigate(`/academicWork/part-b/?f_id=${formId}`);
+        break;
+      case "R&D Conformation":
+        navigate(`/research-and-development/conformation/?f_id=${formId}`);
+        break;
+      case "R&D Part A":
+        navigate(`/research-and-development/partA/?f_id=${formId}`);
+        break;
+      case "R&D Part B":
+        navigate(`/research-and-development/partB/?f_id=${formId}`);
+        break;
+      case "R&D Part C":
+        navigate(`/research-and-development/partC/?f_id=${formId}`);
+        break;
+      case "R&D Part D":
+        navigate(`/research-and-development/partD/?f_id=${formId}`);
+        break;
+      case "Contribution To University School":
+        navigate(`/contribution-to-university-school/?f_id=${formId}`);
+        break;
+      case "Contribution To Department":
+        navigate(`/contribution-to-department/?f_id=${formId}`);
+        break;
+      case "Contribution To Society":
+        navigate(`/contribution-to-society/?f_id=${formId}`);
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <HomeMainContainer>
       <Header />
       <MainContainer className="mt-5 mb-5">
-        <Back />
+      <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", marginBottom: "18px" }}>
+  <Back />
+  <div style={{ display: "flex", flexDirection: "row", justifyContent: "flex-end", alignItems: "center", width: "100%" }}>
+    <p style={{ marginRight: "10px", marginTop:"10px" }}>Navigate to</p>
+    <select style={{ border: "1px solid #000", borderRadius: "5px", padding: "5px" }} onChange={handleSelectChange}>
+      <option selected>AcademicWork I</option>
+      <option>AcademicWork II</option>
+      <option>R&D Conformation</option>
+      <option>R&D Part A</option>
+      <option>R&D Part B</option>
+      <option>R&D Part C</option>
+      <option>R&D Part D</option>
+      <option>Contribution To University School</option>
+      <option>Contribution To Department</option>
+      <option>Contribution To Society</option>
+    </select>
+  </div>
+</div>
+
         {renderAcademicWorkPartAPage()}
       </MainContainer>
     </HomeMainContainer>

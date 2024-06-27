@@ -43,8 +43,8 @@ export const MainContainer = styled.div`
 
 export const ButtonContainer = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-direction: row;
+  justify-content: space-between;
   width: 100%;
 `;
 
@@ -149,3 +149,15 @@ export const OptionButton = styled.button`
     border: none;
   }
 `;
+
+
+export const NameText=styled.p`
+font-weight: bolder;
+`
+
+export const SearchBox=styled.input`
+border: 1px solid #000;
+border-radius: 2px;
+padding: 4px;
+width:40%;
+`
