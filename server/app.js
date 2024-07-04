@@ -20,6 +20,9 @@ const PhdConformation = require("./models/Research And Development/rdConformatio
 const ResearchAndDevelopmentPartB = require("./models/Research And Development/partB");
 const ResearchAndDevelopmentPartC = require("./models/Research And Development/partC");
 const ResearchAndDevelopmentPartD = require("./models/Research And Development/partD");
+const ContributionToUniversitySchool = require("./models/contributionToUniversitySchool");
+const ContributionToDepartment = require("./models/contributionToDepartment");
+const ContributionToSociety = require("./models/contributionToSociety");
 
 const mongoURI =
   "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority";
@@ -1044,8 +1047,9 @@ app.post("/RD/PartC", upload.array("files"), async (request, response) => {
 app.get("/RD/PartC/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
+    const { formId } = request.query;
     const researchAndDevelopmentPartCDetails =
-      await ResearchAndDevelopmentPartC.findOne({ userId });
+      await ResearchAndDevelopmentPartC.findOne({ userId, formId });
     if (researchAndDevelopmentPartCDetails) {
       const filePromises = researchAndDevelopmentPartCDetails.files.map(
         (file) => {
@@ -1207,8 +1211,9 @@ app.post("/RD/PartD", upload.array("files"), async (request, response) => {
 app.get("/RD/PartD/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
+    const { formId } = request.query;
     const researchAndDevelopmentPartDDetails =
-      await ResearchAndDevelopmentPartD.findOne({ userId });
+      await ResearchAndDevelopmentPartD.findOne({ userId, formId });
     if (researchAndDevelopmentPartDDetails) {
       const filePromises = researchAndDevelopmentPartDDetails.files.map(
         (file) => {
@@ -1264,6 +1269,516 @@ app.get("/RD/PartD/:userId", async (request, response) => {
               nameOfTheCertificate: "",
               organization: "",
               score: "",
+              apiScore: "",
+            },
+          ],
+          files: [],
+        },
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    response
+      .status(500)
+      .json({ error_msg: "Internal Server Error! Please try again later." });
+  }
+});
+
+app.post(
+  "/ContributionToUniversitySchool",
+  upload.array("files"),
+  async (request, response) => {
+    try {
+      const { userId, tableData, formId } = request.body;
+      let { deletedFiles } = request.body;
+      const files = request.files;
+      let parsedTableData;
+
+      if (typeof tableData === "string") {
+        try {
+          parsedTableData = JSON.parse(tableData);
+        } catch (err) {
+          console.error("Error parsing tableData:", err);
+          return response
+            .status(400)
+            .json({ message: "Invalid tableData format" });
+        }
+      } else {
+        parsedTableData = tableData;
+      }
+
+      if (deletedFiles && deletedFiles.length > 0) {
+        const deletedFilesArray = Array.isArray(deletedFiles)
+          ? deletedFiles
+          : [deletedFiles];
+        for (const fileId of deletedFilesArray) {
+          try {
+            await gridFSBucket.delete(new mongoose.Types.ObjectId(fileId));
+          } catch (err) {
+            return res.status(500).json({ message: "Error deleting file" });
+          }
+        }
+      }
+
+      const fileUploadPromises = files.map((file) => {
+        const readableStream = new Readable();
+        readableStream.push(file.buffer);
+        readableStream.push(null);
+        return new Promise((resolve, reject) => {
+          const uploadStream = gridFSBucket.openUploadStream(
+            file.originalname,
+            {
+              contentType: file.mimetype,
+            },
+          );
+
+          readableStream
+            .pipe(uploadStream)
+            .on("error", reject)
+            .on("finish", () => {
+              resolve({
+                filename: file.originalname,
+                mimetype: file.mimetype,
+                fileId: uploadStream.id,
+              });
+            });
+        });
+      });
+
+      const fileData = await Promise.all(fileUploadPromises);
+      const existingData = await ContributionToUniversitySchool.findOne({
+        userId,
+        formId,
+      });
+      if (existingData) {
+        existingData.contribution_data = parsedTableData;
+        if (Array.isArray(deletedFiles)) {
+          existingData.files = existingData.files.filter(
+            (file) => !deletedFiles.includes(file.fileId.toString()),
+          );
+        }
+        existingData.files = existingData.files || [];
+        existingData.files.push(...fileData);
+        await existingData.save();
+      } else {
+        const newContributionToUniversitySchool =
+          new ContributionToUniversitySchool({
+            userId,
+            formId,
+            contribution_data: parsedTableData,
+            files: fileData,
+          });
+        const res = await newContributionToUniversitySchool.save();
+      }
+      response.status(200).json({ success_msg: "Successfully Saved1" });
+    } catch (error) {
+      console.error(error);
+      response
+        .status(500)
+        .json({ error_msg: "Internal Server Error! Please try again later." });
+    }
+  },
+);
+
+app.get(
+  "/ContributionToUniversitySchool/:userId",
+  async (request, response) => {
+    try {
+      const { userId } = request.params;
+      const { formId } = request.query;
+      const contributionToUniversitySchoolDetails =
+        await ContributionToUniversitySchool.findOne({ userId, formId });
+      if (contributionToUniversitySchoolDetails) {
+        const filePromises = contributionToUniversitySchoolDetails.files.map(
+          (file) => {
+            return new Promise((resolve, reject) => {
+              try {
+                const fileStream = gfs.openDownloadStream(file.fileId);
+                let fileBuffer = Buffer.from([]);
+                fileStream.on("data", (chunk) => {
+                  fileBuffer = Buffer.concat([fileBuffer, chunk]);
+                });
+
+                fileStream.on("end", () => {
+                  resolve({
+                    ...file.toObject(),
+                    fileContent: fileBuffer.toString("base64"),
+                  });
+                });
+
+                fileStream.on("error", (error) => {
+                  console.error(
+                    `Error downloading file with ID: ${file.fileId}`,
+                    error,
+                  );
+                  reject(error);
+                });
+              } catch (error) {
+                console.error(
+                  `Error opening download stream for file with ID: ${file.fileId}`,
+                  error,
+                );
+                reject(error);
+              }
+            });
+          },
+        );
+
+        const filesData = await Promise.allSettled(filePromises);
+        const successfulFiles = filesData
+          .filter((result) => result.status === "fulfilled")
+          .map((result) => result.value);
+        response.status(200).json({
+          contributionToUniversitySchool: {
+            contribution_data:
+              contributionToUniversitySchoolDetails.contribution_data,
+            files: successfulFiles,
+          },
+        });
+      } else {
+        response.status(200).json({
+          contributionToUniversitySchool: {
+            contribution_data: [
+              {
+                nameOfTheResponsibility: "",
+                contribution: "",
+                apiScore: "",
+              },
+            ],
+            files: [],
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      response
+        .status(500)
+        .json({ error_msg: "Internal Server Error! Please try again later." });
+    }
+  },
+);
+
+app.post(
+  "/ContributionToDepartment",
+  upload.array("files"),
+  async (request, response) => {
+    try {
+      const { userId, tableData, formId } = request.body;
+      let { deletedFiles } = request.body;
+      const files = request.files;
+      let parsedTableData;
+
+      if (typeof tableData === "string") {
+        try {
+          parsedTableData = JSON.parse(tableData);
+        } catch (err) {
+          console.error("Error parsing tableData:", err);
+          return response
+            .status(400)
+            .json({ message: "Invalid tableData format" });
+        }
+      } else {
+        parsedTableData = tableData;
+      }
+
+      if (deletedFiles && deletedFiles.length > 0) {
+        const deletedFilesArray = Array.isArray(deletedFiles)
+          ? deletedFiles
+          : [deletedFiles];
+        for (const fileId of deletedFilesArray) {
+          try {
+            await gridFSBucket.delete(new mongoose.Types.ObjectId(fileId));
+          } catch (err) {
+            return res.status(500).json({ message: "Error deleting file" });
+          }
+        }
+      }
+
+      const fileUploadPromises = files.map((file) => {
+        const readableStream = new Readable();
+        readableStream.push(file.buffer);
+        readableStream.push(null);
+        return new Promise((resolve, reject) => {
+          const uploadStream = gridFSBucket.openUploadStream(
+            file.originalname,
+            {
+              contentType: file.mimetype,
+            },
+          );
+
+          readableStream
+            .pipe(uploadStream)
+            .on("error", reject)
+            .on("finish", () => {
+              resolve({
+                filename: file.originalname,
+                mimetype: file.mimetype,
+                fileId: uploadStream.id,
+              });
+            });
+        });
+      });
+
+      const fileData = await Promise.all(fileUploadPromises);
+      const existingData = await ContributionToDepartment.findOne({
+        userId,
+        formId,
+      });
+      if (existingData) {
+        existingData.contribution_data = parsedTableData;
+        if (Array.isArray(deletedFiles)) {
+          existingData.files = existingData.files.filter(
+            (file) => !deletedFiles.includes(file.fileId.toString()),
+          );
+        }
+        existingData.files = existingData.files || [];
+        existingData.files.push(...fileData);
+        await existingData.save();
+      } else {
+        const newContributionToDepartment = new ContributionToDepartment({
+          userId,
+          formId,
+          contribution_data: parsedTableData,
+          files: fileData,
+        });
+        const res = await newContributionToDepartment.save();
+      }
+      response.status(200).json({ success_msg: "Successfully Saved1" });
+    } catch (error) {
+      console.error(error);
+      response
+        .status(500)
+        .json({ error_msg: "Internal Server Error! Please try again later." });
+    }
+  },
+);
+
+app.get("/ContributionToDepartment/:userId", async (request, response) => {
+  try {
+    const { userId } = request.params;
+    const { formId } = request.query;
+    const contributionToDepartmentDetails =
+      await ContributionToDepartment.findOne({ userId, formId });
+    if (contributionToDepartmentDetails) {
+      const filePromises = contributionToDepartmentDetails.files.map((file) => {
+        return new Promise((resolve, reject) => {
+          try {
+            const fileStream = gfs.openDownloadStream(file.fileId);
+            let fileBuffer = Buffer.from([]);
+            fileStream.on("data", (chunk) => {
+              fileBuffer = Buffer.concat([fileBuffer, chunk]);
+            });
+
+            fileStream.on("end", () => {
+              resolve({
+                ...file.toObject(),
+                fileContent: fileBuffer.toString("base64"),
+              });
+            });
+
+            fileStream.on("error", (error) => {
+              console.error(
+                `Error downloading file with ID: ${file.fileId}`,
+                error,
+              );
+              reject(error);
+            });
+          } catch (error) {
+            console.error(
+              `Error opening download stream for file with ID: ${file.fileId}`,
+              error,
+            );
+            reject(error);
+          }
+        });
+      });
+
+      const filesData = await Promise.allSettled(filePromises);
+      const successfulFiles = filesData
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+      response.status(200).json({
+        contributionToDepartment: {
+          contribution_data: contributionToDepartmentDetails.contribution_data,
+          files: successfulFiles,
+        },
+      });
+    } else {
+      response.status(200).json({
+        contributionToDepartment: {
+          contribution_data: [
+            {
+              nameOfTheResponsibility: "",
+              contribution: "",
+              apiScore: "",
+            },
+          ],
+          files: [],
+        },
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    response
+      .status(500)
+      .json({ error_msg: "Internal Server Error! Please try again later." });
+  }
+});
+
+app.post(
+  "/ContributionToSociety",
+  upload.array("files"),
+  async (request, response) => {
+    try {
+      const { userId, tableData, formId } = request.body;
+      let { deletedFiles } = request.body;
+      const files = request.files;
+      let parsedTableData;
+
+      if (typeof tableData === "string") {
+        try {
+          parsedTableData = JSON.parse(tableData);
+        } catch (err) {
+          console.error("Error parsing tableData:", err);
+          return response
+            .status(400)
+            .json({ message: "Invalid tableData format" });
+        }
+      } else {
+        parsedTableData = tableData;
+      }
+
+      if (deletedFiles && deletedFiles.length > 0) {
+        const deletedFilesArray = Array.isArray(deletedFiles)
+          ? deletedFiles
+          : [deletedFiles];
+        for (const fileId of deletedFilesArray) {
+          try {
+            await gridFSBucket.delete(new mongoose.Types.ObjectId(fileId));
+          } catch (err) {
+            return res.status(500).json({ message: "Error deleting file" });
+          }
+        }
+      }
+
+      const fileUploadPromises = files.map((file) => {
+        const readableStream = new Readable();
+        readableStream.push(file.buffer);
+        readableStream.push(null);
+        return new Promise((resolve, reject) => {
+          const uploadStream = gridFSBucket.openUploadStream(
+            file.originalname,
+            {
+              contentType: file.mimetype,
+            },
+          );
+
+          readableStream
+            .pipe(uploadStream)
+            .on("error", reject)
+            .on("finish", () => {
+              resolve({
+                filename: file.originalname,
+                mimetype: file.mimetype,
+                fileId: uploadStream.id,
+              });
+            });
+        });
+      });
+
+      const fileData = await Promise.all(fileUploadPromises);
+      const existingData = await ContributionToSociety.findOne({
+        userId,
+        formId,
+      });
+      if (existingData) {
+        existingData.contribution_data = parsedTableData;
+        if (Array.isArray(deletedFiles)) {
+          existingData.files = existingData.files.filter(
+            (file) => !deletedFiles.includes(file.fileId.toString()),
+          );
+        }
+        existingData.files = existingData.files || [];
+        existingData.files.push(...fileData);
+        await existingData.save();
+      } else {
+        const newContributionToSociety = new ContributionToSociety({
+          userId,
+          formId,
+          contribution_data: parsedTableData,
+          files: fileData,
+        });
+        const res = await newContributionToSociety.save();
+      }
+      response.status(200).json({ success_msg: "Successfully Saved1" });
+    } catch (error) {
+      console.error(error);
+      response
+        .status(500)
+        .json({ error_msg: "Internal Server Error! Please try again later." });
+    }
+  },
+);
+
+app.get("/ContributionToSociety/:userId", async (request, response) => {
+  try {
+    const { userId } = request.params;
+    const { formId } = request.query;
+    const contributionToSocietyDetails = await ContributionToSociety.findOne({
+      userId,
+      formId,
+    });
+    if (contributionToSocietyDetails) {
+      const filePromises = contributionToSocietyDetails.files.map((file) => {
+        return new Promise((resolve, reject) => {
+          try {
+            const fileStream = gfs.openDownloadStream(file.fileId);
+            let fileBuffer = Buffer.from([]);
+            fileStream.on("data", (chunk) => {
+              fileBuffer = Buffer.concat([fileBuffer, chunk]);
+            });
+
+            fileStream.on("end", () => {
+              resolve({
+                ...file.toObject(),
+                fileContent: fileBuffer.toString("base64"),
+              });
+            });
+
+            fileStream.on("error", (error) => {
+              console.error(
+                `Error downloading file with ID: ${file.fileId}`,
+                error,
+              );
+              reject(error);
+            });
+          } catch (error) {
+            console.error(
+              `Error opening download stream for file with ID: ${file.fileId}`,
+              error,
+            );
+            reject(error);
+          }
+        });
+      });
+
+      const filesData = await Promise.allSettled(filePromises);
+      const successfulFiles = filesData
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+      response.status(200).json({
+        contributionToSociety: {
+          contribution_data: contributionToSocietyDetails.contribution_data,
+          files: successfulFiles,
+        },
+      });
+    } else {
+      response.status(200).json({
+        contributionToSociety: {
+          contribution_data: [
+            {
+              nameOfTheResponsibility: "",
+              contribution: "",
               apiScore: "",
             },
           ],

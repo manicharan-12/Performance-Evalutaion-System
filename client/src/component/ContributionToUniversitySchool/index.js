@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import Back from "../Back";
 import Header from "../Header";
 import Cookies from "js-cookie";
-import { ThreeDots } from "react-loader-spinner";
+import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -59,6 +59,7 @@ const ContributionToUniversity = () => {
     },
   ]);
   const [formId, setFormId] = useState("");
+  const [disabled, setDisabled] = useState(false);
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -78,7 +79,22 @@ const ContributionToUniversity = () => {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
-
+        const response = await fetch(
+          `${api}/ContributionToUniversitySchool/${userId}/?formId=${id}`,
+        );
+        const data = await response.json();
+        if (data.contributionToUniversitySchool.contribution_data !== null) {
+          const contribution_data =
+            data.contributionToUniversitySchool.contribution_data;
+          const transformedData = contribution_data.map((item) => ({
+            nameOfTheResponsibility: item.nameOfTheResponsibility,
+            contribution: item.contribution,
+            apiScore: item.apiScore,
+          }));
+          setTableData(transformedData);
+          setFiles(data.contributionToUniversitySchool.files || []);
+        }
+        setDisabled(false);
         setApiStatus(apiStatusConstants.success);
       } catch (error) {
         console.log(error);
@@ -88,10 +104,20 @@ const ContributionToUniversity = () => {
     fetchYear();
   }, []);
 
-  const handleEditContribution = (index, updatedArticle) => {
-    setTableData((prevData) =>
-      prevData.map((article, i) => (i === index ? updatedArticle : article)),
-    );
+  const handleEditContribution = (contributionIndex, updatedContribution) => {
+    const updatedState = tableData.map((eachContribution, cIndex) => {
+      if (cIndex === contributionIndex) {
+        const { nameOfTheResponsibility, contribution } = updatedContribution;
+        const allFieldsFilled =
+          nameOfTheResponsibility.trim() !== "" && contribution.trim() !== "";
+        return {
+          ...updatedContribution,
+          apiScore: allFieldsFilled ? 2.5 : eachContribution.apiScore,
+        };
+      }
+      return eachContribution;
+    });
+    setTableData(updatedState);
   };
 
   const handleAddContribution = () => {
@@ -109,11 +135,53 @@ const ContributionToUniversity = () => {
     setTableData((prevData) => prevData.slice(0, -1));
   };
 
-  const submitContributionToUniversity = () => {
+  const submitContributionToUniversity = async () => {
+    const allFieldsFilled = tableData.every(
+      (contribution) =>
+        contribution.nameOfTheResponsibility.trim() !== "" &&
+        contribution.contribution.trim() !== "",
+    );
+    if (!allFieldsFilled) {
+      await toast.error(`All fields are required to be filled!`, {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      return;
+    }
     try {
+      setDisabled(true);
+      const userId = Cookies.get("user_id");
+      const formData = new FormData();
+      formData.append("userId", userId);
+      formData.append("formId", formId);
+      formData.append("tableData", JSON.stringify(tableData));
+      files.forEach((file) => {
+        if (!file.fileId) {
+          formData.append("files", file);
+        }
+      });
+      deletedFiles.forEach((fileId) => {
+        formData.append("deletedFiles", fileId);
+      });
+      const api = "http://localhost:5000";
+      const option = {
+        method: "POST",
+        body: formData,
+      };
+      const response = await fetch(
+        `${api}/ContributionToUniversitySchool`,
+        option,
+      );
       navigate(`/contribution-to-department/?f_id=${formId}`);
     } catch (error) {
       console.error(error);
+      setDisabled(false);
       toast.error("Internal Server Error! Please try again Later", {
         position: "bottom-center",
         autoClose: 5000,
@@ -251,7 +319,7 @@ const ContributionToUniversity = () => {
                         nameOfTheResponsibility: newValue,
                       })
                     }
-                    validate={(input) => /^[A-Za-z\s]+$/.test(input)}
+                    validate={(input) => /^[A-Za-z\s\S]+$/.test(input)}
                     type="text"
                     disabled={false}
                   />
@@ -265,7 +333,7 @@ const ContributionToUniversity = () => {
                         contribution: newValue,
                       })
                     }
-                    validate={(input) => /^[A-Za-z\s]+$/.test(input)}
+                    validate={(input) => /^[A-Za-z\s\S]+$/.test(input)}
                     type="text"
                     disabled={false}
                   />
@@ -287,7 +355,7 @@ const ContributionToUniversity = () => {
             border: "none",
           }}
         >
-          Add Certificate
+          Add Contribution
         </SaveNextButton>
         {tableData.length > 1 && (
           <SaveNextButton
@@ -303,7 +371,7 @@ const ContributionToUniversity = () => {
               border: "none",
             }}
           >
-            Delete Certificate
+            Delete Contribution
           </SaveNextButton>
         )}
       </TableContainer>
@@ -353,7 +421,20 @@ const ContributionToUniversity = () => {
             border: "none",
           }}
         >
-          Save & Next
+          {disabled ? (
+            <Oval
+              visible={true}
+              height="25"
+              width="25"
+              color="#ffffff"
+              ariaLabel="oval-loading"
+              wrapperStyle={{}}
+              wrapperClass=""
+              className="text-center"
+            />
+          ) : (
+            "Save & Next"
+          )}
         </SaveNextButton>
       </SaveNextButtonContainer>
     </>

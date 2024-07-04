@@ -100,20 +100,21 @@ const RDPartD = () => {
     fetchYear();
   }, []);
 
-  const handleEditCertificate = (articleIndex, updatedArticle) => {
-    const updatedState = tableData.map((eachArticle, aIndex) => {
-      if (aIndex === articleIndex) {
-        const { nameOfTheCertificate, organization, score } = updatedArticle;
+  const handleEditCertificate = (certificateIndex, updatedCertificate) => {
+    const updatedState = tableData.map((eachCertificate, aIndex) => {
+      if (aIndex === certificateIndex) {
+        const { nameOfTheCertificate, organization, score } =
+          updatedCertificate;
         const allFieldsFilled =
           nameOfTheCertificate.trim() !== "" &&
           organization.trim() !== "" &&
           score.trim() !== "";
         return {
-          ...updatedArticle,
-          apiScore: allFieldsFilled ? 2 : eachArticle.apiScore,
+          ...updatedCertificate,
+          apiScore: allFieldsFilled ? 2 : eachCertificate.apiScore,
         };
       }
-      return eachArticle;
+      return eachCertificate;
     });
     setTableData(updatedState);
   };
@@ -246,7 +247,17 @@ const RDPartD = () => {
       navigate(`/contribution-to-university-school/?f_id=${formId}`);
     } catch (error) {
       setDisabled(false);
-      console.error("Navigation error:", error);
+      console.error(error);
+      toast.error("Internal Server Error! Please try again Later", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
     }
   };
 

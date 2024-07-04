@@ -2,7 +2,7 @@ import Back from "../Back";
 import React, { useEffect, useState, useCallback } from "react";
 import Header from "../Header";
 import Cookies from "js-cookie";
-import { ThreeDots } from "react-loader-spinner";
+import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -58,6 +58,7 @@ const ContributionToSociety = () => {
     },
   ]);
   const [formId, setFormId] = useState("");
+  const [disabled, setDisabled] = useState(false);
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -77,6 +78,22 @@ const ContributionToSociety = () => {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
+        const response = await fetch(
+          `${api}/ContributionToSociety/${userId}/?formId=${id}`,
+        );
+        const data = await response.json();
+        if (data.contributionToSociety.contribution_data !== null) {
+          const contribution_data =
+            data.contributionToSociety.contribution_data;
+          const transformedData = contribution_data.map((item) => ({
+            nameOfTheResponsibility: item.nameOfTheResponsibility,
+            contribution: item.contribution,
+            apiScore: item.apiScore,
+          }));
+          setTableData(transformedData);
+          setFiles(data.contributionToSociety.files || []);
+        }
+        setDisabled(false);
 
         setApiStatus(apiStatusConstants.success);
       } catch (error) {
@@ -87,23 +104,29 @@ const ContributionToSociety = () => {
     fetchYear();
   }, []);
 
-  const handleEditContribution = (articleIndex, updatedArticle) => {
-    const updatedState = tableData.map((eachArticle, aIndex) => {
-      if (aIndex === articleIndex) {
-        return updatedArticle;
+  const handleEditContribution = (contributionIndex, updatedContribution) => {
+    const updatedState = tableData.map((eachContribution, cIndex) => {
+      if (cIndex === contributionIndex) {
+        const { nameOfTheResponsibility, contribution } = updatedContribution;
+        const allFieldsFilled =
+          nameOfTheResponsibility.trim() !== "" && contribution.trim() !== "";
+        return {
+          ...updatedContribution,
+          apiScore: allFieldsFilled ? 2 : eachContribution.apiScore,
+        };
       }
-      return eachArticle;
+      return eachContribution;
     });
     setTableData(updatedState);
   };
 
   const handleAddContribution = () => {
-    const newArticle = {
+    const newContribution = {
       nameOfTheResponsibility: "",
       contribution: "",
       apiScore: "",
     };
-    setTableData([...tableData, newArticle]);
+    setTableData([...tableData, newContribution]);
   };
 
   const handleDeleteContribution = () => {
@@ -113,7 +136,45 @@ const ContributionToSociety = () => {
   };
 
   const submitContributionToSociety = async () => {
+    const allFieldsFilled = tableData.every(
+      (contribution) =>
+        contribution.nameOfTheResponsibility.trim() !== "" &&
+        contribution.contribution.trim() !== "",
+    );
+    if (!allFieldsFilled) {
+      await toast.error(`All fields are required to be filled!`, {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      return;
+    }
     try {
+      setDisabled(true);
+      const userId = Cookies.get("user_id");
+      const formData = new FormData();
+      formData.append("userId", userId);
+      formData.append("formId", formId);
+      formData.append("tableData", JSON.stringify(tableData));
+      files.forEach((file) => {
+        if (!file.fileId) {
+          formData.append("files", file);
+        }
+      });
+      deletedFiles.forEach((fileId) => {
+        formData.append("deletedFiles", fileId);
+      });
+      const api = "http://localhost:5000";
+      const option = {
+        method: "POST",
+        body: formData,
+      };
+      const response = await fetch(`${api}/ContributionToSociety`, option);
       await toast.success(
         "Your Form have been successfully submitted and stored in the Database",
         {
@@ -130,6 +191,7 @@ const ContributionToSociety = () => {
       navigate("/home");
       //navigate("/assessment-of-the-functional-head/hod");
     } catch (error) {
+      setDisabled(false);
       toast.error("Internal Server Error! Please try again Later", {
         position: "bottom-center",
         autoClose: 5000,
@@ -373,7 +435,20 @@ const ContributionToSociety = () => {
               border: "none",
             }}
           >
-            Save & Next
+            {disabled ? (
+              <Oval
+                visible={true}
+                height="25"
+                width="25"
+                color="#ffffff"
+                ariaLabel="oval-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                className="text-center"
+              />
+            ) : (
+              "Save & Next"
+            )}
           </SaveNextButton>
         </SaveNextButtonContainer>
       </>
