@@ -151,23 +151,28 @@ const RDPartD = () => {
   const handleOpenInNewTab = async (file) => {
     if (file.fileId) {
       try {
-        const response = await fetch(`http://localhost:5000/files/${file.fileId}`);
+        const response = await fetch(
+          `http://localhost:5000/files/${file.fileId}`,
+        );
         if (response.ok) {
           const blob = await response.blob();
           const url = window.URL.createObjectURL(blob);
           window.open(url, "_blank");
           window.URL.revokeObjectURL(url);
         } else {
-          toast.error("Failed to open file: " + (await response.json()).message, {
-            position: "bottom-center",
-            autoClose: 5000,
-            hideProgressBar: true,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-          });
+          toast.error(
+            "Failed to open file: " + (await response.json()).message,
+            {
+              position: "bottom-center",
+              autoClose: 5000,
+              hideProgressBar: true,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+            },
+          );
         }
       } catch (error) {
         console.error("Error opening file:", error);
@@ -182,7 +187,7 @@ const RDPartD = () => {
             draggable: true,
             progress: undefined,
             theme: "colored",
-          }
+          },
         );
       }
     } else {
