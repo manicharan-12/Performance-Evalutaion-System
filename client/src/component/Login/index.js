@@ -26,9 +26,10 @@ const Login = (props) => {
 
   const navigate = useNavigate();
 
-  const onSubmitSuccess = (jwtToken, userId) => {
+  const onSubmitSuccess = (jwtToken, userId, role) => {
     Cookies.set("jwt_token", jwtToken, { expires: 1, path: "/" });
     Cookies.set("user_id", userId, { expires: 1, path: "/" });
+    Cookies.set("role", role, { expires: 1, path: "/" });
 
     navigate("/home");
   };
@@ -54,7 +55,7 @@ const Login = (props) => {
         const response = await fetch(`${api}/login/`, option);
         if (response.ok === true) {
           const data = await response.json();
-          onSubmitSuccess(data.jwt_token, data.id);
+          onSubmitSuccess(data.jwt_token, data.id, data.role);
           setDisabled(false);
         } else {
           const data = await response.json();

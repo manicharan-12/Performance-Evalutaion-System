@@ -150,14 +150,14 @@ export const OptionButton = styled.button`
   }
 `;
 
+export const NameText = styled.p`
+  font-weight: bolder;
+  font-size: 2.7vw;
+`;
 
-export const NameText=styled.p`
-font-weight: bolder;
-`
-
-export const SearchBox=styled.input`
-border: 1px solid #000;
-border-radius: 2px;
-padding: 4px;
-width:40%;
-`
+export const SearchBox = styled.input`
+  border: 1px solid #000;
+  border-radius: 2px;
+  padding: 4px;
+  width: 40%;
+`;

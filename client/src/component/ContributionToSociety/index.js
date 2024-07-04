@@ -112,9 +112,9 @@ const ContributionToSociety = () => {
     setTableData(newTableData);
   };
 
-  const submitContributionToSociety = () => {
+  const submitContributionToSociety =async  () => {
     try {
-      toast.success(
+      await toast.success(
         "Your Form have been successfully submitted and stored in the Database",
         {
           position: "bottom-center",
@@ -124,10 +124,11 @@ const ContributionToSociety = () => {
           pauseOnHover: false,
           draggable: true,
           progress: undefined,
-        theme: "colored"
+          theme: "colored",
         },
       );
-      navigate("/home");
+      navigate("/home")
+      //navigate("/assessment-of-the-functional-head/hod");
     } catch (error) {
       toast.error("Internal Server Error! Please try again Later", {
         position: "bottom-center",
@@ -135,8 +136,9 @@ const ContributionToSociety = () => {
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
-        draggable: true, progress: undefined,
-        theme: "colored"
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
       });
     }
   };
@@ -156,39 +158,46 @@ const ContributionToSociety = () => {
     maxSize: 50000000,
   });
 
-  const handleOpenInNewTab = async (fileId) => {
-    try {
-      const response = await fetch(`http://localhost:5000/files/${fileId}`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, "_blank");
-        window.URL.revokeObjectURL(url);
-      } else {
-        toast.error("Failed to open file: " + (await response.json()).message, {
-          position: "bottom-center",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true, progress: undefined,
-        theme: "colored"
-        });
+  const handleOpenInNewTab = async (file) => {
+    if (file.fileId) {
+      try {
+        const response = await fetch(`http://localhost:5000/files/${file.fileId}`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          window.open(url, "_blank");
+          window.URL.revokeObjectURL(url);
+        } else {
+          toast.error("Failed to open file: " + (await response.json()).message, {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          });
+        }
+      } catch (error) {
+        console.error("Error opening file:", error);
+        toast.error(
+          "An error occurred while opening the file. Please try again.",
+          {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          }
+        );
       }
-    } catch (error) {
-      console.error("Error opening file:", error);
-      toast.error(
-        "An error occurred while opening the file. Please try again.",
-        {
-          position: "bottom-center",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true, progress: undefined,
-        theme: "colored"
-        },
-      );
+    } else {
+      const url = file.preview;
+      window.open(url, "_blank");
     }
   };
 
@@ -336,7 +345,7 @@ const ContributionToSociety = () => {
           <UnorderedList className="mt-3">
             {files.map((file, index) => (
               <ListItems key={index}>
-                <SpanEle onClick={() => handleOpenInNewTab(file.fileId)}>
+                <SpanEle onClick={() => handleOpenInNewTab(file)}>
                   {file.filename || file.name}
                 </SpanEle>
                 <DeleteButton onClick={() => handleDeleteFile(file.fileId)}>
@@ -393,11 +402,9 @@ const ContributionToSociety = () => {
     }
   };
 
-
-  
   const handleSelectChange = (event) => {
     const selectedOption = event.target.value;
-  
+
     switch (selectedOption) {
       case "AcademicWork I":
         navigate(`/academicWork/part-a/?f_id=${formId}`);
@@ -437,24 +444,49 @@ const ContributionToSociety = () => {
     <HomeMainContainer>
       <Header />
       <MainContainer className="mt-5 mb-5">
-      <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", marginBottom: "18px" }}>
-  <Back />
-  <div style={{ display: "flex", flexDirection: "row", justifyContent: "flex-end", alignItems: "center", width: "100%" }}>
-    <p style={{ marginRight: "10px", marginTop:"10px" }}>Navigate to</p>
-    <select style={{ border: "1px solid #000", borderRadius: "5px", padding: "5px" }} onChange={handleSelectChange}>
-      <option>AcademicWork I</option>
-      <option>AcademicWork II</option>
-      <option>R&D Conformation</option>
-      <option>R&D Part A</option>
-      <option>R&D Part B</option>
-      <option>R&D Part C</option>
-      <option>R&D Part D</option>
-      <option>Contribution To University School</option>
-      <option>Contribution To Department</option>
-      <option selected>Contribution To Society</option>
-    </select>
-  </div>
-</div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "100%",
+            marginBottom: "18px",
+          }}
+        >
+          <Back />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+              Navigate to
+            </p>
+            <select
+              style={{
+                border: "1px solid #000",
+                borderRadius: "5px",
+                padding: "5px",
+              }}
+              onChange={handleSelectChange}
+            >
+              <option>AcademicWork I</option>
+              <option>AcademicWork II</option>
+              <option>R&D Conformation</option>
+              <option>R&D Part A</option>
+              <option>R&D Part B</option>
+              <option>R&D Part C</option>
+              <option>R&D Part D</option>
+              <option>Contribution To University School</option>
+              <option>Contribution To Department</option>
+              <option selected>Contribution To Society</option>
+            </select>
+          </div>
+        </div>
         {renderContributionToSocietyPage()}
       </MainContainer>
     </HomeMainContainer>

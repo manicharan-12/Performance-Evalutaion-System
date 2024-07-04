@@ -16,7 +16,7 @@ import {
   FormListButtonContainer,
   OptionButton,
   NameText,
-  SearchBox
+  SearchBox,
 } from "./StyledComponents";
 import Cookies from "js-cookie";
 import { GrClose } from "react-icons/gr";
@@ -40,8 +40,8 @@ const Home = () => {
   const [editingFormId, setEditingFormId] = useState(null);
   const navigate = useNavigate();
   const [disabled, setDisabled] = useState(false);
-  const [userName,setUserName]=useState("")
-  const [searchText,setSearchText]=useState("")
+  const [userName, setUserName] = useState("");
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     async function fetchForms() {
@@ -50,7 +50,7 @@ const Home = () => {
         const userId = Cookies.get("user_id");
         const api = "http://localhost:5000";
         const response = await fetch(`${api}/user/forms/${userId}`);
-        const response2= await fetch(`${api}/profile/details/${userId}`)
+        const response2 = await fetch(`${api}/profile/details/${userId}`);
         if (response.ok) {
           const data = await response.json();
           setFormList(data.getForms);
@@ -66,12 +66,11 @@ const Home = () => {
             draggable: true,
           });
         }
-        if(response2.ok){
-          const data=await response2.json();
-          setUserName(data.name)
+        if (response2.ok) {
+          const data = await response2.json();
+          setUserName(data.name);
           setApiStatus(apiStatusConstants.success);
-        }
-        else{
+        } else {
           setApiStatus(apiStatusConstants.failure);
           toast.error("Failed to fetch userData", {
             position: "bottom-center",
@@ -248,65 +247,86 @@ const Home = () => {
 
   const renderSuccessView = () => {
     const filteredForms = formList.filter((form) =>
-      form.formName.toLowerCase().includes(searchText.toLowerCase())
+      form.formName.toLowerCase().includes(searchText.toLowerCase()),
     );
-    return(
-    <>
-    <NameText>Welcome {userName}!</NameText>
-      <ButtonContainer>
-      <SearchBox type="search" placeholder="Enter text to find form" value={searchText}
-  onChange={onChangeSearchText}/>
-        <button className="btn btn-primary" onClick={openModal}>
-          Create a new form
-        </button>
-      </ButtonContainer>
-      {modal && (
-        <ModelContainer className="pb-3 shadow-lg">
-          <ButtonContainer>
-            <CloseButton onClick={closeModal}>
-              <GrClose />
-            </CloseButton>
-          </ButtonContainer>
-          <label className="pb-2">
-            {isEditing ? "Update the name" : "Enter the name of the form"}
-          </label>
-          <p style={{ fontSize: "12px" }}>
-            (Choose a relevant name to the form. The same name will be displayed
-            to your higher authorities)
-          </p>
-          <input
-            className="form form-control"
-            onChange={onChangeFormName}
-            value={name}
+    return (
+      <>
+        <NameText>Welcome, {userName}!</NameText>
+        <ButtonContainer>
+          <SearchBox
+            type="search"
+            placeholder="Enter text to find form"
+            value={searchText}
+            onChange={onChangeSearchText}
           />
-          <ButtonContainer className="pt-4">
-            <button
-              className="btn btn-primary"
-              onClick={createOrEditForm}
-              disabled={disabled}
-            >
-              {disabled ? (
-                <Oval
-                  visible={true}
-                  height="25"
-                  width="25"
-                  color="#ffffff"
-                  ariaLabel="oval-loading"
-                  wrapperStyle={{}}
-                  wrapperClass=""
-                  className="text-center"
-                />
-              ) : isEditing ? (
-                "Update"
-              ) : (
-                "Create"
-              )}
-            </button>
-          </ButtonContainer>
-        </ModelContainer>
-      )}
-      <FormsContainer className="pt-3 mt-5">
-      {filteredForms.map((eachForm) => (
+          <button
+            onClick={openModal}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            Create a new form
+          </button>
+        </ButtonContainer>
+        {modal && (
+          <ModelContainer className="pb-3 shadow-lg">
+            <ButtonContainer>
+              <CloseButton onClick={closeModal}>
+                <GrClose />
+              </CloseButton>
+            </ButtonContainer>
+            <label className="pb-2">
+              {isEditing ? "Update the name" : "Enter the name of the form"}
+            </label>
+            <p style={{ fontSize: "12px" }}>
+              (Choose a relevant name to the form. The same name will be
+              displayed to your higher authorities)
+            </p>
+            <input
+              className="form form-control"
+              onChange={onChangeFormName}
+              value={name}
+            />
+            <ButtonContainer className="pt-4">
+              <button
+                onClick={createOrEditForm}
+                disabled={disabled}
+                style={{
+                  padding: "12px",
+                  borderRadius: "8px",
+                  backgroundImage:
+                    "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                  color: "#fff",
+                  border: "none",
+                }}
+              >
+                {disabled ? (
+                  <Oval
+                    visible={true}
+                    height="25"
+                    width="25"
+                    color="#ffffff"
+                    ariaLabel="oval-loading"
+                    wrapperStyle={{}}
+                    wrapperClass=""
+                    className="text-center"
+                  />
+                ) : isEditing ? (
+                  "Update"
+                ) : (
+                  "Create"
+                )}
+              </button>
+            </ButtonContainer>
+          </ModelContainer>
+        )}
+        <FormsContainer className="pt-3 mt-5">
+          {filteredForms.map((eachForm) => (
             <FormsList key={eachForm._id}>
               <SubSectionHeading
                 onClick={() => handleFormClick(eachForm._id)}
@@ -334,10 +354,10 @@ const Home = () => {
               </FormListButtonContainer>
             </FormsList>
           ))}
-      </FormsContainer>
-    </>
-  )
-}
+        </FormsContainer>
+      </>
+    );
+  };
 
   const renderFailureView = () => (
     <>

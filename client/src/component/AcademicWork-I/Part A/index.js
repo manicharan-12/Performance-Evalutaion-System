@@ -101,29 +101,28 @@ const AcademicWorkI = () => {
           studentFeedbackPercentage: "",
           studentFeedbackScore: "",
         },
-        {
-          name: "Course-2",
-          courseTaught: "",
-          scheduledClasses: "",
-          actualClasses: "",
-          passPercentage: "",
-          apiScoreResults: "",
-          studentFeedbackPercentage: "",
-          studentFeedbackScore: "",
-        },
       ],
     };
     setTableData([...tableData, newSemester]);
   };
 
   const handleDeleteSemester = (semesterIndex) => {
-    if (tableData.length > 2) {
+    if (tableData.length > 1) {
       const newTableData = tableData.filter(
         (_, index) => index !== semesterIndex,
       );
       setTableData(newTableData);
     } else {
-      console.log("Cannot delete semester. Minimum of 2 semesters required.");
+      toast.error("Cannot delete semester. Minimum of 2 semesters required.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
     }
   };
 
@@ -157,7 +156,16 @@ const AcademicWorkI = () => {
       currentSemester.courses.pop();
       setTableData(newTableData);
     } else {
-      console.log("Cannot delete course. Minimum of 2 courses required.");
+      toast.error("Cannot delete course. Minimum of 2 courses required.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
     }
   };
 
@@ -276,7 +284,6 @@ const AcademicWorkI = () => {
           averageFeedbackPercentage,
           totalApiScore,
         };
-        console.log(tableData);
         const api = "http://localhost:5000";
         const option = {
           method: "POST",
@@ -303,7 +310,7 @@ const AcademicWorkI = () => {
         }
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setDisabled(false);
       toast.error("Failed to save data! Please try again later", {
         position: "bottom-center",
@@ -313,7 +320,7 @@ const AcademicWorkI = () => {
         pauseOnHover: false,
         draggable: true,
         progress: undefined,
-        theme: "colored"
+        theme: "colored",
       });
     }
   };
@@ -327,7 +334,6 @@ const AcademicWorkI = () => {
       try {
         const formId = searchParams.get("f_id");
         id = formId;
-        console.log(id);
         await setFormId(id);
       } catch (error) {
         console.error(error);
@@ -359,7 +365,7 @@ const AcademicWorkI = () => {
           setApiStatus(apiStatusConstants.failure);
         }
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setApiStatus(apiStatusConstants.failure);
       }
     }
@@ -713,9 +719,51 @@ const AcademicWorkI = () => {
     }
   };
 
-  const handleSelectChange = (event) => {
+  const isFormValid = () => {
+    const isAnyFieldEmpty = (course) => {
+      return (
+        !course.name ||
+        !course.courseTaught ||
+        !course.scheduledClasses ||
+        !course.actualClasses ||
+        !course.passPercentage ||
+        !course.apiScoreResults ||
+        !course.studentFeedbackPercentage ||
+        !course.studentFeedbackScore ||
+        !year
+      );
+    };
+
+    for (const semester of tableData) {
+      for (const course of semester.courses) {
+        if (isAnyFieldEmpty(course)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  const handleSelectChange = async (event) => {
     const selectedOption = event.target.value;
-  
+
+    if (!isFormValid()) {
+      await toast.error(
+        "Completely fill the form and save the data before navigating",
+        {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        },
+      );
+      return;
+    }
+
     switch (selectedOption) {
       case "AcademicWork I":
         navigate(`/academicWork/part-a/?f_id=${formId}`);
@@ -756,24 +804,49 @@ const AcademicWorkI = () => {
     <HomeMainContainer>
       <Header />
       <MainContainer className="mt-5 mb-5">
-      <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", marginBottom: "18px" }}>
-  <Back />
-  <div style={{ display: "flex", flexDirection: "row", justifyContent: "flex-end", alignItems: "center", width: "100%" }}>
-    <p style={{ marginRight: "10px", marginTop:"10px" }}>Navigate to</p>
-    <select style={{ border: "1px solid #000", borderRadius: "5px", padding: "5px" }} onChange={handleSelectChange}>
-      <option selected>AcademicWork I</option>
-      <option>AcademicWork II</option>
-      <option>R&D Conformation</option>
-      <option>R&D Part A</option>
-      <option>R&D Part B</option>
-      <option>R&D Part C</option>
-      <option>R&D Part D</option>
-      <option>Contribution To University School</option>
-      <option>Contribution To Department</option>
-      <option>Contribution To Society</option>
-    </select>
-  </div>
-</div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "100%",
+            marginBottom: "18px",
+          }}
+        >
+          <Back />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+              Navigate to
+            </p>
+            <select
+              style={{
+                border: "1px solid #000",
+                borderRadius: "5px",
+                padding: "5px",
+              }}
+              onChange={handleSelectChange}
+            >
+              <option selected>AcademicWork I</option>
+              <option>AcademicWork II</option>
+              <option>R&D Conformation</option>
+              <option>R&D Part A</option>
+              <option>R&D Part B</option>
+              <option>R&D Part C</option>
+              <option>R&D Part D</option>
+              <option>Contribution To University School</option>
+              <option>Contribution To Department</option>
+              <option>Contribution To Society</option>
+            </select>
+          </div>
+        </div>
 
         {renderAcademicWorkPartAPage()}
       </MainContainer>

@@ -194,13 +194,13 @@ const AcademicWorkII = () => {
           pauseOnHover: false,
           draggable: true,
           progress: undefined,
-        theme: "colored"
+          theme: "colored",
         });
       }
     } catch (error) {
       console.error(error);
       setOnClick(false);
-        setDisabled(false);
+      setDisabled(false);
       toast.error("Internal Server Error! Please try again later", {
         position: "bottom-center",
         autoClose: 5000,
@@ -209,48 +209,54 @@ const AcademicWorkII = () => {
         pauseOnHover: false,
         draggable: true,
         theme: "colored",
-        progress:undefined
+        progress: undefined,
       });
     }
   };
 
-  const handleOpenInNewTab = async (fileId) => {
-    try {
-      const response = await fetch(`http://localhost:5000/files/${fileId}`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, "_blank");
-        window.URL.revokeObjectURL(url);
-      } else {
-        toast.error("Failed to open file: " + (await response.json()).message, {
-          position: "bottom-center",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-        theme: "colored"
-        });
+  const handleOpenInNewTab = async (file) => {
+    if (file.fileId) {
+      try {
+        const response = await fetch(`http://localhost:5000/files/${file.fileId}`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          window.open(url, "_blank");
+          window.URL.revokeObjectURL(url);
+        } else {
+          toast.error("Failed to open file: " + (await response.json()).message, {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          });
+        }
+      } catch (error) {
+        console.error("Error opening file:", error);
+        toast.error(
+          "An error occurred while opening the file. Please try again.",
+          {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          }
+        );
       }
-    } catch (error) {
-      console.error("Error opening file:", error);
-      toast.error(
-        "An error occurred while opening the file. Please try again.",
-        {
-          position: "bottom-center",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-        theme: "colored"
-        },
-      );
+    } else {
+      const url = file.preview;
+      window.open(url, "_blank");
     }
   };
+  
 
   const handleDeleteFile = (fileId) => {
     setFiles((prevFiles) => prevFiles.filter((file) => file.fileId !== fileId));
@@ -328,7 +334,7 @@ const AcademicWorkII = () => {
           <UnorderedList className="mt-3">
             {files.map((file, index) => (
               <ListItems key={index}>
-                <SpanEle onClick={() => handleOpenInNewTab(file.fileId)}>
+                <SpanEle onClick={() => handleOpenInNewTab(file)}>
                   {file.filename || file.name}
                 </SpanEle>
                 <DeleteButton onClick={() => handleDeleteFile(file.fileId)}>
@@ -403,7 +409,7 @@ const AcademicWorkII = () => {
 
   const handleSelectChange = (event) => {
     const selectedOption = event.target.value;
-  
+
     switch (selectedOption) {
       case "AcademicWork I":
         navigate(`/academicWork/part-a/?f_id=${formId}`);
@@ -444,24 +450,49 @@ const AcademicWorkII = () => {
     <HomeMainContainer>
       <Header />
       <MainContainer className="mt-5 mb-5">
-      <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", marginBottom: "18px" }}>
-  <Back />
-  <div style={{ display: "flex", flexDirection: "row", justifyContent: "flex-end", alignItems: "center", width: "100%" }}>
-    <p style={{ marginRight: "10px", marginTop:"10px" }}>Navigate to</p>
-    <select style={{ border: "1px solid #000", borderRadius: "5px", padding: "5px" }} onChange={handleSelectChange}>
-      <option>AcademicWork I</option>
-      <option selected>AcademicWork II</option>
-      <option>R&D Conformation</option>
-      <option>R&D Part A</option>
-      <option>R&D Part B</option>
-      <option>R&D Part C</option>
-      <option>R&D Part D</option>
-      <option>Contribution To University School</option>
-      <option>Contribution To Department</option>
-      <option>Contribution To Society</option>
-    </select>
-  </div>
-</div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "100%",
+            marginBottom: "18px",
+          }}
+        >
+          <Back />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+              Navigate to
+            </p>
+            <select
+              style={{
+                border: "1px solid #000",
+                borderRadius: "5px",
+                padding: "5px",
+              }}
+              onChange={handleSelectChange}
+            >
+              <option>AcademicWork I</option>
+              <option selected>AcademicWork II</option>
+              <option>R&D Conformation</option>
+              <option>R&D Part A</option>
+              <option>R&D Part B</option>
+              <option>R&D Part C</option>
+              <option>R&D Part D</option>
+              <option>Contribution To University School</option>
+              <option>Contribution To Department</option>
+              <option>Contribution To Society</option>
+            </select>
+          </div>
+        </div>
         {renderAcademicWorkPartBPage()}
       </MainContainer>
     </HomeMainContainer>

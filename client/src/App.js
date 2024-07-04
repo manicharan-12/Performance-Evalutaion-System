@@ -15,11 +15,12 @@ import RDPartA from "./component/ResearchAndDevelopment/PartA";
 import RDPartB from "./component/ResearchAndDevelopment/PartB";
 import RDPartC from "./component/ResearchAndDevelopment/PartC";
 import RDPartD from "./component/ResearchAndDevelopment/PartD";
-import ContributionToUniversity from "./component/ContributionToUniveristySchool";
+import ContributionToUniversity from "./component/ContributionToUniversitySchool";
 import ContributionToDepartment from "./component/ContributionToDepartment";
 import ContributionToSociety from "./component/ContributionToSociety";
 import Home from "./component/Home";
 import { ToastContainer, toast } from "react-toastify";
+import AssessmentOfFunctionalHead from "./component/AssessmentOfFunctionalHead";
 
 function App() {
   const [width, setWidth] = useState(window.innerWidth);
@@ -77,6 +78,10 @@ function App() {
             <Route
               path="/contribution-to-society"
               element={<ContributionToSociety />}
+            />
+            <Route
+              path="/assessment-of-the-functional-head/hod"
+              element={<AssessmentOfFunctionalHead />}
             />
             <Route path="*" element={<Navigate replace to="/Home" />} />
           </Route>

@@ -2,7 +2,7 @@ import Back from "../../Back";
 import React, { useEffect, useState, useCallback } from "react";
 import Header from "../../Header";
 import Cookies from "js-cookie";
-import { ThreeDots } from "react-loader-spinner";
+import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -57,6 +57,7 @@ const RDPartD = () => {
     },
   ]);
   const [formId, setFormId] = useState("");
+  const [disabled, setDisabled] = useState(false);
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -75,7 +76,21 @@ const RDPartD = () => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
-
+        const api = "http://localhost:5000";
+        const response = await fetch(`${api}/RD/PartD/${userId}/?formId=${id}`);
+        const data = await response.json();
+        if (data.phdPartD.certificates_data !== null) {
+          const certificates_data = data.phdPartD.certificates_data;
+          const transformedData = certificates_data.map((item) => ({
+            nameOfTheCertificate: item.nameOfTheCertificate,
+            organization: item.organization,
+            score: item.score,
+            apiScore: item.apiScore,
+          }));
+          setTableData(transformedData);
+          setFiles(data.phdPartD.files || []);
+        }
+        setDisabled(false);
         setApiStatus(apiStatusConstants.success);
       } catch (error) {
         console.log(error);
@@ -88,7 +103,15 @@ const RDPartD = () => {
   const handleEditCertificate = (articleIndex, updatedArticle) => {
     const updatedState = tableData.map((eachArticle, aIndex) => {
       if (aIndex === articleIndex) {
-        return updatedArticle;
+        const { nameOfTheCertificate, organization, score } = updatedArticle;
+        const allFieldsFilled =
+          nameOfTheCertificate.trim() !== "" &&
+          organization.trim() !== "" &&
+          score.trim() !== "";
+        return {
+          ...updatedArticle,
+          apiScore: allFieldsFilled ? 2 : eachArticle.apiScore,
+        };
       }
       return eachArticle;
     });
@@ -125,39 +148,46 @@ const RDPartD = () => {
     maxSize: 50000000,
   });
 
-  const handleOpenInNewTab = async (fileId) => {
-    try {
-      const response = await fetch(`http://localhost:5000/files/${fileId}`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, "_blank");
-        window.URL.revokeObjectURL(url);
-      } else {
-        toast.error("Failed to open file: " + (await response.json()).message, {
-          position: "bottom-center",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true, progress: undefined,
-        theme: "colored"
-        });
+  const handleOpenInNewTab = async (file) => {
+    if (file.fileId) {
+      try {
+        const response = await fetch(`http://localhost:5000/files/${file.fileId}`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          window.open(url, "_blank");
+          window.URL.revokeObjectURL(url);
+        } else {
+          toast.error("Failed to open file: " + (await response.json()).message, {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          });
+        }
+      } catch (error) {
+        console.error("Error opening file:", error);
+        toast.error(
+          "An error occurred while opening the file. Please try again.",
+          {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          }
+        );
       }
-    } catch (error) {
-      console.error("Error opening file:", error);
-      toast.error(
-        "An error occurred while opening the file. Please try again.",
-        {
-          position: "bottom-center",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true, progress: undefined,
-        theme: "colored"
-        },
-      );
+    } else {
+      const url = file.preview;
+      window.open(url, "_blank");
     }
   };
 
@@ -166,10 +196,51 @@ const RDPartD = () => {
     setDeletedFiles((prevDeletedFiles) => [...prevDeletedFiles, fileId]);
   };
 
-  const submitRDPartD = () => {
+  const submitRDPartD = async () => {
+    const allFieldsFilled = tableData.every(
+      (article) =>
+        article.nameOfTheCertificate.trim() !== "" &&
+        article.organization.trim() !== "" &&
+        article.score.trim() !== "",
+    );
+
+    if (!allFieldsFilled) {
+      await toast.error(`All fields are required to be filled!`, {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+      return;
+    }
     try {
+      setDisabled(true);
+      const userId = Cookies.get("user_id");
+      const formData = new FormData();
+      formData.append("userId", userId);
+      formData.append("formId", formId);
+      formData.append("tableData", JSON.stringify(tableData));
+      files.forEach((file) => {
+        if (!file.fileId) {
+          formData.append("files", file);
+        }
+      });
+      deletedFiles.forEach((fileId) => {
+        formData.append("deletedFiles", fileId);
+      });
+      const api = "http://localhost:5000";
+      const option = {
+        method: "POST",
+        body: formData,
+      };
+      const response = await fetch(`${api}/RD/PartD`, option);
       navigate(`/contribution-to-university-school/?f_id=${formId}`);
     } catch (error) {
+      setDisabled(false);
       console.error("Navigation error:", error);
     }
   };
@@ -314,7 +385,7 @@ const RDPartD = () => {
         <UnorderedList className="mt-3">
           {files.map((file, index) => (
             <ListItems key={index}>
-              <SpanEle onClick={() => handleOpenInNewTab(file.fileId)}>
+              <SpanEle onClick={() => handleOpenInNewTab(file)}>
                 {file.filename || file.name}
               </SpanEle>
               <DeleteButton onClick={() => handleDeleteFile(file.fileId)}>
@@ -337,7 +408,20 @@ const RDPartD = () => {
             border: "none",
           }}
         >
-          Save & Next
+          {disabled ? (
+            <Oval
+              visible={true}
+              height="25"
+              width="25"
+              color="#ffffff"
+              ariaLabel="oval-loading"
+              wrapperStyle={{}}
+              wrapperClass=""
+              className="text-center"
+            />
+          ) : (
+            "Save & Next"
+          )}
         </SaveNextButton>
       </SaveNextButtonContainer>
     </>
@@ -367,7 +451,7 @@ const RDPartD = () => {
 
   const handleSelectChange = (event) => {
     const selectedOption = event.target.value;
-  
+
     switch (selectedOption) {
       case "AcademicWork I":
         navigate(`/academicWork/part-a/?f_id=${formId}`);
@@ -408,24 +492,49 @@ const RDPartD = () => {
     <HomeMainContainer>
       <Header />
       <MainContainer className="mt-5 mb-5">
-      <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between", width: "100%", marginBottom: "18px" }}>
-  <Back />
-  <div style={{ display: "flex", flexDirection: "row", justifyContent: "flex-end", alignItems: "center", width: "100%" }}>
-    <p style={{ marginRight: "10px", marginTop:"10px" }}>Navigate to</p>
-    <select style={{ border: "1px solid #000", borderRadius: "5px", padding: "5px" }} onChange={handleSelectChange}>
-      <option>AcademicWork I</option>
-      <option>AcademicWork II</option>
-      <option>R&D Conformation</option>
-      <option>R&D Part A</option>
-      <option>R&D Part B</option>
-      <option>R&D Part C</option>
-      <option selected>R&D Part D</option>
-      <option>Contribution To University School</option>
-      <option>Contribution To Department</option>
-      <option>Contribution To Society</option>
-    </select>
-  </div>
-</div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "100%",
+            marginBottom: "18px",
+          }}
+        >
+          <Back />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+              Navigate to
+            </p>
+            <select
+              style={{
+                border: "1px solid #000",
+                borderRadius: "5px",
+                padding: "5px",
+              }}
+              onChange={handleSelectChange}
+            >
+              <option>AcademicWork I</option>
+              <option>AcademicWork II</option>
+              <option>R&D Conformation</option>
+              <option>R&D Part A</option>
+              <option>R&D Part B</option>
+              <option>R&D Part C</option>
+              <option selected>R&D Part D</option>
+              <option>Contribution To University School</option>
+              <option>Contribution To Department</option>
+              <option>Contribution To Society</option>
+            </select>
+          </div>
+        </div>
         {renderRDPartDPage()}
       </MainContainer>
     </HomeMainContainer>

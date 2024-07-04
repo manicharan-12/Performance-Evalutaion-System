@@ -40,6 +40,8 @@ const Header = () => {
 
   const onClickLogout = () => {
     Cookies.remove("jwt_token");
+    Cookies.remove("user_id");
+    Cookies.remove("role");
     navigate("/");
   };
 

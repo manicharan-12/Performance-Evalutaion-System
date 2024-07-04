@@ -19,6 +19,7 @@ const AcademicWorkPartB = require("./models/Academic Work/partB");
 const PhdConformation = require("./models/Research And Development/rdConformation");
 const ResearchAndDevelopmentPartB = require("./models/Research And Development/partB");
 const ResearchAndDevelopmentPartC = require("./models/Research And Development/partC");
+const ResearchAndDevelopmentPartD = require("./models/Research And Development/partD");
 
 const mongoURI =
   "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority";
@@ -37,8 +38,8 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // Limit file size to 50MB
-    fieldSize: 10 * 1024 * 1024, // Limit field size to 10MB
+    fileSize: 50 * 1024 * 1024,
+    fieldSize: 10 * 1024 * 1024,
   },
 });
 
@@ -1100,6 +1101,169 @@ app.get("/RD/PartC/:userId", async (request, response) => {
               fundingAgencyDetails: "",
               grant: "",
               status: "",
+              apiScore: "",
+            },
+          ],
+          files: [],
+        },
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    response
+      .status(500)
+      .json({ error_msg: "Internal Server Error! Please try again later." });
+  }
+});
+
+app.post("/RD/PartD", upload.array("files"), async (request, response) => {
+  try {
+    const { userId, tableData, formId } = request.body;
+    let { deletedFiles } = request.body;
+    const files = request.files;
+    let parsedTableData;
+
+    if (typeof tableData === "string") {
+      try {
+        parsedTableData = JSON.parse(tableData);
+      } catch (err) {
+        console.error("Error parsing tableData:", err);
+        return response
+          .status(400)
+          .json({ message: "Invalid tableData format" });
+      }
+    } else {
+      parsedTableData = tableData;
+    }
+
+    if (deletedFiles && deletedFiles.length > 0) {
+      const deletedFilesArray = Array.isArray(deletedFiles)
+        ? deletedFiles
+        : [deletedFiles];
+      for (const fileId of deletedFilesArray) {
+        try {
+          await gridFSBucket.delete(new mongoose.Types.ObjectId(fileId));
+        } catch (err) {
+          return res.status(500).json({ message: "Error deleting file" });
+        }
+      }
+    }
+
+    const fileUploadPromises = files.map((file) => {
+      const readableStream = new Readable();
+      readableStream.push(file.buffer);
+      readableStream.push(null);
+      return new Promise((resolve, reject) => {
+        const uploadStream = gridFSBucket.openUploadStream(file.originalname, {
+          contentType: file.mimetype,
+        });
+
+        readableStream
+          .pipe(uploadStream)
+          .on("error", reject)
+          .on("finish", () => {
+            resolve({
+              filename: file.originalname,
+              mimetype: file.mimetype,
+              fileId: uploadStream.id,
+            });
+          });
+      });
+    });
+
+    const fileData = await Promise.all(fileUploadPromises);
+    const existingData = await ResearchAndDevelopmentPartD.findOne({
+      userId,
+      formId,
+    });
+    if (existingData) {
+      existingData.certificates_data = parsedTableData;
+      if (Array.isArray(deletedFiles)) {
+        existingData.files = existingData.files.filter(
+          (file) => !deletedFiles.includes(file.fileId.toString()),
+        );
+      }
+      existingData.files = existingData.files || [];
+      existingData.files.push(...fileData);
+      await existingData.save();
+    } else {
+      const newResearchAndDevelopmentPartD = new ResearchAndDevelopmentPartD({
+        userId,
+        formId,
+        certificates_data: parsedTableData,
+        files: fileData,
+      });
+      const res = await newResearchAndDevelopmentPartD.save();
+    }
+    response.status(200).json({ success_msg: "Successfully Saved1" });
+  } catch (error) {
+    console.error(error);
+    response
+      .status(500)
+      .json({ error_msg: "Internal Server Error! Please try again later." });
+  }
+});
+
+app.get("/RD/PartD/:userId", async (request, response) => {
+  try {
+    const { userId } = request.params;
+    const researchAndDevelopmentPartDDetails =
+      await ResearchAndDevelopmentPartD.findOne({ userId });
+    if (researchAndDevelopmentPartDDetails) {
+      const filePromises = researchAndDevelopmentPartDDetails.files.map(
+        (file) => {
+          return new Promise((resolve, reject) => {
+            try {
+              const fileStream = gfs.openDownloadStream(file.fileId);
+              let fileBuffer = Buffer.from([]);
+              fileStream.on("data", (chunk) => {
+                fileBuffer = Buffer.concat([fileBuffer, chunk]);
+              });
+
+              fileStream.on("end", () => {
+                resolve({
+                  ...file.toObject(),
+                  fileContent: fileBuffer.toString("base64"),
+                });
+              });
+
+              fileStream.on("error", (error) => {
+                console.error(
+                  `Error downloading file with ID: ${file.fileId}`,
+                  error,
+                );
+                reject(error);
+              });
+            } catch (error) {
+              console.error(
+                `Error opening download stream for file with ID: ${file.fileId}`,
+                error,
+              );
+              reject(error);
+            }
+          });
+        },
+      );
+
+      const filesData = await Promise.allSettled(filePromises);
+      const successfulFiles = filesData
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+      response.status(200).json({
+        phdPartD: {
+          certificates_data:
+            researchAndDevelopmentPartDDetails.certificates_data,
+          files: successfulFiles,
+        },
+      });
+    } else {
+      response.status(200).json({
+        phdPartD: {
+          certificates_data: [
+            {
+              nameOfTheCertificate: "",
+              organization: "",
+              score: "",
               apiScore: "",
             },
           ],
