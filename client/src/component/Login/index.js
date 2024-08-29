@@ -36,6 +36,17 @@ const Login = (props) => {
 
   const onSubmitLogin = async (event) => {
     event.preventDefault();
+    if(!navigator.onLine){
+      await toast.error("You are offline. Please connect to the internet and try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
     try {
       setDisabled(true);
       if (username === "" || password === "") {

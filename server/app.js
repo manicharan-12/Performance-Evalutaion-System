@@ -23,6 +23,7 @@ const ResearchAndDevelopmentPartD = require("./models/Research And Development/p
 const ContributionToUniversitySchool = require("./models/contributionToUniversitySchool");
 const ContributionToDepartment = require("./models/contributionToDepartment");
 const ContributionToSociety = require("./models/contributionToSociety");
+const ApiScore=require("./models/apiScore")
 
 const mongoURI =
   "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority";
@@ -428,6 +429,19 @@ app.post("/academic-work-1", async (request, response) => {
         totalApiScore,
       });
       await newAcademicWork.save();
+    }
+    const existingApiScore= await ApiScore.findOne({userId, formId});
+    if(existingApiScore){
+      existingApiScore.academicWorkPartA=totalApiScore;
+      await existingApiScore.save()
+    }
+    else{
+      const newApiScore= new ApiScore({
+        userId,
+        formId,
+        academicWorkPartA:totalApiScore
+      })
+      await newApiScore.save()
     }
 
     response.status(200).json({ message: "Data saved successfully!" });

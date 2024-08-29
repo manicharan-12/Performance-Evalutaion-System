@@ -1,10 +1,11 @@
 import Back from "../Back";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../Header";
 import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import EditableText from './textArea';
 import { toast } from "react-toastify";
 import {
   HomeMainContainer,
@@ -24,9 +25,7 @@ import {
   SaveNextButtonContainer,
   HeadingContainer,
   SectionHeading,
-  MarksHeading,
 } from "./StyledComponents";
-import EditableValue from "../EditableValue";
 
 const apiStatusConstants = {
   initial: "INITIAL",
@@ -35,7 +34,7 @@ const apiStatusConstants = {
   failure: "FAILURE",
 };
 
-const AssessmentOfFunctionalHead = () => {
+const ApiScoreSummary = () => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [formId, setFormId] = useState("");
   const [tableData, setTableData] = useState({
@@ -68,24 +67,9 @@ const AssessmentOfFunctionalHead = () => {
     fetchYear();
   }, []);
 
-  const calculateTotalScore = (data) => {
-    const { impression, examination, interpersonal } = data;
-    const total = [impression, examination, interpersonal]
-      .map((value) => parseInt(value, 10) || 0)
-      .reduce((acc, score) => acc + score, 0);
-    return total;
-  };
-
-  const handleValueChange = (field, value) => {
-    setTableData((prevState) => {
-      const updatedData = { ...prevState, [field]: value };
-      return { ...updatedData, apiScore: calculateTotalScore(updatedData) };
-    });
-  };
-
-  const submitAssessmentOfFunctionalHead = () => {
+  const submitApiScoreSummary = () => {
     try {
-      // Handle form submission
+
     } catch (error) {
       toast.error("Internal Server Error! Please try again Later", {
         position: "bottom-center",
@@ -122,69 +106,65 @@ const AssessmentOfFunctionalHead = () => {
       <>
         <HeadingContainer>
           <SectionHeading>
-            Assessment of the Faculty by the functional head / HoD
+          Summary of API Scores (to be filled by the functional head):
           </SectionHeading>
-          <MarksHeading>(Max. Score: 15)</MarksHeading>
         </HeadingContainer>
         <TableContainer className="mt-3">
           <Table>
             <TableMainHead>
               <TableRow>
-                <TableHead>Items to be considered</TableHead>
+                <TableHead>S.No</TableHead>
+                <TableHead>Criteria</TableHead>
                 <TableHead>Maximum API Score</TableHead>
                 <TableHead>API Score attained</TableHead>
-                <TableHead>Total Score (Max 15)</TableHead>
+                <TableHead>Remarks of the functional head</TableHead>
               </TableRow>
             </TableMainHead>
             <TableBody>
               <TableRow>
-                <TableData>Impression about the teaching work </TableData>
-                <TableData>5</TableData>
-                <TableData>
-                  <EditableValue
-                    value={tableData.impression}
-                    onValueChange={(value) =>
-                      handleValueChange("impression", value)
-                    }
-                    validate={(input) => /^[0-9]+$/.test(input)}
-                    type="text"
-                    disabled={false}
-                  />
-                </TableData>
-                <TableData rowSpan="3">{tableData.apiScore}</TableData>
+                <TableData>I</TableData>
+                <TableData>Academic Work (a+b)</TableData>
+                <TableData>45</TableData>
+                <TableData></TableData>
+                <TableData rowSpan="6" style={{ verticalAlign: "top", wordWrap: "break-word", overflowWrap: "break-word", whiteSpace: "pre-wrap" }}>
+  <EditableText value="" />
+</TableData>
+
+
               </TableRow>
               <TableRow>
-                <TableData>Examination duties</TableData>
-                <TableData>5</TableData>
-                <TableData>
-                  <EditableValue
-                    value={tableData.examination}
-                    onValueChange={(value) =>
-                      handleValueChange("examination", value)
-                    }
-                    validate={(input) => /^[0-9]+$/.test(input)}
-                    type="text"
-                    disabled={false}
-                  />
-                </TableData>
+                <TableData>II</TableData>
+                <TableData>Research work (a+b+c) or (a+b+d)</TableData>
+                <TableData>25</TableData>
+                <TableData></TableData>
               </TableRow>
               <TableRow>
-                <TableData>
-                  Interpersonal Relationships and teamwork, Professional ethics,
-                  values and commitment
-                </TableData>
+                <TableData>III</TableData>
+                <TableData>Contribution to the University </TableData>
                 <TableData>5</TableData>
-                <TableData>
-                  <EditableValue
-                    value={tableData.interpersonal}
-                    onValueChange={(value) =>
-                      handleValueChange("interpersonal", value)
-                    }
-                    validate={(input) => /^[0-9]+$/.test(input)}
-                    type="text"
-                    disabled={false}
-                  />
-                </TableData>
+                <TableData></TableData>
+                
+              </TableRow>
+              <TableRow>
+                <TableData>IV</TableData>
+                <TableData>Contribution to the Department</TableData>
+                <TableData>5</TableData>
+                <TableData></TableData>
+                
+              </TableRow>
+              <TableRow>
+                <TableData>V</TableData>
+                <TableData>Contribution to Society</TableData>
+                <TableData>5</TableData>
+                <TableData></TableData>
+                
+              </TableRow>
+              <TableRow>
+                <TableData>I</TableData>
+                <TableData>Assessment by functional head </TableData>
+                <TableData>15</TableData>
+                <TableData></TableData>
+                
               </TableRow>
             </TableBody>
           </Table>
@@ -192,7 +172,7 @@ const AssessmentOfFunctionalHead = () => {
         <SaveNextButtonContainer className="mt-3">
           <SaveNextButton
             type="submit"
-            onClick={submitAssessmentOfFunctionalHead}
+            onClick={submitApiScoreSummary}
             style={{
               padding: "12px",
               borderRadius: "8px",
@@ -324,4 +304,4 @@ const AssessmentOfFunctionalHead = () => {
   );
 };
 
-export default AssessmentOfFunctionalHead;
+export default ApiScoreSummary;

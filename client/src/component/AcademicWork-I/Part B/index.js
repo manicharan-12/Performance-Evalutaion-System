@@ -29,7 +29,7 @@ import {
   UnorderedList,
   ListItems,
   SpanEle,
-  DeleteButton, // Add this import for DeleteButton
+  DeleteButton,
 } from "./StyledComponents";
 
 const apiStatusConstants = {
@@ -97,6 +97,7 @@ const AcademicWorkII = () => {
   const [onClick, setOnClick] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [formId, setFormId] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -106,6 +107,17 @@ const AcademicWorkII = () => {
   useEffect(() => {
     let id;
     async function fetchData() {
+      if(!navigator.onLine){
+        await toast.error("You are offline. Please connect to the internet and try again.", {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        });
+        return;
+      }
       try {
         const formId = await searchParams.get("f_id");
         id = formId;
@@ -159,9 +171,35 @@ const AcademicWorkII = () => {
   });
 
   const submitAcademicForm2 = async (event) => {
+
+    if(!navigator.onLine){
+      await toast.error("You are offline. Please connect to the internet and try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
+
     event.preventDefault();
     setOnClick(true);
     setDisabled(true);
+
+    if(editorContent===''){
+      await toast.error("Please fill the text area", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
+
     const userId = Cookies.get("user_id");
     const formData = new FormData();
     formData.append("userId", userId);
@@ -215,6 +253,20 @@ const AcademicWorkII = () => {
   };
 
   const handleOpenInNewTab = async (file) => {
+
+    if(!navigator.onLine){
+      await toast.error("You are offline. Please connect to the internet and try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
+
+    setApiStatus(apiStatusConstants.inProgress)
     if (file.fileId) {
       try {
         const response = await fetch(
@@ -255,10 +307,26 @@ const AcademicWorkII = () => {
             theme: "colored",
           },
         );
+      } finally {
+        setApiStatus(apiStatusConstants.success)
       }
     } else {
       const url = file.preview;
       window.open(url, "_blank");
+      setApiStatus(apiStatusConstants.success)
+      toast.error(
+        "An error occurred while opening the file. Please try again.",
+        {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        },
+      );
     }
   };
 
@@ -452,7 +520,6 @@ const AcademicWorkII = () => {
 
   return (
     <HomeMainContainer>
-      <Header />
       <MainContainer className="mt-5 mb-5">
         <div
           style={{

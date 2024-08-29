@@ -66,6 +66,17 @@ const ContributionToSociety = () => {
   useEffect(() => {
     let id;
     async function fetchYear() {
+      if(!navigator.onLine){
+        await toast.error("You are offline. Please connect to the internet and try again.", {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        });
+        return;
+      }
       try {
         try {
           const formId = await searchParams.get("f_id");
@@ -136,6 +147,17 @@ const ContributionToSociety = () => {
   };
 
   const submitContributionToSociety = async () => {
+    if(!navigator.onLine){
+      await toast.error("You are offline. Please connect to the internet and try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
     const allFieldsFilled = tableData.every(
       (contribution) =>
         contribution.nameOfTheResponsibility.trim() !== "" &&
@@ -176,7 +198,7 @@ const ContributionToSociety = () => {
       };
       const response = await fetch(`${api}/ContributionToSociety`, option);
       await toast.success(
-        "Your Form have been successfully submitted and stored in the Database",
+        "Your Form has been successfully submitted",
         {
           position: "bottom-center",
           autoClose: 5000,
@@ -188,7 +210,9 @@ const ContributionToSociety = () => {
           theme: "colored",
         },
       );
-      navigate("/home");
+      navigate(`/summary/?f_id=${formId}`);
+      // navigate("/home");
+      // navigate("/api-score-summary")
       //navigate("/assessment-of-the-functional-head/hod");
     } catch (error) {
       setDisabled(false);
@@ -221,6 +245,17 @@ const ContributionToSociety = () => {
   });
 
   const handleOpenInNewTab = async (file) => {
+    if(!navigator.onLine){
+      await toast.error("You are offline. Please connect to the internet and try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
     if (file.fileId) {
       try {
         const response = await fetch(
@@ -467,6 +502,7 @@ const ContributionToSociety = () => {
       </>
     );
   };
+  
   const renderContributionToSocietyPage = () => {
     switch (apiStatus) {
       case apiStatusConstants.inProgress:
@@ -522,7 +558,6 @@ const ContributionToSociety = () => {
   };
   return (
     <HomeMainContainer>
-      <Header />
       <MainContainer className="mt-5 mb-5">
         <div
           style={{

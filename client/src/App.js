@@ -21,6 +21,9 @@ import ContributionToSociety from "./component/ContributionToSociety";
 import Home from "./component/Home";
 import { ToastContainer, toast } from "react-toastify";
 import AssessmentOfFunctionalHead from "./component/AssessmentOfFunctionalHead";
+import ApiScoreSummary from "./component/ApiScoreSummary";
+import Review from "./component/Review";
+import Header from "./component/Header";
 
 function App() {
   const [width, setWidth] = useState(window.innerWidth);
@@ -43,6 +46,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginRegister />} />
           <Route path="/" element={<ProtectedRoute />}>
+            
             <Route path="/home" element={<Home />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/academicWork/part-a" element={<AcademicWorkI />} />
@@ -79,10 +83,12 @@ function App() {
               path="/contribution-to-society"
               element={<ContributionToSociety />}
             />
+            <Route path="/summary" element={<Review/>}/>
             <Route
               path="/assessment-of-the-functional-head/hod"
               element={<AssessmentOfFunctionalHead />}
             />
+            <Route path="/api-score-summary" element={ <ApiScoreSummary/> }/>
             <Route path="*" element={<Navigate replace to="/Home" />} />
           </Route>
           <Route path="/resetPassword/:token" element={<ResetPassword />} />

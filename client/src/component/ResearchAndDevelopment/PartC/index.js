@@ -69,6 +69,17 @@ const RDPartC = () => {
   useEffect(() => {
     let id;
     async function fetchYear() {
+      if(!navigator.onLine){
+        await toast.error("You are offline. Please connect to the internet and try again.", {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        });
+        return;
+      }
       try {
         const formId = await searchParams.get("f_id");
         id = formId;
@@ -175,6 +186,17 @@ const RDPartC = () => {
 
   const handleOpenInNewTab = async (file) => {
     if (file.fileId) {
+      if(!navigator.onLine){
+        await toast.error("You are offline. Please connect to the internet and try again.", {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        });
+        return;
+      }
       try {
         const response = await fetch(
           `http://localhost:5000/files/${file.fileId}`,
@@ -227,6 +249,17 @@ const RDPartC = () => {
   };
 
   const submitRDPartC = async () => {
+    if(!navigator.onLine){
+      await toast.error("You are offline. Please connect to the internet and try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
     try {
       const isEmpty = tableData.some((row) =>
         Object.values(row).some((value) => value !== ""),
@@ -576,7 +609,6 @@ const RDPartC = () => {
 
   return (
     <HomeMainContainer>
-      <Header />
       <MainContainer className="mt-5 mb-5">
         <div
           style={{

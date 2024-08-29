@@ -994,7 +994,6 @@ const Conformation = () => {
 
   return (
     <HomeMainContainer>
-      <Header />
       <MainContainer className="mt-5 mb-5">
         <div
           style={{

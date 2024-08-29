@@ -36,37 +36,8 @@ const ResetPassword = () => {
   const { token } = useParams();
 
   useEffect(() => {
-    try {
-      axios
-        .post(`http://localhost:5000/check/${token}`)
-        .then((response) => {
-          console.log(response);
-          if (response.status === 200) {
-            setIsValid(true);
-            setIsTimedOut(false);
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-          if (error.response.status === 400) {
-            setIsValid(false);
-          } else if (error.response.status === 408) {
-            setIsTimedOut(true);
-          } else {
-            toast.error(`Internal Server Error`, {
-              position: "bottom-center",
-              autoClose: 5000,
-              hideProgressBar: true,
-              closeOnClick: true,
-              pauseOnHover: false,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-            });
-          }
-        });
-    } catch (error) {
-      toast.error(`Internal Server Error`, {
+    const showOfflineToast = async () => {
+      await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
         autoClose: 5000,
         hideProgressBar: true,
@@ -76,7 +47,46 @@ const ResetPassword = () => {
         progress: undefined,
         theme: "light",
       });
-    }
+    };
+
+    const fetchData = async () => {
+      try {
+        const response = await axios.post(`http://localhost:5000/check/${token}`);
+        console.log(response);
+        if (response.status === 200) {
+          setIsValid(true);
+          setIsTimedOut(false);
+        }
+      } catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 400) {
+          setIsValid(false);
+        } else if (error.response && error.response.status === 408) {
+          setIsTimedOut(true);
+        } else {
+          await toast.error("Internal Server Error", {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          });
+        }
+      }
+    };
+
+    const checkOnlineStatus = async () => {
+      if (!navigator.onLine) {
+        await showOfflineToast();
+        return;
+      }
+      await fetchData();
+    };
+
+    checkOnlineStatus();
   }, [token]);
 
   const onSubmitResetPassword = async (event) => {

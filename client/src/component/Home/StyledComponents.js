@@ -158,6 +158,6 @@ export const NameText = styled.p`
 export const SearchBox = styled.input`
   border: 1px solid #000;
   border-radius: 2px;
-  padding: 4px;
+  padding: 10px;
   width: 40%;
 `;

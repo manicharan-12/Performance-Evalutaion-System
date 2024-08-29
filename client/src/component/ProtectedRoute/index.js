@@ -1,21 +1,22 @@
-import { Outlet, Navigate } from "react-router-dom";
-import Cookies from "js-cookie";
+// ProtectedRoute.js
+import React from 'react';
+import { Outlet, Navigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import MainLayout from '../MainLayout'; // adjust the path to where your MainLayout component is
 
 const ProtectedRoute = () => {
-  const token = Cookies.get("jwt_token");
-  const userRole = Cookies.get("userRole");
+  const token = Cookies.get('jwt_token');
+  const userRole = Cookies.get('userRole');
 
   if (!token) {
     return <Navigate to="/" />;
   }
 
-  if (userRole === "PROF") {
-    return <Outlet />;
-  }
-  if (userRole === "HOD") {
-    return <Outlet />;
-  }
-  return <Outlet />;
+  return (
+    <MainLayout>
+      <Outlet/>
+    </MainLayout>
+  );
 };
 
 export default ProtectedRoute;

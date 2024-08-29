@@ -45,6 +45,17 @@ const Home = () => {
 
   useEffect(() => {
     async function fetchForms() {
+      if(!navigator.onLine){
+        await toast.error("You are offline. Please connect to the internet and try again.", {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        });
+        return;
+      }
       try {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
@@ -114,6 +125,17 @@ const Home = () => {
   };
 
   const createOrEditForm = async () => {
+    if(!navigator.onLine){
+      await toast.error("You are offline. Please connect to the internet and try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
     try {
       setDisabled(true);
       const userId = Cookies.get("user_id");
@@ -180,6 +202,19 @@ const Home = () => {
   };
 
   const onClickDelete = async (formId) => {
+    
+    if(!navigator.onLine){
+      await toast.error("You are offline. Please connect to the internet and try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
+
     const isConfirmed = window.confirm(
       "Are you sure you want to delete this form?",
     );
@@ -212,6 +247,19 @@ const Home = () => {
   };
 
   const handleFormClick = async (formId) => {
+
+    if(!navigator.onLine){
+      await toast.error("You are offline. Please connect to the internet and try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
+
     try {
       navigate(`/academicWork/part-a/?f_id=${formId}`, { state: { formId } });
     } catch (error) {
@@ -387,7 +435,6 @@ const Home = () => {
 
   return (
     <HomeMainContainer className="mb-5">
-      <Header />
       <MainContainer className="mt-5">{renderHomePage()}</MainContainer>
     </HomeMainContainer>
   );

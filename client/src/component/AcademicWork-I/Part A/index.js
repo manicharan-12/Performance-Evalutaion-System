@@ -250,6 +250,19 @@ const AcademicWorkI = () => {
   };
 
   const submitAcademicForm1 = async (event) => {
+
+    if(!navigator.onLine){
+      await toast.error("You are offline. Please connect to the internet and try again.", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
+
     try {
       event.preventDefault();
       setDisabled(true);
@@ -297,7 +310,7 @@ const AcademicWorkI = () => {
           navigate(`/academicWork/part-b/?f_id=${formId}`);
         } else {
           setDisabled(false);
-          toast.error("Failed to save data! Please try again later", {
+          await toast.error("Failed to save data! Please try again later", {
             position: "bottom-center",
             autoClose: 5000,
             hideProgressBar: true,
@@ -331,6 +344,17 @@ const AcademicWorkI = () => {
   useEffect(() => {
     let id;
     async function fetchData() {
+      if(!navigator.onLine){
+        await toast.error("You are offline. Please connect to the internet and try again.", {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        });
+        return;
+      }
       try {
         const formId = searchParams.get("f_id");
         id = formId;
@@ -802,7 +826,6 @@ const AcademicWorkI = () => {
 
   return (
     <HomeMainContainer>
-      <Header />
       <MainContainer className="mt-5 mb-5">
         <div
           style={{
