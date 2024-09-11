@@ -30,21 +30,30 @@ const Login = (props) => {
     Cookies.set("jwt_token", jwtToken, { expires: 1, path: "/" });
     Cookies.set("user_id", userId, { expires: 1, path: "/" });
     Cookies.set("role", role, { expires: 1, path: "/" });
+    console.log(role);
 
-    navigate("/home");
+    navigate("/");
+    // if (role === "HOD") {
+    //   navigate("/hod-dashboard");  // Redirect to the HOD Dashboard
+    // } else {
+    //   navigate("/home");  // Redirect to the Home page
+    // }
   };
 
   const onSubmitLogin = async (event) => {
     event.preventDefault();
-    if(!navigator.onLine){
-      await toast.error("You are offline. Please connect to the internet and try again.", {
-        position: "bottom-center",
-        autoClose: 5000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-      });
+    if (!navigator.onLine) {
+      await toast.error(
+        "You are offline. Please connect to the internet and try again.",
+        {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        }
+      );
       return;
     }
     try {

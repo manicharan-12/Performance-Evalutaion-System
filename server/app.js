@@ -23,7 +23,7 @@ const ResearchAndDevelopmentPartD = require("./models/Research And Development/p
 const ContributionToUniversitySchool = require("./models/contributionToUniversitySchool");
 const ContributionToDepartment = require("./models/contributionToDepartment");
 const ContributionToSociety = require("./models/contributionToSociety");
-const ApiScore=require("./models/apiScore")
+const ApiScore = require("./models/apiScore");
 
 const mongoURI =
   "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority";
@@ -127,7 +127,7 @@ app.post("/login", async (request, response) => {
     if (checkUsername !== null) {
       const checkPassword = await bcrypt.compare(
         password,
-        checkUsername.password,
+        checkUsername.password
       );
       if (checkPassword === true) {
         const payload = { username: checkUsername.username };
@@ -239,7 +239,7 @@ app.post("/resetPassword/:token", async (request, response) => {
       const hashedPassword = await bcrypt.hash(password, 10);
       await User.updateOne(
         { email: `${email}` },
-        { $set: { password: `${hashedPassword}` } },
+        { $set: { password: `${hashedPassword}` } }
       );
       response.json({ success_msg: "Password Successfully Updated" });
       await Token.deleteOne({ email: `${email}` });
@@ -296,7 +296,7 @@ app.put("/update/form/:formId", async (request, response) => {
     const updatedForm = await Form.findByIdAndUpdate(
       formId,
       { formName },
-      { new: true },
+      { new: true }
     );
 
     if (updatedForm) {
@@ -368,7 +368,7 @@ app.post("/update/profile", async (request, response) => {
         teaching_experience: `${teachingExperience}`,
         industry_experience: `${industryExperience}`,
         total_experience: `${totalExperience}`,
-      },
+      }
     );
     response.json("Status Updated");
   } catch (error) {
@@ -385,7 +385,7 @@ app.get("/year/:userId", async (request, response) => {
     const { formId } = request.query;
     const getYear = await AcademicWorkPartA.findOne(
       { userId, formId },
-      { academic_year: 1 },
+      { academic_year: 1 }
     );
     response.json(getYear);
   } catch (error) {
@@ -430,18 +430,17 @@ app.post("/academic-work-1", async (request, response) => {
       });
       await newAcademicWork.save();
     }
-    const existingApiScore= await ApiScore.findOne({userId, formId});
-    if(existingApiScore){
-      existingApiScore.academicWorkPartA=totalApiScore;
-      await existingApiScore.save()
-    }
-    else{
-      const newApiScore= new ApiScore({
+    const existingApiScore = await ApiScore.findOne({ userId, formId });
+    if (existingApiScore) {
+      existingApiScore.academicWorkPartA = totalApiScore;
+      await existingApiScore.save();
+    } else {
+      const newApiScore = new ApiScore({
         userId,
         formId,
-        academicWorkPartA:totalApiScore
-      })
-      await newApiScore.save()
+        academicWorkPartA: totalApiScore,
+      });
+      await newApiScore.save();
     }
 
     response.status(200).json({ message: "Data saved successfully!" });
@@ -515,7 +514,7 @@ app.post("/academic-work-2", upload.array("files"), async (req, res) => {
       academicWork.editorContent = editorContent;
       if (Array.isArray(deletedFiles)) {
         academicWork.files = academicWork.files.filter(
-          (file) => !deletedFiles.includes(file.fileId.toString()),
+          (file) => !deletedFiles.includes(file.fileId.toString())
         );
       }
       academicWork.files.push(...fileData);
@@ -563,14 +562,14 @@ app.get("/academic-work-2/data/:userId", async (req, res) => {
             fileStream.on("error", (error) => {
               console.error(
                 `Error downloading file with ID: ${file.fileId}`,
-                error,
+                error
               );
               reject(error);
             });
           } catch (error) {
             console.error(
               `Error opening download stream for file with ID: ${file.fileId}`,
-              error,
+              error
             );
             reject(error);
           }
@@ -615,7 +614,7 @@ app.get("/files/:fileId", async (req, res) => {
 
     res.set("Content-Type", file[0].contentType);
     const readStream = gfs.openDownloadStream(
-      new mongoose.Types.ObjectId(fileId),
+      new mongoose.Types.ObjectId(fileId)
     );
     readStream.pipe(res);
   } catch (error) {
@@ -684,7 +683,7 @@ app.post("/rdConfo", upload.array("files"), async (req, res) => {
         }
       }
       phdConformationData.files = phdConformationData.files.filter(
-        (file) => !deletedFiles.includes(file.fileId.toString()),
+        (file) => !deletedFiles.includes(file.fileId.toString())
       );
     }
 
@@ -755,14 +754,14 @@ app.get("/rdConfo/:userId", async (request, response) => {
             fileStream.on("error", (error) => {
               console.error(
                 `Error downloading file with ID: ${file.fileId}`,
-                error,
+                error
               );
               reject(error);
             });
           } catch (error) {
             console.error(
               `Error opening download stream for file with ID: ${file.fileId}`,
-              error,
+              error
             );
             reject(error);
           }
@@ -867,7 +866,7 @@ app.post("/RD/PartB", upload.array("files"), async (request, response) => {
       existingData.presentation_data = parsedTableData; // Use parsed table data
       if (Array.isArray(deletedFiles)) {
         existingData.files = existingData.files.filter(
-          (file) => !deletedFiles.includes(file.fileId.toString()),
+          (file) => !deletedFiles.includes(file.fileId.toString())
         );
       }
       existingData.files = existingData.files || [];
@@ -918,19 +917,19 @@ app.get("/RD/PartB/:userId", async (request, response) => {
               fileStream.on("error", (error) => {
                 console.error(
                   `Error downloading file with ID: ${file.fileId}`,
-                  error,
+                  error
                 );
                 reject(error);
               });
             } catch (error) {
               console.error(
                 `Error opening download stream for file with ID: ${file.fileId}`,
-                error,
+                error
               );
               reject(error);
             }
           });
-        },
+        }
       );
 
       const filesData = await Promise.allSettled(filePromises);
@@ -1034,7 +1033,7 @@ app.post("/RD/PartC", upload.array("files"), async (request, response) => {
       existingData.projects_data = parsedTableData;
       if (Array.isArray(deletedFiles)) {
         existingData.files = existingData.files.filter(
-          (file) => !deletedFiles.includes(file.fileId.toString()),
+          (file) => !deletedFiles.includes(file.fileId.toString())
         );
       }
       existingData.files = existingData.files || [];
@@ -1085,19 +1084,19 @@ app.get("/RD/PartC/:userId", async (request, response) => {
               fileStream.on("error", (error) => {
                 console.error(
                   `Error downloading file with ID: ${file.fileId}`,
-                  error,
+                  error
                 );
                 reject(error);
               });
             } catch (error) {
               console.error(
                 `Error opening download stream for file with ID: ${file.fileId}`,
-                error,
+                error
               );
               reject(error);
             }
           });
-        },
+        }
       );
 
       const filesData = await Promise.allSettled(filePromises);
@@ -1198,7 +1197,7 @@ app.post("/RD/PartD", upload.array("files"), async (request, response) => {
       existingData.certificates_data = parsedTableData;
       if (Array.isArray(deletedFiles)) {
         existingData.files = existingData.files.filter(
-          (file) => !deletedFiles.includes(file.fileId.toString()),
+          (file) => !deletedFiles.includes(file.fileId.toString())
         );
       }
       existingData.files = existingData.files || [];
@@ -1249,19 +1248,19 @@ app.get("/RD/PartD/:userId", async (request, response) => {
               fileStream.on("error", (error) => {
                 console.error(
                   `Error downloading file with ID: ${file.fileId}`,
-                  error,
+                  error
                 );
                 reject(error);
               });
             } catch (error) {
               console.error(
                 `Error opening download stream for file with ID: ${file.fileId}`,
-                error,
+                error
               );
               reject(error);
             }
           });
-        },
+        }
       );
 
       const filesData = await Promise.allSettled(filePromises);
@@ -1343,7 +1342,7 @@ app.post(
             file.originalname,
             {
               contentType: file.mimetype,
-            },
+            }
           );
 
           readableStream
@@ -1368,7 +1367,7 @@ app.post(
         existingData.contribution_data = parsedTableData;
         if (Array.isArray(deletedFiles)) {
           existingData.files = existingData.files.filter(
-            (file) => !deletedFiles.includes(file.fileId.toString()),
+            (file) => !deletedFiles.includes(file.fileId.toString())
           );
         }
         existingData.files = existingData.files || [];
@@ -1391,7 +1390,7 @@ app.post(
         .status(500)
         .json({ error_msg: "Internal Server Error! Please try again later." });
     }
-  },
+  }
 );
 
 app.get(
@@ -1423,19 +1422,19 @@ app.get(
                 fileStream.on("error", (error) => {
                   console.error(
                     `Error downloading file with ID: ${file.fileId}`,
-                    error,
+                    error
                   );
                   reject(error);
                 });
               } catch (error) {
                 console.error(
                   `Error opening download stream for file with ID: ${file.fileId}`,
-                  error,
+                  error
                 );
                 reject(error);
               }
             });
-          },
+          }
         );
 
         const filesData = await Promise.allSettled(filePromises);
@@ -1469,7 +1468,7 @@ app.get(
         .status(500)
         .json({ error_msg: "Internal Server Error! Please try again later." });
     }
-  },
+  }
 );
 
 app.post(
@@ -1517,7 +1516,7 @@ app.post(
             file.originalname,
             {
               contentType: file.mimetype,
-            },
+            }
           );
 
           readableStream
@@ -1542,7 +1541,7 @@ app.post(
         existingData.contribution_data = parsedTableData;
         if (Array.isArray(deletedFiles)) {
           existingData.files = existingData.files.filter(
-            (file) => !deletedFiles.includes(file.fileId.toString()),
+            (file) => !deletedFiles.includes(file.fileId.toString())
           );
         }
         existingData.files = existingData.files || [];
@@ -1564,7 +1563,7 @@ app.post(
         .status(500)
         .json({ error_msg: "Internal Server Error! Please try again later." });
     }
-  },
+  }
 );
 
 app.get("/ContributionToDepartment/:userId", async (request, response) => {
@@ -1593,14 +1592,14 @@ app.get("/ContributionToDepartment/:userId", async (request, response) => {
             fileStream.on("error", (error) => {
               console.error(
                 `Error downloading file with ID: ${file.fileId}`,
-                error,
+                error
               );
               reject(error);
             });
           } catch (error) {
             console.error(
               `Error opening download stream for file with ID: ${file.fileId}`,
-              error,
+              error
             );
             reject(error);
           }
@@ -1684,7 +1683,7 @@ app.post(
             file.originalname,
             {
               contentType: file.mimetype,
-            },
+            }
           );
 
           readableStream
@@ -1709,7 +1708,7 @@ app.post(
         existingData.contribution_data = parsedTableData;
         if (Array.isArray(deletedFiles)) {
           existingData.files = existingData.files.filter(
-            (file) => !deletedFiles.includes(file.fileId.toString()),
+            (file) => !deletedFiles.includes(file.fileId.toString())
           );
         }
         existingData.files = existingData.files || [];
@@ -1731,7 +1730,7 @@ app.post(
         .status(500)
         .json({ error_msg: "Internal Server Error! Please try again later." });
     }
-  },
+  }
 );
 
 app.get("/ContributionToSociety/:userId", async (request, response) => {
@@ -1762,14 +1761,14 @@ app.get("/ContributionToSociety/:userId", async (request, response) => {
             fileStream.on("error", (error) => {
               console.error(
                 `Error downloading file with ID: ${file.fileId}`,
-                error,
+                error
               );
               reject(error);
             });
           } catch (error) {
             console.error(
               `Error opening download stream for file with ID: ${file.fileId}`,
-              error,
+              error
             );
             reject(error);
           }
@@ -1805,5 +1804,69 @@ app.get("/ContributionToSociety/:userId", async (request, response) => {
     response
       .status(500)
       .json({ error_msg: "Internal Server Error! Please try again later." });
+  }
+});
+
+app.get("/teachers/:department", async (req, res) => {
+  try {
+    const { department } = req.params; // Extract department from the URL params
+    const teachers = await User.find({
+      department,
+      designation: { $ne: "HOD" },
+    }).select("-password");
+    if (teachers.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No teachers found in this department" });
+    }
+
+    res.status(200).json({ teachers });
+  } catch (error) {
+    console.error("Error fetching teachers:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.get("/user/:userId", async (req, res) => {
+  const userId = req.params.userId;
+  console.log(`Fetching data for userId: ${userId}`);
+
+  try {
+    const academicWorkPartA = await AcademicWorkPartA.findOne({ userId });
+    const academicWorkPartB = await AcademicWorkPartB.findOne({ userId });
+    const researchAndDevelopmentPartB =
+      await ResearchAndDevelopmentPartB.findOne({ userId });
+    const researchAndDevelopmentPartC =
+      await ResearchAndDevelopmentPartC.findOne({ userId });
+    const researchAndDevelopmentPartD =
+      await ResearchAndDevelopmentPartD.findOne({ userId });
+    const phdConformation = await PhdConformation.findOne({ userId });
+    const apiScore = await ApiScore.findOne({ userId });
+    const contributionToDepartment = await ContributionToDepartment.findOne({
+      userId,
+    });
+    const contributionToSociety = await ContributionToSociety.findOne({
+      userId,
+    });
+    const contributionToUniversitySchool =
+      await ContributionToUniversitySchool.findOne({ userId });
+
+    const consolidatedData = {
+      academicWorkPartA,
+      academicWorkPartB,
+      researchAndDevelopmentPartB,
+      researchAndDevelopmentPartC,
+      researchAndDevelopmentPartD,
+      phdConformation,
+      apiScore,
+      contributionToDepartment,
+      contributionToSociety,
+      contributionToUniversitySchool,
+    };
+
+    res.json(consolidatedData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
