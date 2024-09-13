@@ -69,7 +69,7 @@ const ContributionToSociety = () => {
       if(!navigator.onLine){
         await toast.error("You are offline. Please connect to the internet and try again.", {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -88,7 +88,7 @@ const ContributionToSociety = () => {
         }
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const response = await fetch(
           `${api}/ContributionToSociety/${userId}/?formId=${id}`,
         );
@@ -150,7 +150,7 @@ const ContributionToSociety = () => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -166,7 +166,7 @@ const ContributionToSociety = () => {
     if (!allFieldsFilled) {
       await toast.error(`All fields are required to be filled!`, {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -191,7 +191,7 @@ const ContributionToSociety = () => {
       deletedFiles.forEach((fileId) => {
         formData.append("deletedFiles", fileId);
       });
-      const api = "http://localhost:5000";
+      const api = "http://localhost:6969";
       const option = {
         method: "POST",
         body: formData,
@@ -201,7 +201,7 @@ const ContributionToSociety = () => {
         "Your Form has been successfully submitted",
         {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -218,7 +218,7 @@ const ContributionToSociety = () => {
       setDisabled(false);
       toast.error("Internal Server Error! Please try again Later", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -241,14 +241,14 @@ const ContributionToSociety = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: "*",
-    maxSize: 50000000,
+    maxSize: 69690000,
   });
 
   const handleOpenInNewTab = async (file) => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -259,7 +259,7 @@ const ContributionToSociety = () => {
     if (file.fileId) {
       try {
         const response = await fetch(
-          `http://localhost:5000/files/${file.fileId}`,
+          `http://localhost:6969/files/${file.fileId}`,
         );
         if (response.ok) {
           const blob = await response.blob();
@@ -271,7 +271,7 @@ const ContributionToSociety = () => {
             "Failed to open file: " + (await response.json()).message,
             {
               position: "bottom-center",
-              autoClose: 5000,
+              autoClose: 6969,
               hideProgressBar: true,
               closeOnClick: true,
               pauseOnHover: false,
@@ -287,7 +287,7 @@ const ContributionToSociety = () => {
           "An error occurred while opening the file. Please try again.",
           {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,

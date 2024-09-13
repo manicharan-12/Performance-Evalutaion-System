@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import ReactQuill from "react-quill";
@@ -101,6 +101,8 @@ const AcademicWorkII = () => {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const isSummaryPath = location.pathname.startsWith('/summary');
 
   const role = Cookies.get("role");
 
@@ -110,7 +112,7 @@ const AcademicWorkII = () => {
       if(!navigator.onLine){
         await toast.error("You are offline. Please connect to the internet and try again.", {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -130,7 +132,7 @@ const AcademicWorkII = () => {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
         const response = await fetch(
-          `http://localhost:5000/academic-work-2/data/${userId}/?formId=${id}`,
+          `http://localhost:6969/academic-work-2/data/${userId}/?formId=${id}`,
         );
         if (response.ok) {
           const data = await response.json();
@@ -166,7 +168,7 @@ const AcademicWorkII = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: "*",
-    maxSize: 50000000,
+    maxSize: 69690000,
     disabled: role === "HOD",
   });
 
@@ -175,7 +177,7 @@ const AcademicWorkII = () => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -191,7 +193,7 @@ const AcademicWorkII = () => {
     if(editorContent===''){
       await toast.error("Please fill the text area", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -215,7 +217,7 @@ const AcademicWorkII = () => {
     });
 
     try {
-      const response = await fetch("http://localhost:5000/academic-work-2", {
+      const response = await fetch("http://localhost:6969/academic-work-2", {
         method: "POST",
         body: formData,
       });
@@ -226,7 +228,7 @@ const AcademicWorkII = () => {
         setDisabled(false);
         toast.error("Error While Saving the data Please try again later", {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -241,7 +243,7 @@ const AcademicWorkII = () => {
       setDisabled(false);
       toast.error("Internal Server Error! Please try again later", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -257,7 +259,7 @@ const AcademicWorkII = () => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -270,7 +272,7 @@ const AcademicWorkII = () => {
     if (file.fileId) {
       try {
         const response = await fetch(
-          `http://localhost:5000/files/${file.fileId}`,
+          `http://localhost:6969/files/${file.fileId}`,
         );
         if (response.ok) {
           const blob = await response.blob();
@@ -282,7 +284,7 @@ const AcademicWorkII = () => {
             "Failed to open file: " + (await response.json()).message,
             {
               position: "bottom-center",
-              autoClose: 5000,
+              autoClose: 6969,
               hideProgressBar: true,
               closeOnClick: true,
               pauseOnHover: false,
@@ -298,7 +300,7 @@ const AcademicWorkII = () => {
           "An error occurred while opening the file. Please try again.",
           {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -318,7 +320,7 @@ const AcademicWorkII = () => {
         "An error occurred while opening the file. Please try again.",
         {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -351,6 +353,7 @@ const AcademicWorkII = () => {
       </LoaderContainer>
     );
   };
+
 
   const renderSuccessView = () => {
     return (
@@ -416,7 +419,10 @@ const AcademicWorkII = () => {
             ))}
           </UnorderedList>
         </FileContainer>
-        <SaveNextButtonContainer className="mt-3">
+        {
+          !isSummaryPath && (
+
+            <SaveNextButtonContainer className="mt-3">
           <SaveNextButton
             className="btn btn-primary text-center"
             type="submit"
@@ -448,6 +454,8 @@ const AcademicWorkII = () => {
             )}
           </SaveNextButton>
         </SaveNextButtonContainer>
+          )
+        }
       </>
     );
   };
@@ -540,10 +548,10 @@ const AcademicWorkII = () => {
               width: "100%",
             }}
           >
-            <p style={{ marginRight: "10px", marginTop: "10px" }}>
-              Navigate to
-            </p>
-            <select
+            
+            {
+              !isSummaryPath && (
+                <select
               style={{
                 border: "1px solid #000",
                 borderRadius: "5px",
@@ -562,6 +570,8 @@ const AcademicWorkII = () => {
               <option>Contribution To Department</option>
               <option>Contribution To Society</option>
             </select>
+              )
+            }
           </div>
         </div>
         {renderAcademicWorkPartBPage()}

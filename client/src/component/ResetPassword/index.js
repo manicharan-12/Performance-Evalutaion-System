@@ -39,7 +39,7 @@ const ResetPassword = () => {
     const showOfflineToast = async () => {
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -51,7 +51,7 @@ const ResetPassword = () => {
 
     const fetchData = async () => {
       try {
-        const response = await axios.post(`http://localhost:5000/check/${token}`);
+        const response = await axios.post(`http://localhost:6969/check/${token}`);
         console.log(response);
         if (response.status === 200) {
           setIsValid(true);
@@ -66,7 +66,7 @@ const ResetPassword = () => {
         } else {
           await toast.error("Internal Server Error", {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -107,7 +107,7 @@ const ResetPassword = () => {
           })
         ) {
           setErrorMsg("");
-          const api = "http://localhost:5000";
+          const api = "http://localhost:6969";
           const postData = { email, password };
           const option = {
             method: "POST",
@@ -122,7 +122,7 @@ const ResetPassword = () => {
             const successMsg = data.success_msg;
             toast.success(`${successMsg}`, {
               position: "bottom-center",
-              autoClose: 5000,
+              autoClose: 6969,
               hideProgressBar: true,
               closeOnClick: true,
               pauseOnHover: false,
@@ -139,7 +139,7 @@ const ResetPassword = () => {
             const errorMsg = data.error_msg;
             toast.error(`${errorMsg}`, {
               position: "bottom-center",
-              autoClose: 5000,
+              autoClose: 6969,
               hideProgressBar: true,
               closeOnClick: true,
               pauseOnHover: false,
@@ -158,7 +158,7 @@ const ResetPassword = () => {
       console.log(error);
       toast.error(`Internal Server Error! Please try again Later`, {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,

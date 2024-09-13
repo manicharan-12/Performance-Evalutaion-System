@@ -44,7 +44,7 @@ const Register = (props) => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -81,7 +81,7 @@ const Register = (props) => {
               setDisabled(false);
             } else {
               setErrorMsg("");
-              const api = "http://localhost:5000";
+              const api = "http://localhost:6969";
               const postData = {
                 name,
                 email,
@@ -103,7 +103,7 @@ const Register = (props) => {
                 const successMsg = data.success_msg;
                 toast.success(`${successMsg}`, {
                   position: "bottom-center",
-                  autoClose: 5000,
+                  autoClose: 6969,
                   hideProgressBar: true,
                   closeOnClick: true,
                   pauseOnHover: false,
@@ -126,7 +126,7 @@ const Register = (props) => {
                 const errorMsg = data.error_msg;
                 toast.error(`${errorMsg}`, {
                   position: "bottom-center",
-                  autoClose: 5000,
+                  autoClose: 6969,
                   hideProgressBar: true,
                   closeOnClick: true,
                   pauseOnHover: false,
@@ -144,7 +144,7 @@ const Register = (props) => {
       console.log(error);
       toast.error(`Internal Server Error! Please try again Later`, {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -175,7 +175,7 @@ const Register = (props) => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -186,7 +186,7 @@ const Register = (props) => {
     try {
       setUsername(event.target.value);
       await axios
-        .post("http://localhost:5000/check-username", {
+        .post("http://localhost:6969/check-username", {
           username: event.target.value,
         })
         .then((response) => {
@@ -201,7 +201,7 @@ const Register = (props) => {
           } else {
             toast.error(`${response.data.error_msg}`, {
               position: "bottom-center",
-              autoClose: 5000,
+              autoClose: 6969,
               hideProgressBar: true,
               closeOnClick: true,
               pauseOnHover: false,
@@ -221,7 +221,7 @@ const Register = (props) => {
         "Server Error! Cannot check the Username. Please Try again later",
         {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,

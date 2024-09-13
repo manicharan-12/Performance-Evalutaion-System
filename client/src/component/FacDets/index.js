@@ -1,139 +1,6 @@
-// import React, { useEffect, useState } from 'react';
-// import axios from 'axios';
-// import { useParams } from 'react-router-dom';
-// import { ThreeDots } from 'react-loader-spinner';
-// import failureImage from '../Images/failure view.png';
-// import {
-//     LoaderContainer,
-//     FailureContainer,
-//     FailureImage,
-//     MainContainer,
-//     DataContainer,
-//     SectionHeading
-// } from './StyledComponents'; // Adjust the path to your styled components
-
-// const UserDetail = ({userId}) => {
-//     // const { userId } = useParams(); // Get userId from route params
-//     const [data, setData] = useState(null);
-//     const [loading, setLoading] = useState(true);
-//     const [error, setError] = useState(null);
-
-//     useEffect(() => {
-//         const fetchData = async () => {
-//             try {
-//                 const response = await axios.get(`http://localhost:5000/user/${userId}`);
-//                 console.log(response.data);
-//                 setData(response.data);
-//                 setLoading(false);
-//             } catch (err) {
-//                 setError(err.message);
-//                 setLoading(false);
-//             }
-//         };
-
-//         fetchData();
-//     }, [userId]);
-
-//     if (loading) {
-//         return (
-//             <LoaderContainer>
-//                 <ThreeDots
-//                     visible={true}
-//                     height="50"
-//                     width="50"
-//                     color="#0b69ff"
-//                     radius="9"
-//                     ariaLabel="three-dots-loading"
-//                 />
-//             </LoaderContainer>
-//         );
-//     }
-
-//     if (error) {
-//         return (
-//             <FailureContainer>
-//                 <FailureImage src={failureImage} alt="Failure" />
-//                 <SectionHeading>Failed to load data. Please try again later.</SectionHeading>
-//             </FailureContainer>
-//         );
-//     }
-
-//     if (!data) {
-//         return <SectionHeading>No data found.</SectionHeading>;
-//     }
-
-//     return (
-//         <MainContainer>
-//             <h1>User Details</h1>
-//             <DataContainer>
-//                 {/* Display academic work part A */}
-//                 <section>
-//                     <h2>Academic Work Part A</h2>
-//                     <pre>{JSON.stringify(data.academicWorkPartA, null, 2)}</pre>
-//                 </section>
-
-//                 {/* Display academic work part B */}
-//                 <section>
-//                     <h2>Academic Work Part B</h2>
-//                     <pre>{JSON.stringify(data.academicWorkPartB, null, 2)}</pre>
-//                 </section>
-
-//                 {/* Display research and development part B */}
-//                 <section>
-//                     <h2>Research and Development Part B</h2>
-//                     <pre>{JSON.stringify(data.researchAndDevelopmentPartB, null, 2)}</pre>
-//                 </section>
-
-//                 {/* Display research and development part C */}
-//                 <section>
-//                     <h2>Research and Development Part C</h2>
-//                     <pre>{JSON.stringify(data.researchAndDevelopmentPartC, null, 2)}</pre>
-//                 </section>
-
-//                 {/* Display research and development part D */}
-//                 <section>
-//                     <h2>Research and Development Part D</h2>
-//                     <pre>{JSON.stringify(data.researchAndDevelopmentPartD, null, 2)}</pre>
-//                 </section>
-
-//                 {/* Display PhD confirmation */}
-//                 <section>
-//                     <h2>PhD Confirmation</h2>
-//                     <pre>{JSON.stringify(data.phdConformation, null, 2)}</pre>
-//                 </section>
-
-//                 {/* Display API Score */}
-//                 <section>
-//                     <h2>API Score</h2>
-//                     <pre>{JSON.stringify(data.apiScore, null, 2)}</pre>
-//                 </section>
-
-//                 {/* Display Contribution to Department */}
-//                 <section>
-//                     <h2>Contribution to Department</h2>
-//                     <pre>{JSON.stringify(data.contributionToDepartment, null, 2)}</pre>
-//                 </section>
-
-//                 {/* Display Contribution to Society */}
-//                 <section>
-//                     <h2>Contribution to Society</h2>
-//                     <pre>{JSON.stringify(data.contributionToSociety, null, 2)}</pre>
-//                 </section>
-
-//                 {/* Display Contribution to University/School */}
-//                 <section>
-//                     <h2>Contribution to University/School</h2>
-//                     <pre>{JSON.stringify(data.contributionToUniversitySchool, null, 2)}</pre>
-//                 </section>
-//             </DataContainer>
-//         </MainContainer>
-//     );
-// };
-
-// export default UserDetail;
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ThreeDots } from "react-loader-spinner";
 import failureImage from "../Images/failure view.png";
 import {
@@ -141,24 +8,72 @@ import {
   FailureContainer,
   FailureImage,
   MainContainer,
-  DataContainer,
+  FormsList,
+  SubSectionHeading,
+  FormListButtonContainer,
+  OptionButton,
   SectionHeading,
+  FormsContainer,
+  HomeMainContainer,
 } from "./StyledComponents"; // Adjust the path to your styled components
 
 const UserDetail = () => {
-  const { userId } = useParams(); // Get userId from route params
-  const [data, setData] = useState(null);
+  const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchParams] = useSearchParams();
+  const [facultyId, setFacultyId] = useState();
 
+  const navigate = useNavigate();
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const getFacultyId = await searchParams.get("fac_id");
+  //       setFacultyId(getFacultyId);
+  //     } catch (error) {}
+  //     try {
+  //       const response = await axios.get(
+  //         `http://localhost:5000/faculty/${facultyId}`
+  //       );
+
+  //       console.log(response.data);
+  //       setData(response.data);
+  //       setLoading(false);
+  //     } catch (err) {
+  //       setError(err.message);
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
+
+  // First useEffect: To get and set facultyId
+  useEffect(() => {
+    const getFacultyId = async () => {
+      try {
+        const id = searchParams.get("fac_id"); // No need for await as searchParams.get() is synchronous
+        setFacultyId(id); // Set the retrieved ID in the state
+      } catch (error) {
+        console.error("Error fetching faculty ID", error);
+      }
+    };
+
+    getFacultyId();
+  }, [searchParams]);
+
+  // Second useEffect: To fetch data after facultyId is set
   useEffect(() => {
     const fetchData = async () => {
+      if (!facultyId) return; // Ensure facultyId is available before making the API call
+
       try {
         const response = await axios.get(
-          `http://localhost:5000/user/${userId}`
+          `http://localhost:6969/faculty/${facultyId}`
         );
         console.log(response.data);
-        setData(response.data);
+        setFormData(response.data); // Set the fetched data in state
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -167,7 +82,7 @@ const UserDetail = () => {
     };
 
     fetchData();
-  }, [userId]);
+  }, [facultyId]); // Run this effect when facultyId changes
 
   if (loading) {
     return (
@@ -195,77 +110,40 @@ const UserDetail = () => {
     );
   }
 
-  if (!data) {
+  if (!formData) {
     return <SectionHeading>No data found.</SectionHeading>;
   }
 
+  const handleFormClick = (f_id) => {
+    navigate(`/review/user-details/?fac_id=${f_id}`)
+  };
+
   return (
-    <MainContainer>
-      <h1>User Details</h1>
-      <DataContainer>
-        {/* Display academic work part A */}
-        <section>
-          <h2>Academic Work Part A</h2>
-          <pre>{JSON.stringify(data.academicWorkPartA, null, 2)}</pre>
-        </section>
-
-        {/* Display academic work part B */}
-        <section>
-          <h2>Academic Work Part B</h2>
-          <pre>{JSON.stringify(data.academicWorkPartB, null, 2)}</pre>
-        </section>
-
-        {/* Display research and development part B */}
-        <section>
-          <h2>Research and Development Part B</h2>
-          <pre>{JSON.stringify(data.researchAndDevelopmentPartB, null, 2)}</pre>
-        </section>
-
-        {/* Display research and development part C */}
-        <section>
-          <h2>Research and Development Part C</h2>
-          <pre>{JSON.stringify(data.researchAndDevelopmentPartC, null, 2)}</pre>
-        </section>
-
-        {/* Display research and development part D */}
-        <section>
-          <h2>Research and Development Part D</h2>
-          <pre>{JSON.stringify(data.researchAndDevelopmentPartD, null, 2)}</pre>
-        </section>
-
-        {/* Display PhD confirmation */}
-        <section>
-          <h2>PhD Confirmation</h2>
-          <pre>{JSON.stringify(data.phdConformation, null, 2)}</pre>
-        </section>
-
-        {/* Display API Score */}
-        <section>
-          <h2>API Score</h2>
-          <pre>{JSON.stringify(data.apiScore, null, 2)}</pre>
-        </section>
-
-        {/* Display Contribution to Department */}
-        <section>
-          <h2>Contribution to Department</h2>
-          <pre>{JSON.stringify(data.contributionToDepartment, null, 2)}</pre>
-        </section>
-
-        {/* Display Contribution to Society */}
-        <section>
-          <h2>Contribution to Society</h2>
-          <pre>{JSON.stringify(data.contributionToSociety, null, 2)}</pre>
-        </section>
-
-        {/* Display Contribution to University/School */}
-        <section>
-          <h2>Contribution to University/School</h2>
-          <pre>
-            {JSON.stringify(data.contributionToUniversitySchool, null, 2)}
-          </pre>
-        </section>
-      </DataContainer>
-    </MainContainer>
+    <HomeMainContainer>
+      <MainContainer>
+        <h1>User Details</h1>
+        <FormsContainer>
+          {formData.map((eachForm) => (
+            <FormsList key={eachForm._id}>
+              <SubSectionHeading
+                onClick={() => handleFormClick(eachForm._id)}
+                style={{
+                  cursor: "pointer",
+                  wordWrap: "break-word",
+                  whiteSpace: "pre-wrap, nowrap",
+                  overflow: "hidden",
+                  textAlign: "center",
+                  width: "100%",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {eachForm.formName}
+              </SubSectionHeading>
+            </FormsList>
+          ))}
+        </FormsContainer>
+      </MainContainer>
+    </HomeMainContainer>
   );
 };
 

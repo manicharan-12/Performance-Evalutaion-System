@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
 import { useDropzone } from "react-dropzone";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { TiDelete } from "react-icons/ti";
 import EditableValue from "../../EditableValue";
@@ -50,6 +50,11 @@ const apiStatusConstants = {
 };
 
 const Conformation = () => {
+
+  const location = useLocation();
+  const isSummaryPath = location.pathname.startsWith('/summary');
+
+
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [year, setYear] = useState("");
   const [files, setFiles] = useState([]);
@@ -109,7 +114,7 @@ const Conformation = () => {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
         const userId = Cookies.get("user_id");
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
         if (response.ok === true) {
           const data = await response.json();
@@ -205,14 +210,14 @@ const Conformation = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: "*",
-    maxSize: 50000000,
+    maxSize: 69690000,
   });
 
   const handleOpenInNewTab = async (file) => {
     if (file.fileId) {
       try {
         const response = await fetch(
-          `http://localhost:5000/files/${file.fileId}`,
+          `http://localhost:6969/files/${file.fileId}`,
         );
         if (response.ok) {
           const blob = await response.blob();
@@ -224,7 +229,7 @@ const Conformation = () => {
             "Failed to open file: " + (await response.json()).message,
             {
               position: "bottom-center",
-              autoClose: 5000,
+              autoClose: 6969,
               hideProgressBar: true,
               closeOnClick: true,
               pauseOnHover: false,
@@ -240,7 +245,7 @@ const Conformation = () => {
           "An error occurred while opening the file. Please try again.",
           {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -295,7 +300,7 @@ const Conformation = () => {
           formId,
           possesPhD: value1,
         };
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const option = {
           method: "POST",
           headers: {
@@ -310,7 +315,7 @@ const Conformation = () => {
       } catch (error) {
         toast.error(`Internal Server Error! Please try again Later`, {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -351,7 +356,7 @@ const Conformation = () => {
             tableData: [], // If you have table data, include it here
             deletedFiles: [],
           };
-          const api = "http://localhost:5000";
+          const api = "http://localhost:6969";
           const option = {
             method: "POST",
             headers: {
@@ -366,7 +371,7 @@ const Conformation = () => {
         } catch (error) {
           toast.error(`Internal Server Error! Please try again Later`, {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -416,7 +421,7 @@ const Conformation = () => {
         deletedFiles.forEach((fileId) => {
           formData.append("deletedFiles", fileId);
         });
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const option = {
           method: "POST",
           body: formData,
@@ -430,7 +435,7 @@ const Conformation = () => {
         setDisabled(false);
         toast.error(`All fields need to be filled`, {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -444,7 +449,7 @@ const Conformation = () => {
       console.log(error);
       toast.error(`Internal Server Error! Please try again Later`, {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -1014,10 +1019,16 @@ const Conformation = () => {
               width: "100%",
             }}
           >
-            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+           {
+            !isSummaryPath && (
+              <p style={{ marginRight: "10px", marginTop: "10px" }}>
               Navigate to
             </p>
-            <select
+            )
+           }
+            {
+              !isSummaryPath && (
+                <select
               style={{
                 border: "1px solid #000",
                 borderRadius: "5px",
@@ -1036,6 +1047,8 @@ const Conformation = () => {
               <option>Contribution To Department</option>
               <option>Contribution To Society</option>
             </select>
+              )
+            }
           </div>
         </div>
         {renderConformationPage()}

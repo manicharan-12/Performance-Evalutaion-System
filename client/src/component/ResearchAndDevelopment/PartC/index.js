@@ -72,7 +72,7 @@ const RDPartC = () => {
       if(!navigator.onLine){
         await toast.error("You are offline. Please connect to the internet and try again.", {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -92,7 +92,7 @@ const RDPartC = () => {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
         const userId = Cookies.get("user_id");
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
         if (response.ok) {
           const data = await response.json();
@@ -181,7 +181,7 @@ const RDPartC = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: "*",
-    maxSize: 50000000,
+    maxSize: 69690000,
   });
 
   const handleOpenInNewTab = async (file) => {
@@ -189,7 +189,7 @@ const RDPartC = () => {
       if(!navigator.onLine){
         await toast.error("You are offline. Please connect to the internet and try again.", {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -199,7 +199,7 @@ const RDPartC = () => {
       }
       try {
         const response = await fetch(
-          `http://localhost:5000/files/${file.fileId}`,
+          `http://localhost:6969/files/${file.fileId}`,
         );
         if (response.ok) {
           const blob = await response.blob();
@@ -211,7 +211,7 @@ const RDPartC = () => {
             "Failed to open file: " + (await response.json()).message,
             {
               position: "bottom-center",
-              autoClose: 5000,
+              autoClose: 6969,
               hideProgressBar: true,
               closeOnClick: true,
               pauseOnHover: false,
@@ -227,7 +227,7 @@ const RDPartC = () => {
           "An error occurred while opening the file. Please try again.",
           {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -252,7 +252,7 @@ const RDPartC = () => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -279,7 +279,7 @@ const RDPartC = () => {
         deletedFiles.forEach((fileId) => {
           formData.append("deletedFiles", fileId);
         });
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const option = {
           method: "POST",
           body: formData,
@@ -292,7 +292,7 @@ const RDPartC = () => {
           setDisabled(false);
           toast.error(`Failed to save data! Please try again Later`, {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -305,7 +305,7 @@ const RDPartC = () => {
         setDisabled(false);
         toast.error(`Please fill all the fields before submitting`, {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -319,7 +319,7 @@ const RDPartC = () => {
       console.error(error);
       toast.error(`Internal Server Error! Please try again Later`, {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,

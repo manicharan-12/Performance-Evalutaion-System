@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const app = express();
 const nodemailer = require("nodemailer");
@@ -59,7 +59,7 @@ app.use((err, req, res, next) => {
 const initializeDbAndServer = async () => {
   try {
     await mongoose.connect(mongoURI);
-    const PORT = process.env.PORT || 5000;
+    const PORT = process.env.PORT || 6969;
     app.listen(PORT, () => {
       console.log(`Server Running at http://localhost:${PORT}`);
     });
@@ -1824,6 +1824,16 @@ app.get("/teachers/:department", async (req, res) => {
   } catch (error) {
     console.error("Error fetching teachers:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+app.get("/faculty/:f_id", async (req, res) => {
+  const facultyId = req.params.f_id;
+  try {
+    const forms = await Form.find({ user_id:facultyId });
+    res.json(forms)
+  } catch (error) {
+    console.log(error);
   }
 });
 

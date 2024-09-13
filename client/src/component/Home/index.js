@@ -48,7 +48,7 @@ const Home = () => {
       if(!navigator.onLine){
         await toast.error("You are offline. Please connect to the internet and try again.", {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -59,7 +59,7 @@ const Home = () => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const response = await fetch(`${api}/user/forms/${userId}`);
         const response2 = await fetch(`${api}/profile/details/${userId}`);
         if (response.ok) {
@@ -70,7 +70,7 @@ const Home = () => {
           setApiStatus(apiStatusConstants.failure);
           toast.error("Failed to fetch forms", {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -85,7 +85,7 @@ const Home = () => {
           setApiStatus(apiStatusConstants.failure);
           toast.error("Failed to fetch userData", {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -128,7 +128,7 @@ const Home = () => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -140,7 +140,7 @@ const Home = () => {
       setDisabled(true);
       const userId = Cookies.get("user_id");
       const postData = { formName: name };
-      const api = "http://localhost:5000";
+      const api = "http://localhost:6969";
 
       let response;
       if (isEditing) {
@@ -186,7 +186,7 @@ const Home = () => {
     } catch (error) {
       toast.error("Internal Server Error! Please try again later", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -206,7 +206,7 @@ const Home = () => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -220,7 +220,7 @@ const Home = () => {
     );
     if (isConfirmed) {
       try {
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const response = await fetch(`${api}/delete/form/${formId}`, {
           method: "DELETE",
         });
@@ -235,7 +235,7 @@ const Home = () => {
       } catch (error) {
         toast.error("Internal Server Error! Please try again later", {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -251,7 +251,7 @@ const Home = () => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -265,7 +265,7 @@ const Home = () => {
     } catch (error) {
       toast.error("Internal Server Error! Please try again later", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,

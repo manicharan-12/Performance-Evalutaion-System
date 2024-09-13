@@ -26,6 +26,7 @@ import Review from "./component/Review";
 import HodDashboard from "./component/HodPage";
 import UserDetail from "./component/FacDets";
 import Header from "./component/Header";
+import FormDisplay from "./component/FormDisplay";
 
 function App() {
   const [width, setWidth] = useState(window.innerWidth);
@@ -89,12 +90,10 @@ function App() {
               path="/assessment-of-the-functional-head/hod"
               element={<AssessmentOfFunctionalHead />}
             />
-            {/* <Route path="/hod" element={<HODProtectedRoute />}>
-              <Route path="/hod/dashboard" element={<HodDashboard />} />
-            </Route> */}
             <Route path="/hod-dashboard" element={<HodDashboard />} />
             <Route path="/api-score-summary" element={<ApiScoreSummary />} />
-            <Route path="/user-detail/:userId" element={<UserDetail />} />
+            <Route path="/user-detail" element={<UserDetail />} />
+            <Route path='/review/user-details' element={<FormDisplay/>} />
             <Route path="*" element={<Navigate replace to="/Home" />} />
           </Route>
           <Route path="/resetPassword/:token" element={<ResetPassword />} />

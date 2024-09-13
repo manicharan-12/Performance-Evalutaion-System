@@ -52,7 +52,7 @@ const ProfilePage = () => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -75,7 +75,7 @@ const ProfilePage = () => {
       totalExperience,
     };
     try {
-      const api = "http://localhost:5000";
+      const api = "http://localhost:6969";
       const option = {
         method: "POST",
         headers: {
@@ -87,7 +87,7 @@ const ProfilePage = () => {
       setDisabled(false);
       toast.success("Profile Updated Successfully", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -99,7 +99,7 @@ const ProfilePage = () => {
       console.error(error);
       toast.error("Internal Server Error! Please try again Later", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -115,7 +115,7 @@ const ProfilePage = () => {
       if(!navigator.onLine){
         await toast.error("You are offline. Please connect to the internet and try again.", {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -127,7 +127,7 @@ const ProfilePage = () => {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
         const userId = Cookies.get("user_id");
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const response = await fetch(`${api}/profile/details/${userId}`);
         if (response.ok) {
           const data = await response.json();

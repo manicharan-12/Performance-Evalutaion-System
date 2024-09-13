@@ -72,7 +72,7 @@ const RDPartA = () => {
       if(!navigator.onLine){
         await toast.error("You are offline. Please connect to the internet and try again.", {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -92,7 +92,7 @@ const RDPartA = () => {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
         const response = await fetch(
-          `http://localhost:5000/year/${userId}/?formId=${id}`,
+          `http://localhost:6969/year/${userId}/?formId=${id}`,
         );
         if (response.ok) {
           const data = await response.json();
@@ -122,14 +122,14 @@ const RDPartA = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: "*",
-    maxSize: 50000000,
+    maxSize: 69690000,
   });
 
   const handleOpenInNewTab = async (file) => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -140,7 +140,7 @@ const RDPartA = () => {
     if (file.fileId) {
       try {
         const response = await fetch(
-          `http://localhost:5000/files/${file.fileId}`,
+          `http://localhost:6969/files/${file.fileId}`,
         );
         if (response.ok) {
           const blob = await response.blob();
@@ -152,7 +152,7 @@ const RDPartA = () => {
             "Failed to open file: " + (await response.json()).message,
             {
               position: "bottom-center",
-              autoClose: 5000,
+              autoClose: 6969,
               hideProgressBar: true,
               closeOnClick: true,
               pauseOnHover: false,
@@ -168,7 +168,7 @@ const RDPartA = () => {
           "An error occurred while opening the file. Please try again.",
           {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -229,7 +229,7 @@ const RDPartA = () => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -257,7 +257,7 @@ const RDPartA = () => {
       console.error("Error submitting RD Part A:", error);
       toast.error("An error occurred during submission. Please try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,

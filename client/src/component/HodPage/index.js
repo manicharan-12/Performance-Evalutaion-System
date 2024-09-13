@@ -29,36 +29,11 @@ const HodDashboard = () => {
   const [userName, setUserName] = useState("");
   const [teachers, setTeachers] = useState([]);
 
-  // useEffect(() => {
-  //     async function fetchData() {
-  //         setApiStatus(apiStatusConstants.inProgress);
-  //         const userId = Cookies.get("user_id");
-  //         const api = "http://localhost:5000";
-  //         const response = await fetch(`${api}/profile/details/${userId}`);
-  //         if (response.ok) {
-  //             const data = await response.json();
-  //             setUserName(data.name);
-  //             setApiStatus(apiStatusConstants.success);
-  //         } else {
-  //             setApiStatus(apiStatusConstants.failure);
-  //             toast.error("Failed to fetch userData", {
-  //                 position: "bottom-center",
-  //                 autoClose: 5000,
-  //                 hideProgressBar: true,
-  //                 closeOnClick: true,
-  //                 pauseOnHover: false,
-  //                 draggable: true,
-  //             });
-  //         }
-  //     }
-  //     fetchData();
-  // },[])
-
   useEffect(() => {
     async function fetchData() {
       setApiStatus(apiStatusConstants.inProgress);
       const userId = Cookies.get("user_id");
-      const api = "http://localhost:5000";
+      const api = "http://localhost:6969";
 
       try {
         const profileResponse = await fetch(`${api}/profile/details/${userId}`);
@@ -136,16 +111,6 @@ const HodDashboard = () => {
     </>
   );
 
-  // const renderSuccessView = () => {
-  //     return (
-  //         <>
-  //             <h1>
-  //                 Welcome to your Dashboard, {userName}!
-  //             </h1>
-  //         </>
-  //     );
-  // };
-
   const renderSuccessView = () => (
     <>
       <h1>Welcome to your Dashboard, {userName}!</h1>
@@ -153,7 +118,7 @@ const HodDashboard = () => {
         {teachers.map((teacher) => (
           <TeacherCard
             key={teacher._id}
-            onClick={() => navigate(`/user-detail/${teacher._id}`)}
+            onClick={() => navigate(`/user-detail/?fac_id=${teacher._id}`)}
           >
             {teacher.name}: 
             {teacher._id}

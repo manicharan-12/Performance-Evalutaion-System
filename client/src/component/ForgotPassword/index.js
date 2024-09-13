@@ -26,7 +26,7 @@ const ForgotPassword = (props) => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -42,7 +42,7 @@ const ForgotPassword = (props) => {
         setDisabled(false);
       } else {
         setErrorMsg("");
-        const api = `http://localhost:5000`;
+        const api = `http://localhost:6969`;
         const postData = { email };
         const option = {
           method: "POST",
@@ -57,7 +57,7 @@ const ForgotPassword = (props) => {
           const successMsg = data.success_msg;
           toast.success(`${successMsg}`, {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -78,7 +78,7 @@ const ForgotPassword = (props) => {
       console.log(error);
       toast.error(`Internal Server Error! Please try again Later`, {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,

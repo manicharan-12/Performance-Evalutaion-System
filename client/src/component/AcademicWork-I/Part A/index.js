@@ -5,7 +5,7 @@ import EditableValue from "../../EditableValue";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import {
   HeadingContainer,
   SectionHeading,
@@ -78,6 +78,9 @@ const AcademicWorkI = () => {
   const [totalApiScore, setTotalApiScore] = useState();
   const [disabled, setDisabled] = useState(false);
   const [formId, setFormId] = useState("");
+  const location = useLocation();
+  const isSummaryPath = location.pathname.startsWith('/summary');
+  
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -115,7 +118,7 @@ const AcademicWorkI = () => {
     } else {
       toast.error("Cannot delete semester. Minimum of 2 semesters required.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -158,7 +161,7 @@ const AcademicWorkI = () => {
     } else {
       toast.error("Cannot delete course. Minimum of 2 courses required.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -254,7 +257,7 @@ const AcademicWorkI = () => {
     if(!navigator.onLine){
       await toast.error("You are offline. Please connect to the internet and try again.", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -297,7 +300,7 @@ const AcademicWorkI = () => {
           averageFeedbackPercentage,
           totalApiScore,
         };
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const option = {
           method: "POST",
           headers: {
@@ -312,7 +315,7 @@ const AcademicWorkI = () => {
           setDisabled(false);
           await toast.error("Failed to save data! Please try again later", {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -327,7 +330,7 @@ const AcademicWorkI = () => {
       setDisabled(false);
       toast.error("Failed to save data! Please try again later", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
@@ -347,7 +350,7 @@ const AcademicWorkI = () => {
       if(!navigator.onLine){
         await toast.error("You are offline. Please connect to the internet and try again.", {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -367,7 +370,7 @@ const AcademicWorkI = () => {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
         const userId = Cookies.get("user_id");
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const response = await fetch(
           `${api}/academic-work-1/data/${userId}/?formId=${id}`,
         );
@@ -450,7 +453,9 @@ const AcademicWorkI = () => {
                 <TableHead>API Score-Results (Max. 20) (A)</TableHead>
                 <TableHead>Student Feedback %</TableHead>
                 <TableHead>API Score-Feedback (Max. 20) (B)</TableHead>
-                <TableHead>Actions</TableHead>
+                {!isSummaryPath && (
+                  <TableHead>Actions</TableHead>
+                )}
               </TableRow>
             </TableMainHead>
             <TableBody>
@@ -554,7 +559,7 @@ const AcademicWorkI = () => {
                     <TableData>
                       <SpanEle>{course.studentFeedbackScore}</SpanEle>
                     </TableData>
-                    {courseIndex === 0 && (
+                    {courseIndex === 0 && !isSummaryPath && (
                       <TableData rowSpan={semesterCoursesCount}>
                         <SaveNextButton
                           onClick={() => handleAddCourse(semesterIndex)}
@@ -601,17 +606,21 @@ const AcademicWorkI = () => {
                 <TableData></TableData>
                 <TableData>{averageFeedbackPercentage}</TableData>
                 <TableData></TableData>
-                <TableData></TableData>
+                {!isSummaryPath && (
+        <TableData></TableData>
+      )}
               </TableRow>
               <TableRow>
                 <TableHead colSpan="5">
                   Total API score (Results + Feedback)
                 </TableHead>
-                <TableData colSpan="5">{totalApiScore}</TableData>
+                <TableData colSpan="4">{totalApiScore}</TableData>
               </TableRow>
             </TableBody>
           </Table>
-          <SaveNextButton
+          {
+            !isSummaryPath && (
+              <SaveNextButton
             onClick={handleAddSemester}
             className="mt-3"
             style={{
@@ -625,7 +634,9 @@ const AcademicWorkI = () => {
           >
             Add Semester
           </SaveNextButton>
-          {tableData.length > 1 && (
+            )
+          }
+          {tableData.length > 1 && !isSummaryPath && (
             <SaveNextButton
               onClick={() => handleDeleteSemester(tableData.length - 1)}
               className="mt-3"
@@ -680,37 +691,39 @@ const AcademicWorkI = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <SaveNextButtonContainer className="mt-3">
-          <SaveNextButton
-            className="btn btn-primary"
-            type="submit"
-            onClick={submitAcademicForm1}
-            disabled={disabled}
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              backgroundImage:
-                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-              color: "#fff",
-              border: "none",
-            }}
-          >
-            {disabled ? (
-              <Oval
-                visible={true}
-                height="25"
-                width="25"
-                color="#ffffff"
-                ariaLabel="oval-loading"
-                wrapperStyle={{}}
-                wrapperClass=""
-                className="text-center"
-              />
-            ) : (
-              "Save & Next"
-            )}
-          </SaveNextButton>
-        </SaveNextButtonContainer>
+       {!isSummaryPath && (
+         <SaveNextButtonContainer className="mt-3">
+         <SaveNextButton
+           className="btn btn-primary"
+           type="submit"
+           onClick={submitAcademicForm1}
+           disabled={disabled}
+           style={{
+             padding: "12px",
+             borderRadius: "8px",
+             backgroundImage:
+               "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+             color: "#fff",
+             border: "none",
+           }}
+         >
+           {disabled ? (
+             <Oval
+               visible={true}
+               height="25"
+               width="25"
+               color="#ffffff"
+               ariaLabel="oval-loading"
+               wrapperStyle={{}}
+               wrapperClass=""
+               className="text-center"
+             />
+           ) : (
+             "Save & Next"
+           )}
+         </SaveNextButton>
+       </SaveNextButtonContainer>
+       )}
       </>
     );
   };
@@ -776,7 +789,7 @@ const AcademicWorkI = () => {
         "Completely fill the form and save the data before navigating",
         {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -846,10 +859,16 @@ const AcademicWorkI = () => {
               width: "100%",
             }}
           >
-            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+            {
+              !isSummaryPath && (
+                <p style={{ marginRight: "10px", marginTop: "10px" }}>
               Navigate to
             </p>
-            <select
+              )
+            }
+            {
+              !isSummaryPath && (
+                <select
               style={{
                 border: "1px solid #000",
                 borderRadius: "5px",
@@ -868,6 +887,8 @@ const AcademicWorkI = () => {
               <option>Contribution To Department</option>
               <option>Contribution To Society</option>
             </select>
+              )
+            }
           </div>
         </div>
 
@@ -878,3 +899,6 @@ const AcademicWorkI = () => {
 };
 
 export default AcademicWorkI;
+
+
+

@@ -47,7 +47,7 @@ const Login = (props) => {
         "You are offline. Please connect to the internet and try again.",
         {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,
@@ -63,7 +63,7 @@ const Login = (props) => {
         setDisabled(false);
       } else {
         setErrorMsg("");
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
         const postData = { username, password };
         const option = {
           method: "POST",
@@ -82,7 +82,7 @@ const Login = (props) => {
           const errorMsg = data.error_msg;
           toast.error(`${errorMsg}`, {
             position: "bottom-center",
-            autoClose: 5000,
+            autoClose: 6969,
             hideProgressBar: true,
             closeOnClick: true,
             pauseOnHover: false,
@@ -97,7 +97,7 @@ const Login = (props) => {
       console.log(error);
       toast.error(`Internal Server Error! Please try again Later`, {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,

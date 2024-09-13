@@ -56,7 +56,7 @@ const ApiScoreSummary = () => {
         await setFormId(id);
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
-        const api = "http://localhost:5000";
+        const api = "http://localhost:6969";
 
         setApiStatus(apiStatusConstants.success);
       } catch (error) {
@@ -73,7 +73,7 @@ const ApiScoreSummary = () => {
     } catch (error) {
       toast.error("Internal Server Error! Please try again Later", {
         position: "bottom-center",
-        autoClose: 5000,
+        autoClose: 6969,
         hideProgressBar: true,
         closeOnClick: true,
         pauseOnHover: false,
