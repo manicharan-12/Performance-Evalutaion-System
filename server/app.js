@@ -1872,7 +1872,7 @@ app.get("/user/:userId", async (req, res) => {
       contributionToDepartment,
       contributionToSociety,
       contributionToUniversitySchool,
-    };
+    }
 
     res.json(consolidatedData);
   } catch (error) {
