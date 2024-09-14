@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import { toast } from "react-toastify";
@@ -47,6 +47,9 @@ const apiStatusConstants = {
 };
 
 const RDPartB = () => {
+  const location = useLocation();
+  const isSummaryPath = location.pathname.startsWith('/summary');
+
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [year, setYear] = useState("");
   const [disabled, setDisabled] = useState(false);
@@ -457,7 +460,9 @@ const RDPartB = () => {
             ))}
           </TableBody>
         </Table>
-        <SaveNextButton
+        {
+          !isSummaryPath && (
+            <SaveNextButton
           onClick={handleAddPresentation}
           className="mt-3 mr-3"
           style={{
@@ -471,7 +476,9 @@ const RDPartB = () => {
         >
           Add Presentation
         </SaveNextButton>
-        {tableData.length > 1 && (
+          )
+        }
+        {tableData.length > 1 && !isSummaryPath && (
           <SaveNextButton
             onClick={handleDeletePresentation}
             className="mt-3"
@@ -523,7 +530,9 @@ const RDPartB = () => {
         </UnorderedList>
       </FileContainer>
       <SaveNextButtonContainer className="mt-3">
-        <SaveNextButton
+        {
+          !isSummaryPath && (
+            <SaveNextButton
           className="btn btn-primary"
           type="submit"
           onClick={submitRDPartB}
@@ -552,6 +561,8 @@ const RDPartB = () => {
             "Save & Next"
           )}
         </SaveNextButton>
+          )
+        }
       </SaveNextButtonContainer>
     </>
   );
@@ -639,10 +650,16 @@ const RDPartB = () => {
               width: "100%",
             }}
           >
-            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+            {
+              !isSummaryPath && (
+                <p style={{ marginRight: "10px", marginTop: "10px" }}>
               Navigate to
             </p>
-            <select
+              )
+            }
+            {
+              !isSummaryPath && (
+                <select
               style={{
                 border: "1px solid #000",
                 borderRadius: "5px",
@@ -661,6 +678,8 @@ const RDPartB = () => {
               <option>Contribution To Department</option>
               <option>Contribution To Society</option>
             </select>
+              )
+            }
           </div>
         </div>
         {renderRDPartBPage()}

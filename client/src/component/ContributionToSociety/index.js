@@ -4,7 +4,7 @@ import Header from "../Header";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDropzone } from "react-dropzone";
 import { TiDelete } from "react-icons/ti";
@@ -47,6 +47,8 @@ const apiStatusConstants = {
 };
 
 const ContributionToSociety = () => {
+  const location = useLocation();
+  const isSummaryPath = location.pathname.startsWith('/summary');
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [files, setFiles] = useState([]);
   const [deletedFiles, setDeletedFiles] = useState([]);
@@ -392,7 +394,9 @@ const ContributionToSociety = () => {
               })}
             </TableBody>
           </Table>
-          <SaveNextButton
+          {
+            !isSummaryPath && (
+              <SaveNextButton
             onClick={handleAddContribution}
             className="mt-3 mr-3"
             style={{
@@ -406,6 +410,8 @@ const ContributionToSociety = () => {
           >
             Add Certificate
           </SaveNextButton>
+            )
+          }
           {tableData.length > 1 && (
             <SaveNextButton
               onClick={() => handleDeleteContribution(tableData.length - 1)}
@@ -458,7 +464,9 @@ const ContributionToSociety = () => {
           </UnorderedList>
         </FileContainer>
         <SaveNextButtonContainer className="mt-3">
-          <SaveNextButton
+          {
+            !isSummaryPath && (
+              <SaveNextButton
             type="submit"
             onClick={submitContributionToSociety}
             style={{
@@ -485,6 +493,8 @@ const ContributionToSociety = () => {
               "Save & Next"
             )}
           </SaveNextButton>
+            )
+          }
         </SaveNextButtonContainer>
       </>
     );
@@ -578,10 +588,16 @@ const ContributionToSociety = () => {
               width: "100%",
             }}
           >
-            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+            {
+              !isSummaryPath && (
+                <p style={{ marginRight: "10px", marginTop: "10px" }}>
               Navigate to
             </p>
-            <select
+              )
+            }
+            {
+              !isSummaryPath && (
+                <select
               style={{
                 border: "1px solid #000",
                 borderRadius: "5px",
@@ -600,6 +616,8 @@ const ContributionToSociety = () => {
               <option>Contribution To Department</option>
               <option selected>Contribution To Society</option>
             </select>
+              )
+            }
           </div>
         </div>
         {renderContributionToSocietyPage()}

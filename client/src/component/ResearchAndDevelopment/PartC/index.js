@@ -4,7 +4,7 @@ import Header from "../../Header";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../../Images/failure view.png";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDropzone } from "react-dropzone";
 import { TiDelete } from "react-icons/ti";
@@ -47,6 +47,8 @@ const apiStatusConstants = {
 };
 
 const RDPartC = () => {
+  const location = useLocation();
+  const isSummaryPath = location.pathname.startsWith('/summary');
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [year, setYear] = useState("");
   const [disabled, setDisabled] = useState(false);
@@ -443,7 +445,9 @@ const RDPartC = () => {
               })}
             </TableBody>
           </Table>
-          <SaveNextButton
+          {
+            !isSummaryPath && (
+              <SaveNextButton
             onClick={handleAddSanctionProject}
             className="mt-3 mr-3"
             style={{
@@ -457,7 +461,9 @@ const RDPartC = () => {
           >
             Add Project
           </SaveNextButton>
-          {tableData.length > 1 && (
+            )
+          }
+          {tableData.length > 1 && !isSummaryPath && (
             <SaveNextButton
               onClick={() => handleDeleteSanctionProject(tableData.length - 1)}
               className="mt-3"
@@ -509,7 +515,9 @@ const RDPartC = () => {
           </UnorderedList>
         </FileContainer>
         <SaveNextButtonContainer className="mt-3">
-          <SaveNextButton
+         {
+          !isSummaryPath && (
+            <SaveNextButton
             type="submit"
             onClick={submitRDPartC}
             style={{
@@ -536,6 +544,8 @@ const RDPartC = () => {
               "Save & Next"
             )}
           </SaveNextButton>
+          )
+         }
         </SaveNextButtonContainer>
       </>
     );
@@ -629,10 +639,16 @@ const RDPartC = () => {
               width: "100%",
             }}
           >
-            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+            {
+              !isSummaryPath && (
+                <p style={{ marginRight: "10px", marginTop: "10px" }}>
               Navigate to
             </p>
-            <select
+              )
+            }
+            {
+              !isSummaryPath && (
+                <select
               style={{
                 border: "1px solid #000",
                 borderRadius: "5px",
@@ -651,6 +667,8 @@ const RDPartC = () => {
               <option>Contribution To Department</option>
               <option>Contribution To Society</option>
             </select>
+              )
+            }
           </div>
         </div>
         {renderRDPartCPage()}

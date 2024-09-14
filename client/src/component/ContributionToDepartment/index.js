@@ -4,7 +4,7 @@ import Header from "../Header";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDropzone } from "react-dropzone";
 import { TiDelete } from "react-icons/ti";
@@ -47,6 +47,8 @@ const apiStatusConstants = {
 };
 
 const ContributionToDepartment = () => {
+  const location = useLocation();
+  const isSummaryPath = location.pathname.startsWith('/summary');
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [files, setFiles] = useState([]);
   const [deletedFiles, setDeletedFiles] = useState([]);
@@ -377,7 +379,9 @@ const ContributionToDepartment = () => {
               })}
             </TableBody>
           </Table>
-          <SaveNextButton
+          {
+            !isSummaryPath && (
+              <SaveNextButton
             onClick={handleAddContribution}
             className="mt-3 mr-3"
             style={{
@@ -391,7 +395,9 @@ const ContributionToDepartment = () => {
           >
             Add Certificate
           </SaveNextButton>
-          {tableData.length > 1 && (
+            )
+          }
+          {tableData.length > 1 && !isSummaryPath && (
             <SaveNextButton
               onClick={() => handleDeleteContribution(tableData.length - 1)}
               className="mt-3"
@@ -443,7 +449,9 @@ const ContributionToDepartment = () => {
           </UnorderedList>
         </FileContainer>
         <SaveNextButtonContainer className="mt-3">
-          <SaveNextButton
+          {
+            !isSummaryPath && (
+              <SaveNextButton
             type="submit"
             onClick={submitContributionToDepartment}
             style={{
@@ -470,6 +478,8 @@ const ContributionToDepartment = () => {
               "Save & Next"
             )}
           </SaveNextButton>
+            )
+          }
         </SaveNextButtonContainer>
       </>
     );
@@ -564,10 +574,16 @@ const ContributionToDepartment = () => {
               width: "100%",
             }}
           >
-            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+            {
+              !isSummaryPath && (
+                <p style={{ marginRight: "10px", marginTop: "10px" }}>
               Navigate to
             </p>
-            <select
+              )
+            }
+            {
+              !isSummaryPath && (
+                <select
               style={{
                 border: "1px solid #000",
                 borderRadius: "5px",
@@ -586,6 +602,8 @@ const ContributionToDepartment = () => {
               <option selected>Contribution To Department</option>
               <option>Contribution To Society</option>
             </select>
+              )
+            }
           </div>
         </div>
         {renderContributionToDepartmentPage()}

@@ -59,7 +59,7 @@ const HodDashboard = () => {
         setApiStatus(apiStatusConstants.failure);
         toast.error(error.message, {
           position: "bottom-center",
-          autoClose: 5000,
+          autoClose: 6969,
           hideProgressBar: true,
           closeOnClick: true,
           pauseOnHover: false,

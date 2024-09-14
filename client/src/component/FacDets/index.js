@@ -34,7 +34,7 @@ const UserDetail = () => {
   //     } catch (error) {}
   //     try {
   //       const response = await axios.get(
-  //         `http://localhost:5000/faculty/${facultyId}`
+  //         `http://localhost:6969/faculty/${facultyId}`
   //       );
 
   //       console.log(response.data);

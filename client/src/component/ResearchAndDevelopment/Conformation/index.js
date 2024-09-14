@@ -773,7 +773,9 @@ const Conformation = () => {
           </UnorderedList>
         </FileContainer>
         <SaveNextButtonContainer className="mt-3">
-          <SaveNextButton
+         {
+          !isSummaryPath && (
+            <SaveNextButton
             className="btn btn-primary"
             type="submit"
             onClick={submitConformation3}
@@ -794,6 +796,8 @@ const Conformation = () => {
               "Save & Next"
             )}
           </SaveNextButton>
+          )
+         }
         </SaveNextButtonContainer>
       </>
     );

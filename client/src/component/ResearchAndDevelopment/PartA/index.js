@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
@@ -47,6 +47,10 @@ const apiStatusConstants = {
 };
 
 const RDPartA = () => {
+
+  const location = useLocation();
+  const isSummaryPath = location.pathname.startsWith('/summary');
+
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [year, setYear] = useState("");
   const [files, setFiles] = useState([]);
@@ -387,7 +391,9 @@ const RDPartA = () => {
             ))}
           </TableBody>
         </Table>
-        <SaveNextButton
+        {
+          !isSummaryPath && (
+            <SaveNextButton
           onClick={handleAddArticle}
           className="mt-3 mr-3"
           style={{
@@ -401,6 +407,8 @@ const RDPartA = () => {
         >
           Add Article
         </SaveNextButton>
+          )
+        }
         {tableData.length > 1 && (
           <SaveNextButton
             onClick={handleDeleteArticle}
@@ -453,7 +461,9 @@ const RDPartA = () => {
           ))}
         </UnorderedList>
       </FileContainer>
-      <SaveNextButtonContainer className="mt-3">
+      {
+        !isSummaryPath && (
+          <SaveNextButtonContainer className="mt-3">
         <SaveNextButton
           onClick={submitRDPartA}
           style={{
@@ -468,6 +478,8 @@ const RDPartA = () => {
           Save & Next
         </SaveNextButton>
       </SaveNextButtonContainer>
+        )
+      }
     </>
   );
 
@@ -554,28 +566,36 @@ const RDPartA = () => {
               width: "100%",
             }}
           >
-            <p style={{ marginRight: "10px", marginTop: "10px" }}>
+            {
+              !isSummaryPath && (
+                <p style={{ marginRight: "10px", marginTop: "10px" }}>
               Navigate to
             </p>
-            <select
-              style={{
-                border: "1px solid #000",
-                borderRadius: "5px",
-                padding: "5px",
-              }}
-              onChange={handleSelectChange}
-            >
-              <option>AcademicWork I</option>
-              <option>AcademicWork II</option>
-              <option>R&D Conformation</option>
-              <option selected>R&D Part A</option>
-              <option>R&D Part B</option>
-              <option>R&D Part C</option>
-              <option>R&D Part D</option>
-              <option>Contribution To University School</option>
-              <option>Contribution To Department</option>
-              <option>Contribution To Society</option>
-            </select>
+              )
+            }
+            {
+              !isSummaryPath && (
+                <select
+                style={{
+                  border: "1px solid #000",
+                  borderRadius: "5px",
+                  padding: "5px",
+                }}
+                onChange={handleSelectChange}
+              >
+                <option>AcademicWork I</option>
+                <option>AcademicWork II</option>
+                <option>R&D Conformation</option>
+                <option selected>R&D Part A</option>
+                <option>R&D Part B</option>
+                <option>R&D Part C</option>
+                <option>R&D Part D</option>
+                <option>Contribution To University School</option>
+                <option>Contribution To Department</option>
+                <option>Contribution To Society</option>
+              </select>
+              )
+            }
           </div>
         </div>
         {renderRDPartAPage()}
