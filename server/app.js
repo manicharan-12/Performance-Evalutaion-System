@@ -25,6 +25,7 @@ const ContributionToDepartment = require("./models/contributionToDepartment");
 const ContributionToSociety = require("./models/contributionToSociety");
 const ApiScore = require("./models/apiScore");
 
+// const mongoURI = "mongodb://localhost:27017/faculty_evaluation_system";
 const mongoURI =
   "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority";
 
@@ -432,13 +433,13 @@ app.post("/academic-work-1", async (request, response) => {
     }
     const existingApiScore = await ApiScore.findOne({ userId, formId });
     if (existingApiScore) {
-      existingApiScore.academicWorkPartA = totalApiScore;
+      existingApiScore.apiScores.academicWorkPartA = totalApiScore;
       await existingApiScore.save();
     } else {
       const newApiScore = new ApiScore({
         userId,
         formId,
-        academicWorkPartA: totalApiScore,
+        apiScores: { academicWorkPartA: totalApiScore },
       });
       await newApiScore.save();
     }
@@ -1830,36 +1831,54 @@ app.get("/teachers/:department", async (req, res) => {
 app.get("/faculty/:f_id", async (req, res) => {
   const facultyId = req.params.f_id;
   try {
-    const forms = await Form.find({ user_id:facultyId });
-    res.json(forms)
+    const forms = await Form.find({ user_id: facultyId });
+    res.json(forms);
   } catch (error) {
     console.log(error);
   }
 });
 
-app.get("/user/:userId", async (req, res) => {
-  const userId = req.params.userId;
-  console.log(`Fetching data for userId: ${userId}`);
+app.get("/faculty/forms/:formId", async (req, res) => {
+  const formId = req.params.formId;
+  console.log(`Fetching data for formId: ${formId}`);
 
   try {
-    const academicWorkPartA = await AcademicWorkPartA.findOne({ userId });
-    const academicWorkPartB = await AcademicWorkPartB.findOne({ userId });
+    const academicWorkPartA = await AcademicWorkPartA.findOne({ formId });
+    const academicWorkPartB = await AcademicWorkPartB.findOne({ formId });
     const researchAndDevelopmentPartB =
-      await ResearchAndDevelopmentPartB.findOne({ userId });
+      await ResearchAndDevelopmentPartB.findOne({ formId });
     const researchAndDevelopmentPartC =
-      await ResearchAndDevelopmentPartC.findOne({ userId });
+      await ResearchAndDevelopmentPartC.findOne({ formId });
     const researchAndDevelopmentPartD =
-      await ResearchAndDevelopmentPartD.findOne({ userId });
-    const phdConformation = await PhdConformation.findOne({ userId });
-    const apiScore = await ApiScore.findOne({ userId });
+      await ResearchAndDevelopmentPartD.findOne({ formId });
+    const phdConformation = await PhdConformation.findOne({ formId });
+    const apiScore = await ApiScore.findOne({ formId });
     const contributionToDepartment = await ContributionToDepartment.findOne({
-      userId,
+      formId,
     });
     const contributionToSociety = await ContributionToSociety.findOne({
-      userId,
+      formId,
     });
     const contributionToUniversitySchool =
-      await ContributionToUniversitySchool.findOne({ userId });
+      await ContributionToUniversitySchool.findOne({ formId });
+
+    // Check if at least some data is found
+    if (
+      !academicWorkPartA &&
+      !academicWorkPartB &&
+      !researchAndDevelopmentPartB &&
+      !researchAndDevelopmentPartC &&
+      !researchAndDevelopmentPartD &&
+      !phdConformation &&
+      !apiScore &&
+      !contributionToDepartment &&
+      !contributionToSociety &&
+      !contributionToUniversitySchool
+    ) {
+      return res
+        .status(404)
+        .json({ message: "No form data found for this formId" });
+    }
 
     const consolidatedData = {
       academicWorkPartA,
@@ -1872,11 +1891,11 @@ app.get("/user/:userId", async (req, res) => {
       contributionToDepartment,
       contributionToSociety,
       contributionToUniversitySchool,
-    }
+    };
 
     res.json(consolidatedData);
   } catch (error) {
-    console.error(error);
+    console.error(`Error fetching data for formId: ${formId}`, error);
     res.status(500).json({ message: "Server Error" });
   }
 });

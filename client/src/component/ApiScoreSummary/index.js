@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import EditableText from './textArea';
+import EditableText from "./textArea";
 import { toast } from "react-toastify";
 import {
   HomeMainContainer,
@@ -26,6 +26,7 @@ import {
   HeadingContainer,
   SectionHeading,
 } from "./StyledComponents";
+import EditableValue from "../EditableValue";
 
 const apiStatusConstants = {
   initial: "INITIAL",
@@ -34,42 +35,33 @@ const apiStatusConstants = {
   failure: "FAILURE",
 };
 
-const ApiScoreSummary = () => {
+const ApiScoreSummary = (props) => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [formId, setFormId] = useState("");
   const [tableData, setTableData] = useState({
-    impression: "",
-    examination: "",
-    interpersonal: "",
-    apiScore: "",
+    academicWorkPartA: "",
+    academicWorkPartB: "",
+    researchAndDevelopmentPartA: "",
+    researchAndDevelopmentPartB: "",
+    researchAndDevelopmentPartC: "",
+    researchAndDevelopmentPartD: "",
+    contributionToSchool: "",
+    contributionToDepartment: "",
+    contributionToSociety: "",
   });
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    let id;
-    async function fetchYear() {
-      try {
-        const formId = await searchParams.get("f_id");
-        id = formId;
-        await setFormId(id);
-        setApiStatus(apiStatusConstants.inProgress);
-        const userId = Cookies.get("user_id");
-        const api = "http://localhost:6969";
-
-        setApiStatus(apiStatusConstants.success);
-      } catch (error) {
-        console.log(error);
-        setApiStatus(apiStatusConstants.failure);
-      }
-    }
-    fetchYear();
+    setApiStatus(apiStatusConstants.inProgress);
+    const { apiScores } = props.data;
+    setTableData(apiScores);
+    setApiStatus(apiStatusConstants.success);
   }, []);
 
   const submitApiScoreSummary = () => {
     try {
-
     } catch (error) {
       toast.error("Internal Server Error! Please try again Later", {
         position: "bottom-center",
@@ -106,7 +98,7 @@ const ApiScoreSummary = () => {
       <>
         <HeadingContainer>
           <SectionHeading>
-          Summary of API Scores (to be filled by the functional head):
+            Summary of API Scores (to be filled by the functional head):
           </SectionHeading>
         </HeadingContainer>
         <TableContainer className="mt-3">
@@ -125,12 +117,18 @@ const ApiScoreSummary = () => {
                 <TableData>I</TableData>
                 <TableData>Academic Work (a+b)</TableData>
                 <TableData>45</TableData>
-                <TableData></TableData>
-                <TableData rowSpan="6" style={{ verticalAlign: "top", wordWrap: "break-word", overflowWrap: "break-word", whiteSpace: "pre-wrap" }}>
-  <EditableText value="" />
-</TableData>
-
-
+                <TableData>{tableData.academicWorkPartA}</TableData>
+                <TableData
+                  rowSpan="6"
+                  style={{
+                    verticalAlign: "top",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word",
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  <EditableText value="" />
+                </TableData>
               </TableRow>
               <TableRow>
                 <TableData>II</TableData>
@@ -143,28 +141,24 @@ const ApiScoreSummary = () => {
                 <TableData>Contribution to the University </TableData>
                 <TableData>5</TableData>
                 <TableData></TableData>
-                
               </TableRow>
               <TableRow>
                 <TableData>IV</TableData>
                 <TableData>Contribution to the Department</TableData>
                 <TableData>5</TableData>
                 <TableData></TableData>
-                
               </TableRow>
               <TableRow>
                 <TableData>V</TableData>
                 <TableData>Contribution to Society</TableData>
                 <TableData>5</TableData>
                 <TableData></TableData>
-                
               </TableRow>
               <TableRow>
                 <TableData>I</TableData>
                 <TableData>Assessment by functional head </TableData>
                 <TableData>15</TableData>
                 <TableData></TableData>
-                
               </TableRow>
             </TableBody>
           </Table>
@@ -182,7 +176,7 @@ const ApiScoreSummary = () => {
               border: "none",
             }}
           >
-            Save & Next
+            Save
           </SaveNextButton>
         </SaveNextButtonContainer>
       </>
@@ -213,91 +207,9 @@ const ApiScoreSummary = () => {
     }
   };
 
-  const handleSelectChange = (event) => {
-    const selectedOption = event.target.value;
-
-    switch (selectedOption) {
-      case "AcademicWork I":
-        navigate(`/academicWork/part-a/?f_id=${formId}`);
-        break;
-      case "AcademicWork II":
-        navigate(`/academicWork/part-b/?f_id=${formId}`);
-        break;
-      case "R&D Conformation":
-        navigate(`/research-and-development/conformation/?f_id=${formId}`);
-        break;
-      case "R&D Part A":
-        navigate(`/research-and-development/partA/?f_id=${formId}`);
-        break;
-      case "R&D Part B":
-        navigate(`/research-and-development/partB/?f_id=${formId}`);
-        break;
-      case "R&D Part C":
-        navigate(`/research-and-development/partC/?f_id=${formId}`);
-        break;
-      case "R&D Part D":
-        navigate(`/research-and-development/partD/?f_id=${formId}`);
-        break;
-      case "Contribution To University School":
-        navigate(`/contribution-to-university-school/?f_id=${formId}`);
-        break;
-      case "Contribution To Department":
-        navigate(`/contribution-to-department/?f_id=${formId}`);
-        break;
-      case "Contribution To Society":
-        navigate(`/contribution-to-society/?f_id=${formId}`);
-        break;
-      default:
-        break;
-    }
-  };
-
   return (
     <HomeMainContainer>
       <MainContainer className="mt-5 mb-5">
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            width: "100%",
-            marginBottom: "18px",
-          }}
-        >
-          <Back />
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <p style={{ marginRight: "10px", marginTop: "10px" }}>
-              Navigate to
-            </p>
-            <select
-              style={{
-                border: "1px solid #000",
-                borderRadius: "5px",
-                padding: "5px",
-              }}
-              onChange={handleSelectChange}
-            >
-              <option>AcademicWork I</option>
-              <option>AcademicWork II</option>
-              <option>R&D Conformation</option>
-              <option>R&D Part A</option>
-              <option>R&D Part B</option>
-              <option>R&D Part C</option>
-              <option>R&D Part D</option>
-              <option>Contribution To University School</option>
-              <option>Contribution To Department</option>
-              <option selected>Contribution To Society</option>
-            </select>
-          </div>
-        </div>
         {renderAssessmentOfFunctionalHeadPage()}
       </MainContainer>
     </HomeMainContainer>

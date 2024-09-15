@@ -50,10 +50,8 @@ const apiStatusConstants = {
 };
 
 const Conformation = () => {
-
   const location = useLocation();
-  const isSummaryPath = location.pathname.startsWith('/summary');
-
+  const isSummaryPath = location.pathname.startsWith("/summary");
 
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [year, setYear] = useState("");
@@ -120,7 +118,7 @@ const Conformation = () => {
           const data = await response.json();
           setYear(data.academic_year);
           const response2 = await fetch(
-            `${api}/rdConfo/${userId}/?formId=${id}`,
+            `${api}/rdConfo/${userId}/?formId=${id}`
           );
           if (response2.ok === true) {
             const data2 = await response2.json();
@@ -202,7 +200,7 @@ const Conformation = () => {
     setFiles((prevFiles) => [
       ...prevFiles,
       ...acceptedFiles.map((file) =>
-        Object.assign(file, { preview: URL.createObjectURL(file) }),
+        Object.assign(file, { preview: URL.createObjectURL(file) })
       ),
     ]);
   }, []);
@@ -217,7 +215,7 @@ const Conformation = () => {
     if (file.fileId) {
       try {
         const response = await fetch(
-          `http://localhost:6969/files/${file.fileId}`,
+          `http://localhost:6969/files/${file.fileId}`
         );
         if (response.ok) {
           const blob = await response.blob();
@@ -236,7 +234,7 @@ const Conformation = () => {
               draggable: true,
               progress: undefined,
               theme: "colored",
-            },
+            }
           );
         }
       } catch (error) {
@@ -252,7 +250,7 @@ const Conformation = () => {
             draggable: true,
             progress: undefined,
             theme: "colored",
-          },
+          }
         );
       }
     } else {
@@ -492,7 +490,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "nameOfTheUniversity",
                           "registered",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) => /^[A-Za-z\s]+$/.test(input)}
@@ -511,7 +509,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "nameOfTheUniversity",
                           "received",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) => /^[A-Za-z\s]+$/.test(input)}
@@ -533,7 +531,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "dateOfRegistration",
                           "registered",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) => true}
@@ -552,7 +550,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "dateOfRegistration",
                           "received",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) => true}
@@ -574,7 +572,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "supervisorAndCoSupervisorName",
                           "registered",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) => /^[A-Za-z\s]+$/.test(input)}
@@ -593,7 +591,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "supervisorAndCoSupervisorName",
                           "received",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) => /^[A-Za-z\s]+$/.test(input)}
@@ -615,7 +613,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "prePhDCompletionDate",
                           "registered",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) => true}
@@ -634,7 +632,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "prePhDCompletionDate",
                           "received",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) => true}
@@ -656,7 +654,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "noOfResearchReviewsCompleted",
                           "registered",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) =>
@@ -679,7 +677,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "noOfResearchReviewsCompleted",
                           "received",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) =>
@@ -705,7 +703,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "dateOfCompletionOfPhD",
                           "registered",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) => true}
@@ -724,7 +722,7 @@ const Conformation = () => {
                         handleTableDataChange(
                           "dateOfCompletionOfPhD",
                           "received",
-                          newValue,
+                          newValue
                         )
                       }
                       validate={(input) => true}
@@ -773,31 +771,29 @@ const Conformation = () => {
           </UnorderedList>
         </FileContainer>
         <SaveNextButtonContainer className="mt-3">
-         {
-          !isSummaryPath && (
+          {!isSummaryPath && (
             <SaveNextButton
-            className="btn btn-primary"
-            type="submit"
-            onClick={submitConformation3}
-            disabled={disabled}
-          >
-            {disabled ? (
-              <Oval
-                visible={true}
-                height="25"
-                width="25"
-                color="#ffffff"
-                ariaLabel="oval-loading"
-                wrapperStyle={{}}
-                wrapperClass=""
-                className="text-center"
-              />
-            ) : (
-              "Save & Next"
-            )}
-          </SaveNextButton>
-          )
-         }
+              className="btn btn-primary"
+              type="submit"
+              onClick={submitConformation3}
+              disabled={disabled}
+            >
+              {disabled ? (
+                <Oval
+                  visible={true}
+                  height="25"
+                  width="25"
+                  color="#ffffff"
+                  ariaLabel="oval-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  className="text-center"
+                />
+              ) : (
+                "Save & Next"
+              )}
+            </SaveNextButton>
+          )}
         </SaveNextButtonContainer>
       </>
     );
@@ -1023,36 +1019,32 @@ const Conformation = () => {
               width: "100%",
             }}
           >
-           {
-            !isSummaryPath && (
+            {!isSummaryPath && (
               <p style={{ marginRight: "10px", marginTop: "10px" }}>
-              Navigate to
-            </p>
-            )
-           }
-            {
-              !isSummaryPath && (
-                <select
-              style={{
-                border: "1px solid #000",
-                borderRadius: "5px",
-                padding: "5px",
-              }}
-              onChange={handleSelectChange}
-            >
-              <option>AcademicWork I</option>
-              <option>AcademicWork II</option>
-              <option selected>R&D Conformation</option>
-              <option>R&D Part A</option>
-              <option>R&D Part B</option>
-              <option>R&D Part C</option>
-              <option>R&D Part D</option>
-              <option>Contribution To University School</option>
-              <option>Contribution To Department</option>
-              <option>Contribution To Society</option>
-            </select>
-              )
-            }
+                Navigate to
+              </p>
+            )}
+            {!isSummaryPath && (
+              <select
+                style={{
+                  border: "1px solid #000",
+                  borderRadius: "5px",
+                  padding: "5px",
+                }}
+                onChange={handleSelectChange}
+              >
+                <option>AcademicWork I</option>
+                <option>AcademicWork II</option>
+                <option selected>R&D Conformation</option>
+                <option>R&D Part A</option>
+                <option>R&D Part B</option>
+                <option>R&D Part C</option>
+                <option>R&D Part D</option>
+                <option>Contribution To University School</option>
+                <option>Contribution To Department</option>
+                <option>Contribution To Society</option>
+              </select>
+            )}
           </div>
         </div>
         {renderConformationPage()}

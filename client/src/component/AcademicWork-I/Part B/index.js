@@ -89,7 +89,7 @@ const formats = [
   "clean",
 ];
 
-const AcademicWorkII = () => {
+const AcademicWorkII = (props) => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [editorContent, setEditorContent] = useState("");
   const [files, setFiles] = useState([]);
@@ -102,65 +102,76 @@ const AcademicWorkII = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
-  const isSummaryPath = location.pathname.startsWith('/summary');
+  const isSummaryPath =
+    location.pathname.startsWith("/summary") ||
+    location.pathname.startsWith("/review");
+  const isReview = location.pathname.startsWith("/review");
 
   const role = Cookies.get("role");
 
   useEffect(() => {
-    let id;
-    async function fetchData() {
-      if(!navigator.onLine){
-        await toast.error("You are offline. Please connect to the internet and try again.", {
-          position: "bottom-center",
-          autoClose: 6969,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-        });
-        return;
-      }
-      try {
-        const formId = await searchParams.get("f_id");
-        id = formId;
-        await setFormId(id);
-      } catch (error) {
-        console.error(error);
-        navigate("/home");
-      }
-      try {
-        setApiStatus(apiStatusConstants.inProgress);
-        const userId = Cookies.get("user_id");
-        const response = await fetch(
-          `http://localhost:6969/academic-work-2/data/${userId}/?formId=${id}`,
-        );
-        if (response.ok) {
-          const data = await response.json();
-          if (data.academicWork) {
-            setEditorContent(data.academicWork.editorContent || "");
-            setFiles(data.academicWork.files || []);
-            setApiStatus(apiStatusConstants.success);
+    if (!isReview) {
+      let id;
+      async function fetchData() {
+        // if(!navigator.onLine){
+        //   await toast.error("You are offline. Please connect to the internet and try again.", {
+        //     position: "bottom-center",
+        //     autoClose: 6969,
+        //     hideProgressBar: true,
+        //     closeOnClick: true,
+        //     pauseOnHover: false,
+        //     draggable: true,
+        //   });
+        //   return;
+        // }
+        try {
+          const formId = await searchParams.get("f_id");
+          id = formId;
+          await setFormId(id);
+        } catch (error) {
+          console.error(error);
+          navigate("/home");
+        }
+        try {
+          setApiStatus(apiStatusConstants.inProgress);
+          const userId = Cookies.get("user_id");
+          const response = await fetch(
+            `http://localhost:6969/academic-work-2/data/${userId}/?formId=${id}`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data.academicWork) {
+              setEditorContent(data.academicWork.editorContent || "");
+              setFiles(data.academicWork.files || []);
+              setApiStatus(apiStatusConstants.success);
+            } else {
+              setEditorContent("");
+              setFiles([]);
+              setApiStatus(apiStatusConstants.success);
+            }
           } else {
-            setEditorContent("");
-            setFiles([]);
-            setApiStatus(apiStatusConstants.success);
+            setApiStatus(apiStatusConstants.failure);
           }
-        } else {
+        } catch (error) {
+          console.error(error);
           setApiStatus(apiStatusConstants.failure);
         }
-      } catch (error) {
-        console.error(error);
-        setApiStatus(apiStatusConstants.failure);
       }
+      fetchData();
+    } else {
+      setApiStatus(apiStatusConstants.inProgress);
+      const { editorContent, files } = props.data;
+      setEditorContent(editorContent);
+      setFiles(files);
+      setApiStatus(apiStatusConstants.success);
     }
-    fetchData();
   }, []);
 
   const onDrop = useCallback((acceptedFiles) => {
     setFiles((prevFiles) => [
       ...prevFiles,
       ...acceptedFiles.map((file) =>
-        Object.assign(file, { preview: URL.createObjectURL(file) }),
+        Object.assign(file, { preview: URL.createObjectURL(file) })
       ),
     ]);
   }, []);
@@ -173,24 +184,23 @@ const AcademicWorkII = () => {
   });
 
   const submitAcademicForm2 = async (event) => {
-
-    if(!navigator.onLine){
-      await toast.error("You are offline. Please connect to the internet and try again.", {
-        position: "bottom-center",
-        autoClose: 6969,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-      });
-      return;
-    }
+    // if(!navigator.onLine){
+    //   await toast.error("You are offline. Please connect to the internet and try again.", {
+    //     position: "bottom-center",
+    //     autoClose: 6969,
+    //     hideProgressBar: true,
+    //     closeOnClick: true,
+    //     pauseOnHover: false,
+    //     draggable: true,
+    //   });
+    //   return;
+    // }
 
     event.preventDefault();
     setOnClick(true);
     setDisabled(true);
 
-    if(editorContent===''){
+    if (editorContent === "") {
       await toast.error("Please fill the text area", {
         position: "bottom-center",
         autoClose: 6969,
@@ -255,24 +265,23 @@ const AcademicWorkII = () => {
   };
 
   const handleOpenInNewTab = async (file) => {
+    // if(!navigator.onLine){
+    //   await toast.error("You are offline. Please connect to the internet and try again.", {
+    //     position: "bottom-center",
+    //     autoClose: 6969,
+    //     hideProgressBar: true,
+    //     closeOnClick: true,
+    //     pauseOnHover: false,
+    //     draggable: true,
+    //   });
+    //   return;
+    // }
 
-    if(!navigator.onLine){
-      await toast.error("You are offline. Please connect to the internet and try again.", {
-        position: "bottom-center",
-        autoClose: 6969,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-      });
-      return;
-    }
-
-    setApiStatus(apiStatusConstants.inProgress)
+    setApiStatus(apiStatusConstants.inProgress);
     if (file.fileId) {
       try {
         const response = await fetch(
-          `http://localhost:6969/files/${file.fileId}`,
+          `http://localhost:6969/files/${file.fileId}`
         );
         if (response.ok) {
           const blob = await response.blob();
@@ -291,7 +300,7 @@ const AcademicWorkII = () => {
               draggable: true,
               progress: undefined,
               theme: "colored",
-            },
+            }
           );
         }
       } catch (error) {
@@ -307,15 +316,15 @@ const AcademicWorkII = () => {
             draggable: true,
             progress: undefined,
             theme: "colored",
-          },
+          }
         );
       } finally {
-        setApiStatus(apiStatusConstants.success)
+        setApiStatus(apiStatusConstants.success);
       }
     } else {
       const url = file.preview;
       window.open(url, "_blank");
-      setApiStatus(apiStatusConstants.success)
+      setApiStatus(apiStatusConstants.success);
       toast.error(
         "An error occurred while opening the file. Please try again.",
         {
@@ -327,7 +336,7 @@ const AcademicWorkII = () => {
           draggable: true,
           progress: undefined,
           theme: "colored",
-        },
+        }
       );
     }
   };
@@ -353,7 +362,6 @@ const AcademicWorkII = () => {
       </LoaderContainer>
     );
   };
-
 
   const renderSuccessView = () => {
     return (
@@ -384,28 +392,33 @@ const AcademicWorkII = () => {
             modules={role === "HOD" ? { toolbar: false } : modules}
             readOnly={role === "HOD"}
             formats={formats}
+            style={{ width: "100%" }}
           />
         </TextEditorContainer>
         <FileContainer className="mt-4">
-          <SubSectionHeading>
-            Submit the documentary evidences below
-          </SubSectionHeading>
-          <StyledDropzone {...getRootProps({ isDragActive })}>
-            <InputFile {...getInputProps()} />
-            {isDragActive ? (
-              <>
-                <Paragraph>Drop the files here...</Paragraph>
-                <Paragraph>(Max File size is 50mb)</Paragraph>
-              </>
-            ) : (
-              <>
-                <Paragraph>
-                  Drag or drop some files here, or click to select files
-                </Paragraph>
-                <Paragraph>(Max File size is 50mb)</Paragraph>
-              </>
-            )}
-          </StyledDropzone>
+          {!isSummaryPath && (
+            <>
+              <SubSectionHeading>
+                Submit the documentary evidences below
+              </SubSectionHeading>
+              <StyledDropzone {...getRootProps({ isDragActive })}>
+                <InputFile {...getInputProps()} />
+                {isDragActive ? (
+                  <>
+                    <Paragraph>Drop the files here...</Paragraph>
+                    <Paragraph>(Max File size is 50mb)</Paragraph>
+                  </>
+                ) : (
+                  <>
+                    <Paragraph>
+                      Drag or drop some files here, or click to select files
+                    </Paragraph>
+                    <Paragraph>(Max File size is 50mb)</Paragraph>
+                  </>
+                )}
+              </StyledDropzone>
+            </>
+          )}
           <UnorderedList className="mt-3">
             {files.map((file, index) => (
               <ListItems key={index}>
@@ -419,43 +432,40 @@ const AcademicWorkII = () => {
             ))}
           </UnorderedList>
         </FileContainer>
-        {
-          !isSummaryPath && (
-
-            <SaveNextButtonContainer className="mt-3">
-          <SaveNextButton
-            className="btn btn-primary text-center"
-            type="submit"
-            onClick={submitAcademicForm2}
-            display={onClick}
-            disabled={disabled}
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              backgroundImage:
-                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-              color: "#fff",
-              border: "none",
-            }}
-          >
-            {disabled ? (
-              <Oval
-                visible={true}
-                height="25"
-                width="25"
-                color="#ffffff"
-                ariaLabel="oval-loading"
-                wrapperStyle={{}}
-                wrapperClass=""
-                className="text-center"
-              />
-            ) : (
-              "Save & Next"
-            )}
-          </SaveNextButton>
-        </SaveNextButtonContainer>
-          )
-        }
+        {!isSummaryPath && (
+          <SaveNextButtonContainer className="mt-3">
+            <SaveNextButton
+              className="btn btn-primary text-center"
+              type="submit"
+              onClick={submitAcademicForm2}
+              display={onClick}
+              disabled={disabled}
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
+            >
+              {disabled ? (
+                <Oval
+                  visible={true}
+                  height="25"
+                  width="25"
+                  color="#ffffff"
+                  ariaLabel="oval-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  className="text-center"
+                />
+              ) : (
+                "Save & Next"
+              )}
+            </SaveNextButton>
+          </SaveNextButtonContainer>
+        )}
       </>
     );
   };
@@ -538,7 +548,7 @@ const AcademicWorkII = () => {
             marginBottom: "18px",
           }}
         >
-          <Back />
+          {!isSummaryPath && <Back />}
           <div
             style={{
               display: "flex",
@@ -548,30 +558,27 @@ const AcademicWorkII = () => {
               width: "100%",
             }}
           >
-            
-            {
-              !isSummaryPath && (
-                <select
-              style={{
-                border: "1px solid #000",
-                borderRadius: "5px",
-                padding: "5px",
-              }}
-              onChange={handleSelectChange}
-            >
-              <option>AcademicWork I</option>
-              <option selected>AcademicWork II</option>
-              <option>R&D Conformation</option>
-              <option>R&D Part A</option>
-              <option>R&D Part B</option>
-              <option>R&D Part C</option>
-              <option>R&D Part D</option>
-              <option>Contribution To University School</option>
-              <option>Contribution To Department</option>
-              <option>Contribution To Society</option>
-            </select>
-              )
-            }
+            {!isSummaryPath && (
+              <select
+                style={{
+                  border: "1px solid #000",
+                  borderRadius: "5px",
+                  padding: "5px",
+                }}
+                onChange={handleSelectChange}
+              >
+                <option>AcademicWork I</option>
+                <option selected>AcademicWork II</option>
+                <option>R&D Conformation</option>
+                <option>R&D Part A</option>
+                <option>R&D Part B</option>
+                <option>R&D Part C</option>
+                <option>R&D Part D</option>
+                <option>Contribution To University School</option>
+                <option>Contribution To Department</option>
+                <option>Contribution To Society</option>
+              </select>
+            )}
           </div>
         </div>
         {renderAcademicWorkPartBPage()}

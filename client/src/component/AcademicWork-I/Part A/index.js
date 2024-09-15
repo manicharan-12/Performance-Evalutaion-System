@@ -38,7 +38,7 @@ const apiStatusConstants = {
   failure: "FAILURE",
 };
 
-const AcademicWorkI = () => {
+const AcademicWorkI = (props) => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [tableData, setTableData] = useState([
     {
@@ -79,8 +79,10 @@ const AcademicWorkI = () => {
   const [disabled, setDisabled] = useState(false);
   const [formId, setFormId] = useState("");
   const location = useLocation();
-  const isSummaryPath = location.pathname.startsWith('/summary');
-  
+  const isSummaryPath =
+    location.pathname.startsWith("/summary") ||
+    location.pathname.startsWith("/review");
+  const isReview = location.pathname.startsWith("/review");
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -112,7 +114,7 @@ const AcademicWorkI = () => {
   const handleDeleteSemester = (semesterIndex) => {
     if (tableData.length > 1) {
       const newTableData = tableData.filter(
-        (_, index) => index !== semesterIndex,
+        (_, index) => index !== semesterIndex
       );
       setTableData(newTableData);
     } else {
@@ -175,18 +177,18 @@ const AcademicWorkI = () => {
   const handleEditCourse = (semesterIndex, courseIndex, updatedCourse) => {
     if (updatedCourse.passPercentage !== "") {
       updatedCourse.passPercentage = Math.round(
-        parseFloat(updatedCourse.passPercentage),
+        parseFloat(updatedCourse.passPercentage)
       );
       updatedCourse.apiScoreResults = calculateApiScore(
-        updatedCourse.passPercentage,
+        updatedCourse.passPercentage
       );
     }
     if (updatedCourse.studentFeedbackPercentage !== "") {
       updatedCourse.studentFeedbackPercentage = Math.round(
-        parseFloat(updatedCourse.studentFeedbackPercentage),
+        parseFloat(updatedCourse.studentFeedbackPercentage)
       );
       updatedCourse.studentFeedbackScore = calculateApiScore(
-        updatedCourse.studentFeedbackPercentage,
+        updatedCourse.studentFeedbackPercentage
       );
     }
 
@@ -211,7 +213,7 @@ const AcademicWorkI = () => {
     const totalPassPercentage = allCourses.reduce(
       (acc, course) =>
         acc + (course.passPercentage ? parseFloat(course.passPercentage) : 0),
-      0,
+      0
     );
     const totalFeedbackPercentage = allCourses.reduce(
       (acc, course) =>
@@ -219,14 +221,14 @@ const AcademicWorkI = () => {
         (course.studentFeedbackPercentage
           ? parseFloat(course.studentFeedbackPercentage)
           : 0),
-      0,
+      0
     );
 
     const averagePassPercentage = parseFloat(
-      (totalPassPercentage / allCourses.length).toPrecision(4),
+      (totalPassPercentage / allCourses.length).toPrecision(4)
     );
     const averageFeedbackPercentage = parseFloat(
-      (totalFeedbackPercentage / allCourses.length).toPrecision(4),
+      (totalFeedbackPercentage / allCourses.length).toPrecision(4)
     );
     const totalApiScore =
       calculateApiScore(averagePassPercentage) +
@@ -253,18 +255,17 @@ const AcademicWorkI = () => {
   };
 
   const submitAcademicForm1 = async (event) => {
-
-    if(!navigator.onLine){
-      await toast.error("You are offline. Please connect to the internet and try again.", {
-        position: "bottom-center",
-        autoClose: 6969,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-      });
-      return;
-    }
+    // if(!navigator.onLine){
+    //   await toast.error("You are offline. Please connect to the internet and try again.", {
+    //     position: "bottom-center",
+    //     autoClose: 6969,
+    //     hideProgressBar: true,
+    //     closeOnClick: true,
+    //     pauseOnHover: false,
+    //     draggable: true,
+    //   });
+    //   return;
+    // }
 
     try {
       event.preventDefault();
@@ -344,59 +345,77 @@ const AcademicWorkI = () => {
   useEffect(() => {
     recalculateAveragesAndTotalApiScore();
   }, [tableData, recalculateAveragesAndTotalApiScore]);
+
   useEffect(() => {
-    let id;
-    async function fetchData() {
-      if(!navigator.onLine){
-        await toast.error("You are offline. Please connect to the internet and try again.", {
-          position: "bottom-center",
-          autoClose: 6969,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-        });
-        return;
-      }
-      try {
-        const formId = searchParams.get("f_id");
-        id = formId;
-        await setFormId(id);
-      } catch (error) {
-        console.error(error);
-        navigate("/home");
-      }
-      try {
-        setApiStatus(apiStatusConstants.inProgress);
-        setDisabled(true);
-        const userId = Cookies.get("user_id");
-        const api = "http://localhost:6969";
-        const response = await fetch(
-          `${api}/academic-work-1/data/${userId}/?formId=${id}`,
-        );
-        if (response.ok === true) {
-          const data = await response.json();
-          if (data === null) {
-            setApiStatus(apiStatusConstants.success);
-            setDisabled(false);
+    if (!isReview) {
+      let id;
+      async function fetchData() {
+        // if(!navigator.onLine){
+        //   await toast.error("You are offline. Please connect to the internet and try again.", {
+        //     position: "bottom-center",
+        //     autoClose: 6969,
+        //     hideProgressBar: true,
+        //     closeOnClick: true,
+        //     pauseOnHover: false,
+        //     draggable: true,
+        //   });
+        //   return;
+        // }
+        try {
+          const formId = searchParams.get("f_id");
+          id = formId;
+          await setFormId(id);
+        } catch (error) {
+          console.error(error);
+          navigate("/home");
+        }
+        try {
+          setApiStatus(apiStatusConstants.inProgress);
+          setDisabled(true);
+          const userId = Cookies.get("user_id");
+          const api = "http://localhost:6969";
+          const response = await fetch(
+            `${api}/academic-work-1/data/${userId}/?formId=${id}`
+          );
+          if (response.ok === true) {
+            const data = await response.json();
+            if (data === null) {
+              setApiStatus(apiStatusConstants.success);
+              setDisabled(false);
+            } else {
+              setTableData(data.academic_work_part_a || tableData);
+              setYear(data.academic_year);
+              setAverageFeedbackPercentage(data.averageFeedbackPercentage);
+              setAverageResultPercentage(data.averageResultPercentage);
+              setTotalApiScore(data.totalApiScore);
+              setDisabled(false);
+              setApiStatus(apiStatusConstants.success);
+            }
           } else {
-            setTableData(data.academic_work_part_a || tableData);
-            setYear(data.academic_year);
-            setAverageFeedbackPercentage(data.averageFeedbackPercentage);
-            setAverageResultPercentage(data.averageResultPercentage);
-            setTotalApiScore(data.totalApiScore);
-            setDisabled(false);
-            setApiStatus(apiStatusConstants.success);
+            setApiStatus(apiStatusConstants.failure);
           }
-        } else {
+        } catch (error) {
+          console.error(error);
           setApiStatus(apiStatusConstants.failure);
         }
-      } catch (error) {
-        console.error(error);
-        setApiStatus(apiStatusConstants.failure);
       }
+      fetchData();
+    } else {
+      setApiStatus(apiStatusConstants.inProgress);
+      const {
+        academic_work_part_a,
+        academic_year,
+        averageFeedbackPercentage,
+        averageResultPercentage,
+        totalApiScore,
+      } = props.data;
+      setTableData(academic_work_part_a);
+      setYear(academic_year);
+      setAverageFeedbackPercentage(averageFeedbackPercentage);
+      setAverageResultPercentage(averageResultPercentage);
+      setTotalApiScore(totalApiScore);
+      setApiStatus(apiStatusConstants.success);
     }
-    fetchData();
   }, []);
 
   const renderLoadingView = () => {
@@ -426,18 +445,22 @@ const AcademicWorkI = () => {
         <SubSectionHeadingContainer>
           <SubSectionHeading className="mt-4 flex-start">
             a. Teaching Performance indicator for{" "}
-            <InputElement
-              style={{
-                borderTop: "none",
-                borderLeft: "none",
-                borderRight: "none",
-                borderBottom: "-3px",
-                width: "10%",
-              }}
-              value={year}
-              placeholder="Year"
-              onChange={handleYearChange}
-            />
+            {!isSummaryPath ? (
+              <InputElement
+                style={{
+                  borderTop: "none",
+                  borderLeft: "none",
+                  borderRight: "none",
+                  borderBottom: "-3px",
+                  width: "10%",
+                }}
+                value={year}
+                placeholder="Year"
+                onChange={handleYearChange}
+              />
+            ) : (
+              year
+            )}
           </SubSectionHeading>
         </SubSectionHeadingContainer>
         <TableContainer className="mt-5">
@@ -453,9 +476,7 @@ const AcademicWorkI = () => {
                 <TableHead>API Score-Results (Max. 20) (A)</TableHead>
                 <TableHead>Student Feedback %</TableHead>
                 <TableHead>API Score-Feedback (Max. 20) (B)</TableHead>
-                {!isSummaryPath && (
-                  <TableHead>Actions</TableHead>
-                )}
+                {!isSummaryPath && <TableHead>Actions</TableHead>}
               </TableRow>
             </TableMainHead>
             <TableBody>
@@ -606,9 +627,7 @@ const AcademicWorkI = () => {
                 <TableData></TableData>
                 <TableData>{averageFeedbackPercentage}</TableData>
                 <TableData></TableData>
-                {!isSummaryPath && (
-        <TableData></TableData>
-      )}
+                {!isSummaryPath && <TableData></TableData>}
               </TableRow>
               <TableRow>
                 <TableHead colSpan="5">
@@ -618,24 +637,22 @@ const AcademicWorkI = () => {
               </TableRow>
             </TableBody>
           </Table>
-          {
-            !isSummaryPath && (
-              <SaveNextButton
-            onClick={handleAddSemester}
-            className="mt-3"
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              backgroundImage:
-                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-              color: "#fff",
-              border: "none",
-            }}
-          >
-            Add Semester
-          </SaveNextButton>
-            )
-          }
+          {!isSummaryPath && (
+            <SaveNextButton
+              onClick={handleAddSemester}
+              className="mt-3"
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
+            >
+              Add Semester
+            </SaveNextButton>
+          )}
           {tableData.length > 1 && !isSummaryPath && (
             <SaveNextButton
               onClick={() => handleDeleteSemester(tableData.length - 1)}
@@ -691,39 +708,39 @@ const AcademicWorkI = () => {
             </TableBody>
           </Table>
         </TableContainer>
-       {!isSummaryPath && (
-         <SaveNextButtonContainer className="mt-3">
-         <SaveNextButton
-           className="btn btn-primary"
-           type="submit"
-           onClick={submitAcademicForm1}
-           disabled={disabled}
-           style={{
-             padding: "12px",
-             borderRadius: "8px",
-             backgroundImage:
-               "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-             color: "#fff",
-             border: "none",
-           }}
-         >
-           {disabled ? (
-             <Oval
-               visible={true}
-               height="25"
-               width="25"
-               color="#ffffff"
-               ariaLabel="oval-loading"
-               wrapperStyle={{}}
-               wrapperClass=""
-               className="text-center"
-             />
-           ) : (
-             "Save & Next"
-           )}
-         </SaveNextButton>
-       </SaveNextButtonContainer>
-       )}
+        {!isSummaryPath && (
+          <SaveNextButtonContainer className="mt-3">
+            <SaveNextButton
+              className="btn btn-primary"
+              type="submit"
+              onClick={submitAcademicForm1}
+              disabled={disabled}
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
+            >
+              {disabled ? (
+                <Oval
+                  visible={true}
+                  height="25"
+                  width="25"
+                  color="#ffffff"
+                  ariaLabel="oval-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  className="text-center"
+                />
+              ) : (
+                "Save & Next"
+              )}
+            </SaveNextButton>
+          </SaveNextButtonContainer>
+        )}
       </>
     );
   };
@@ -796,7 +813,7 @@ const AcademicWorkI = () => {
           draggable: true,
           progress: undefined,
           theme: "colored",
-        },
+        }
       );
       return;
     }
@@ -849,7 +866,8 @@ const AcademicWorkI = () => {
             marginBottom: "18px",
           }}
         >
-          <Back />
+          {!isSummaryPath && <Back />}
+
           <div
             style={{
               display: "flex",
@@ -859,36 +877,32 @@ const AcademicWorkI = () => {
               width: "100%",
             }}
           >
-            {
-              !isSummaryPath && (
-                <p style={{ marginRight: "10px", marginTop: "10px" }}>
-              Navigate to
-            </p>
-              )
-            }
-            {
-              !isSummaryPath && (
-                <select
-              style={{
-                border: "1px solid #000",
-                borderRadius: "5px",
-                padding: "5px",
-              }}
-              onChange={handleSelectChange}
-            >
-              <option selected>AcademicWork I</option>
-              <option>AcademicWork II</option>
-              <option>R&D Conformation</option>
-              <option>R&D Part A</option>
-              <option>R&D Part B</option>
-              <option>R&D Part C</option>
-              <option>R&D Part D</option>
-              <option>Contribution To University School</option>
-              <option>Contribution To Department</option>
-              <option>Contribution To Society</option>
-            </select>
-              )
-            }
+            {!isSummaryPath && (
+              <p style={{ marginRight: "10px", marginTop: "10px" }}>
+                Navigate to
+              </p>
+            )}
+            {!isSummaryPath && (
+              <select
+                style={{
+                  border: "1px solid #000",
+                  borderRadius: "5px",
+                  padding: "5px",
+                }}
+                onChange={handleSelectChange}
+              >
+                <option selected>AcademicWork I</option>
+                <option>AcademicWork II</option>
+                <option>R&D Conformation</option>
+                <option>R&D Part A</option>
+                <option>R&D Part B</option>
+                <option>R&D Part C</option>
+                <option>R&D Part D</option>
+                <option>Contribution To University School</option>
+                <option>Contribution To Department</option>
+                <option>Contribution To Society</option>
+              </select>
+            )}
           </div>
         </div>
 
@@ -899,6 +913,3 @@ const AcademicWorkI = () => {
 };
 
 export default AcademicWorkI;
-
-
-

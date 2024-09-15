@@ -62,6 +62,7 @@ export const TextEditorContainer = styled.div`
   font-size: calc(10px + 2vmin);
   margin-bottom: 5vh;
   text-align: center;
+  width: 100%;
 `;
 
 export const InputFile = styled.input``;

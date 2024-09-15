@@ -73,17 +73,17 @@ const RDPartA = () => {
   useEffect(() => {
     let id;
     const fetchYear = async () => {
-      if(!navigator.onLine){
-        await toast.error("You are offline. Please connect to the internet and try again.", {
-          position: "bottom-center",
-          autoClose: 6969,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-        });
-        return;
-      }
+      // if(!navigator.onLine){
+    //   await toast.error("You are offline. Please connect to the internet and try again.", {
+    //     position: "bottom-center",
+    //     autoClose: 6969,
+    //     hideProgressBar: true,
+    //     closeOnClick: true,
+    //     pauseOnHover: false,
+    //     draggable: true,
+    //   });
+    //   return;
+    // }
       try {
         const formId = await searchParams.get("f_id");
         id = formId;
@@ -130,17 +130,17 @@ const RDPartA = () => {
   });
 
   const handleOpenInNewTab = async (file) => {
-    if(!navigator.onLine){
-      await toast.error("You are offline. Please connect to the internet and try again.", {
-        position: "bottom-center",
-        autoClose: 6969,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-      });
-      return;
-    }
+    // if(!navigator.onLine){
+    //   await toast.error("You are offline. Please connect to the internet and try again.", {
+    //     position: "bottom-center",
+    //     autoClose: 6969,
+    //     hideProgressBar: true,
+    //     closeOnClick: true,
+    //     pauseOnHover: false,
+    //     draggable: true,
+    //   });
+    //   return;
+    // }
     if (file.fileId) {
       try {
         const response = await fetch(
@@ -230,17 +230,17 @@ const RDPartA = () => {
 
   const submitRDPartA = async () => {
 
-    if(!navigator.onLine){
-      await toast.error("You are offline. Please connect to the internet and try again.", {
-        position: "bottom-center",
-        autoClose: 6969,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-      });
-      return;
-    }
+    // if(!navigator.onLine){
+    //   await toast.error("You are offline. Please connect to the internet and try again.", {
+    //     position: "bottom-center",
+    //     autoClose: 6969,
+    //     hideProgressBar: true,
+    //     closeOnClick: true,
+    //     pauseOnHover: false,
+    //     draggable: true,
+    //   });
+    //   return;
+    // }
 
     try {
       const formData = new FormData();

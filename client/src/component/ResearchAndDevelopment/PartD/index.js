@@ -44,9 +44,8 @@ const apiStatusConstants = {
   failure: "FAILURE",
 };
 
-const RDPartD = () => {
+const RDPartD = (props) => {
   const location = useLocation();
-  const isSummaryPath = location.pathname.startsWith('/summary');
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [files, setFiles] = useState([]);
   const [deletedFiles, setDeletedFiles] = useState([]);
@@ -60,57 +59,71 @@ const RDPartD = () => {
   ]);
   const [formId, setFormId] = useState("");
   const [disabled, setDisabled] = useState(false);
+  const isSummaryPath =
+    location.pathname.startsWith("/summary") ||
+    location.pathname.startsWith("/review");
+  const isReview = location.pathname.startsWith("/review");
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    let id;
-    async function fetchYear() {
-      if(!navigator.onLine){
-        await toast.error("You are offline. Please connect to the internet and try again.", {
-          position: "bottom-center",
-          autoClose: 6969,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-        });
-        return;
-      }
-      try {
-        const formId = await searchParams.get("f_id");
-        id = formId;
-        await setFormId(id);
-      } catch (error) {
-        console.error(error);
-        navigate("/home");
-      }
-      try {
-        setApiStatus(apiStatusConstants.inProgress);
-        const userId = Cookies.get("user_id");
-        const api = "http://localhost:6969";
-        const response = await fetch(`${api}/RD/PartD/${userId}/?formId=${id}`);
-        const data = await response.json();
-        if (data.phdPartD.certificates_data !== null) {
-          const certificates_data = data.phdPartD.certificates_data;
-          const transformedData = certificates_data.map((item) => ({
-            nameOfTheCertificate: item.nameOfTheCertificate,
-            organization: item.organization,
-            score: item.score,
-            apiScore: item.apiScore,
-          }));
-          setTableData(transformedData);
-          setFiles(data.phdPartD.files || []);
+    if (!isReview) {
+      let id;
+      async function fetchYear() {
+        // if(!navigator.onLine){
+        //   await toast.error("You are offline. Please connect to the internet and try again.", {
+        //     position: "bottom-center",
+        //     autoClose: 6969,
+        //     hideProgressBar: true,
+        //     closeOnClick: true,
+        //     pauseOnHover: false,
+        //     draggable: true,
+        //   });
+        //   return;
+        // }
+        try {
+          const formId = await searchParams.get("f_id");
+          id = formId;
+          await setFormId(id);
+        } catch (error) {
+          console.error(error);
+          navigate("/home");
         }
-        setDisabled(false);
-        setApiStatus(apiStatusConstants.success);
-      } catch (error) {
-        console.log(error);
-        setApiStatus(apiStatusConstants.failure);
+        try {
+          setApiStatus(apiStatusConstants.inProgress);
+          const userId = Cookies.get("user_id");
+          const api = "http://localhost:6969";
+          const response = await fetch(
+            `${api}/RD/PartD/${userId}/?formId=${id}`
+          );
+          const data = await response.json();
+          if (data.phdPartD.certificates_data !== null) {
+            const certificates_data = data.phdPartD.certificates_data;
+            const transformedData = certificates_data.map((item) => ({
+              nameOfTheCertificate: item.nameOfTheCertificate,
+              organization: item.organization,
+              score: item.score,
+              apiScore: item.apiScore,
+            }));
+            setTableData(transformedData);
+            setFiles(data.phdPartD.files || []);
+          }
+          setDisabled(false);
+          setApiStatus(apiStatusConstants.success);
+        } catch (error) {
+          console.log(error);
+          setApiStatus(apiStatusConstants.failure);
+        }
       }
+      fetchYear();
+    } else {
+      setApiStatus(apiStatusConstants.inProgress);
+      const { certificates_data, files } = props.data;
+      setTableData(certificates_data);
+      setFiles(files);
+      setApiStatus(apiStatusConstants.success);
     }
-    fetchYear();
   }, []);
 
   const handleEditCertificate = (certificateIndex, updatedCertificate) => {
@@ -151,7 +164,7 @@ const RDPartD = () => {
     setFiles((prevFiles) => [
       ...prevFiles,
       ...acceptedFiles.map((file) =>
-        Object.assign(file, { preview: URL.createObjectURL(file) }),
+        Object.assign(file, { preview: URL.createObjectURL(file) })
       ),
     ]);
   }, []);
@@ -163,21 +176,21 @@ const RDPartD = () => {
   });
 
   const handleOpenInNewTab = async (file) => {
-    if(!navigator.onLine){
-      await toast.error("You are offline. Please connect to the internet and try again.", {
-        position: "bottom-center",
-        autoClose: 6969,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-      });
-      return;
-    }
+    // if(!navigator.onLine){
+    //   await toast.error("You are offline. Please connect to the internet and try again.", {
+    //     position: "bottom-center",
+    //     autoClose: 6969,
+    //     hideProgressBar: true,
+    //     closeOnClick: true,
+    //     pauseOnHover: false,
+    //     draggable: true,
+    //   });
+    //   return;
+    // }
     if (file.fileId) {
       try {
         const response = await fetch(
-          `http://localhost:6969/files/${file.fileId}`,
+          `http://localhost:6969/files/${file.fileId}`
         );
         if (response.ok) {
           const blob = await response.blob();
@@ -196,7 +209,7 @@ const RDPartD = () => {
               draggable: true,
               progress: undefined,
               theme: "colored",
-            },
+            }
           );
         }
       } catch (error) {
@@ -212,7 +225,7 @@ const RDPartD = () => {
             draggable: true,
             progress: undefined,
             theme: "colored",
-          },
+          }
         );
       }
     } else {
@@ -227,22 +240,22 @@ const RDPartD = () => {
   };
 
   const submitRDPartD = async () => {
-    if(!navigator.onLine){
-      await toast.error("You are offline. Please connect to the internet and try again.", {
-        position: "bottom-center",
-        autoClose: 6969,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-      });
-      return;
-    }
+    // if(!navigator.onLine){
+    //   await toast.error("You are offline. Please connect to the internet and try again.", {
+    //     position: "bottom-center",
+    //     autoClose: 6969,
+    //     hideProgressBar: true,
+    //     closeOnClick: true,
+    //     pauseOnHover: false,
+    //     draggable: true,
+    //   });
+    //   return;
+    // }
     const allFieldsFilled = tableData.every(
       (article) =>
         article.nameOfTheCertificate.trim() !== "" &&
         article.organization.trim() !== "" &&
-        article.score.trim() !== "",
+        article.score.trim() !== ""
     );
 
     if (!allFieldsFilled) {
@@ -381,24 +394,22 @@ const RDPartD = () => {
             ))}
           </TableBody>
         </Table>
-        {
-          !isSummaryPath && (
-            <SaveNextButton
-          onClick={handleAddCertificate}
-          className="mt-3 mr-3"
-          style={{
-            padding: "12px",
-            borderRadius: "8px",
-            backgroundImage:
-              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-            color: "#fff",
-            border: "none",
-          }}
-        >
-          Add Certificate
-        </SaveNextButton>
-          )
-        }
+        {!isSummaryPath && (
+          <SaveNextButton
+            onClick={handleAddCertificate}
+            className="mt-3 mr-3"
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            Add Certificate
+          </SaveNextButton>
+        )}
         {tableData.length > 1 && (
           <SaveNextButton
             onClick={handleDeleteCertificate}
@@ -418,25 +429,30 @@ const RDPartD = () => {
         )}
       </TableContainer>
       <FileContainer className="mt-4">
-        <SubSectionHeading>
-          Submit the documentary evidences below
-        </SubSectionHeading>
-        <StyledDropzone {...getRootProps({ isDragActive })}>
-          <InputFile {...getInputProps()} />
-          {isDragActive ? (
-            <>
-              <Paragraph>Drop the files here...</Paragraph>
-              <Paragraph>(Max File size is 50mb)</Paragraph>
-            </>
-          ) : (
-            <>
-              <Paragraph>
-                Drag or drop some files here, or click to select files
-              </Paragraph>
-              <Paragraph>(Max File size is 50mb)</Paragraph>
-            </>
-          )}
-        </StyledDropzone>
+        {!isSummaryPath && (
+          <>
+            <SubSectionHeading>
+              Submit the documentary evidences below
+            </SubSectionHeading>
+            <StyledDropzone {...getRootProps({ isDragActive })}>
+              <InputFile {...getInputProps()} />
+              {isDragActive ? (
+                <>
+                  <Paragraph>Drop the files here...</Paragraph>
+                  <Paragraph>(Max File size is 50mb)</Paragraph>
+                </>
+              ) : (
+                <>
+                  <Paragraph>
+                    Drag or drop some files here, or click to select files
+                  </Paragraph>
+                  <Paragraph>(Max File size is 50mb)</Paragraph>
+                </>
+              )}
+            </StyledDropzone>
+          </>
+        )}
+
         <UnorderedList className="mt-3">
           {files.map((file, index) => (
             <ListItems key={index}>
@@ -451,37 +467,35 @@ const RDPartD = () => {
         </UnorderedList>
       </FileContainer>
       <SaveNextButtonContainer className="mt-3">
-        {
-          !isSummaryPath && (
-            <SaveNextButton
-          type="submit"
-          onClick={submitRDPartD}
-          style={{
-            padding: "12px",
-            borderRadius: "8px",
-            backgroundImage:
-              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-            color: "#fff",
-            border: "none",
-          }}
-        >
-          {disabled ? (
-            <Oval
-              visible={true}
-              height="25"
-              width="25"
-              color="#ffffff"
-              ariaLabel="oval-loading"
-              wrapperStyle={{}}
-              wrapperClass=""
-              className="text-center"
-            />
-          ) : (
-            "Save & Next"
-          )}
-        </SaveNextButton>
-          )
-        }
+        {!isSummaryPath && (
+          <SaveNextButton
+            type="submit"
+            onClick={submitRDPartD}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            {disabled ? (
+              <Oval
+                visible={true}
+                height="25"
+                width="25"
+                color="#ffffff"
+                ariaLabel="oval-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                className="text-center"
+              />
+            ) : (
+              "Save & Next"
+            )}
+          </SaveNextButton>
+        )}
       </SaveNextButtonContainer>
     </>
   );
@@ -569,36 +583,32 @@ const RDPartD = () => {
               width: "100%",
             }}
           >
-            {
-              !isSummaryPath && (
-                <p style={{ marginRight: "10px", marginTop: "10px" }}>
-              Navigate to
-            </p>
-              )
-            }
-           {
-            !isSummaryPath && (
+            {!isSummaryPath && (
+              <p style={{ marginRight: "10px", marginTop: "10px" }}>
+                Navigate to
+              </p>
+            )}
+            {!isSummaryPath && (
               <select
-              style={{
-                border: "1px solid #000",
-                borderRadius: "5px",
-                padding: "5px",
-              }}
-              onChange={handleSelectChange}
-            >
-              <option>AcademicWork I</option>
-              <option>AcademicWork II</option>
-              <option>R&D Conformation</option>
-              <option>R&D Part A</option>
-              <option>R&D Part B</option>
-              <option>R&D Part C</option>
-              <option selected>R&D Part D</option>
-              <option>Contribution To University School</option>
-              <option>Contribution To Department</option>
-              <option>Contribution To Society</option>
-            </select>
-            )
-           }
+                style={{
+                  border: "1px solid #000",
+                  borderRadius: "5px",
+                  padding: "5px",
+                }}
+                onChange={handleSelectChange}
+              >
+                <option>AcademicWork I</option>
+                <option>AcademicWork II</option>
+                <option>R&D Conformation</option>
+                <option>R&D Part A</option>
+                <option>R&D Part B</option>
+                <option>R&D Part C</option>
+                <option selected>R&D Part D</option>
+                <option>Contribution To University School</option>
+                <option>Contribution To Department</option>
+                <option>Contribution To Society</option>
+              </select>
+            )}
           </div>
         </div>
         {renderRDPartDPage()}
