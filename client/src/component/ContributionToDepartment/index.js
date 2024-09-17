@@ -56,6 +56,7 @@ const ContributionToDepartment = (props) => {
       nameOfTheResponsibility: "",
       contribution: "",
       apiScore: "",
+      hodRemark: "",
     },
   ]);
   const [formId, setFormId] = useState("");
@@ -106,6 +107,7 @@ const ContributionToDepartment = (props) => {
               nameOfTheResponsibility: item.nameOfTheResponsibility,
               contribution: item.contribution,
               apiScore: item.apiScore,
+              hodRemark: item.hodRemark,
             }));
             setTableData(transformedData);
             setFiles(data.contributionToDepartment.files || []);
@@ -148,6 +150,7 @@ const ContributionToDepartment = (props) => {
       nameOfTheResponsibility: "",
       contribution: "",
       apiScore: "",
+      hodRemark: "",
     };
     setTableData([...tableData, newArticle]);
   };
@@ -156,6 +159,14 @@ const ContributionToDepartment = (props) => {
     const articleIndex = tableData.length - 1;
     const newTableData = tableData.filter((_, index) => index !== articleIndex);
     setTableData(newTableData);
+  };
+
+  const calculateTotalApiScore = (data) => {
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.apiScore) || 0),
+      0
+    );
+    return score >= 5 ? 5 : score;
   };
 
   const submitContributionToDepartment = async () => {
@@ -192,9 +203,11 @@ const ContributionToDepartment = (props) => {
       setDisabled(true);
       const userId = Cookies.get("user_id");
       const formData = new FormData();
+      const totalApiScore = calculateTotalApiScore(tableData);
       formData.append("userId", userId);
       formData.append("formId", formId);
       formData.append("tableData", JSON.stringify(tableData));
+      formData.append("totalApiScore", totalApiScore);
       files.forEach((file) => {
         if (!file.fileId) {
           formData.append("files", file);
@@ -350,6 +363,11 @@ const ContributionToDepartment = (props) => {
                 </TableHead>
                 <TableHead>Contribution(s)</TableHead>
                 <TableHead>Score (Max. 5)</TableHead>
+                {isReview && (
+                  <TableHead>
+                    HOD Remark <br /> (Max. 5)
+                  </TableHead>
+                )}
               </TableRow>
             </TableMainHead>
             <TableBody>
@@ -385,6 +403,22 @@ const ContributionToDepartment = (props) => {
                       />
                     </TableData>
                     <TableData>{contribution.apiScore}</TableData>
+                    {isReview && (
+                      <TableData>
+                        <EditableValue
+                          value={contribution.hodRemark || ""}
+                          onValueChange={(newValue) =>
+                            handleEditContribution(contributionIndex, {
+                              ...contribution,
+                              hodRemark: newValue,
+                            })
+                          }
+                          validate={(input) => /^[0-5]+$/.test(input)}
+                          type="text"
+                          disabled={false}
+                        />
+                      </TableData>
+                    )}
                   </TableRow>
                 );
               })}
@@ -575,7 +609,7 @@ const ContributionToDepartment = (props) => {
             marginBottom: "18px",
           }}
         >
-        {!isSummaryPath && <Back/>}
+          {!isSummaryPath && <Back />}
           <div
             style={{
               display: "flex",

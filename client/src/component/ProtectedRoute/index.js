@@ -1,26 +1,33 @@
-// ProtectedRoute.js
-import React from "react";
-import { Outlet, Navigate } from "react-router-dom";
+// import React from "react";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import Cookies from "js-cookie";
-import MainLayout from "../MainLayout"; // adjust the path to where your MainLayout component is
+import MainLayout from "../MainLayout"; // adjust the path if necessary
 
 const ProtectedRoute = () => {
+  const location = useLocation();
   const token = Cookies.get("jwt_token");
   const userRole = Cookies.get("role");
 
+  // If no token exists, redirect to the login page
   if (!token) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
 
-  if (window.location.pathname === "/hod-dashboard" && userRole !== "HOD") {
-    // Redirect non-HOD users trying to access the HOD Dashboard
-    return <Navigate to="/home" />;
+  // Handling HOD Dashboard access
+  if (location.pathname.includes("/hod-dashboard")) {
+    if (userRole === "HOD") {
+      return (
+        <MainLayout>
+          <Outlet />
+        </MainLayout>
+      );
+    } else {
+      // Redirect non-HOD users trying to access the HOD Dashboard to the home page
+      return <Navigate to="/home" replace />;
+    }
   }
 
-  if (userRole === "HOD" && window.location.pathname !== "/hod-dashboard") {
-    return <Navigate to="/hod-dashboard" />;
-  }
-
+  // For other authenticated routes, render normally
   return (
     <MainLayout>
       <Outlet />

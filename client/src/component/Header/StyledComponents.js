@@ -64,3 +64,10 @@ export const DropdownItem = styled.li`
     background-color: #f0f0f0;
   }
 `;
+
+export const ButtonContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+`;

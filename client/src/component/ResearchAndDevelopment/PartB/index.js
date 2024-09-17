@@ -62,6 +62,7 @@ const RDPartB = (props) => {
       indexedIn: "",
       noOfDays: "",
       apiScore: "",
+      hodRemark: "",
     },
   ]);
   const [formId, setFormId] = useState("");
@@ -117,6 +118,7 @@ const RDPartB = (props) => {
                 indexedIn: item.indexedIn,
                 noOfDays: item.noOfDays,
                 apiScore: item.apiScore,
+                hodRemark: item.hodRemark,
               }));
               setTableData(transformedData);
               setFiles(data2.phdPartB.files || []);
@@ -254,6 +256,7 @@ const RDPartB = (props) => {
       indexedIn: "",
       noOfDays: "",
       apiScore: "",
+      hodRemark: "",
     };
     setTableData([...tableData, newArticle]);
   };
@@ -261,6 +264,11 @@ const RDPartB = (props) => {
   const handleDeletePresentation = () => {
     const newTableData = tableData.slice(0, -1);
     setTableData(newTableData);
+  };
+
+  const calculateTotalApiScore = (data) => {
+    const score = data.reduce((total, item) => total + (parseFloat(item.apiScore) || 0), 0);
+    return score >= 5 ? 5 : score;
   };
 
   const submitRDPartB = async () => {
@@ -283,9 +291,11 @@ const RDPartB = (props) => {
         setDisabled(true);
         const userId = Cookies.get("user_id");
         const formData = new FormData();
+        const totalApiScore = calculateTotalApiScore(tableData);
         formData.append("userId", userId);
         formData.append("formId", formId);
         formData.append("tableData", JSON.stringify(tableData));
+        formData.append("totalApiScore", totalApiScore);
         files.forEach((file) => {
           if (!file.fileId) {
             formData.append("files", file);
@@ -390,6 +400,7 @@ const RDPartB = (props) => {
               <TableHead>Indexed in? (WoS/Scopus)</TableHead>
               <TableHead>No. of days</TableHead>
               <TableHead>Score (Max. 5)</TableHead>
+              {isReview &&<TableHead>HOD Remark <br/>(Max. 5)</TableHead>}
             </TableRow>
           </TableMainHead>
           <TableBody>
@@ -467,6 +478,22 @@ const RDPartB = (props) => {
                   />
                 </TableData>
                 <TableData>{paper.apiScore}</TableData>
+                {isReview && (
+                  <TableData>
+                    <EditableValue
+                      value={paper.hodRemark || ""}
+                      onValueChange={(newValue) =>
+                        handleEditPresentation(paperIndex, {
+                          ...paper,
+                          hodRemark: newValue,
+                        })
+                      }
+                      validate={(input) => /^[0-5]+$/.test(input)}
+                      type="text"
+                      disabled={false}
+                    />
+                  </TableData>
+                )}
               </TableRow>
             ))}
           </TableBody>

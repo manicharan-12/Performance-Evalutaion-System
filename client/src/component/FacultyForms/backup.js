@@ -16,7 +16,6 @@ import {
   FormsContainer,
   HomeMainContainer,
 } from "./StyledComponents"; // Adjust the path to your styled components
-import './UserDetail.css';
 
 const UserDetail = () => {
   const [formData, setFormData] = useState(null);
@@ -24,7 +23,6 @@ const UserDetail = () => {
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
   const [facultyId, setFacultyId] = useState();
-  const [facultyName, setFacultyName] = useState("");
 
   const navigate = useNavigate();
 
@@ -76,7 +74,6 @@ const UserDetail = () => {
         );
         // console.log(response.data);
         setFormData(response.data); // Set the fetched data in state
-        setFacultyName(response.data.facultyName); // Set the faculty name
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -123,8 +120,7 @@ const UserDetail = () => {
   return (
     <HomeMainContainer>
       <MainContainer>
-        <h1>List of Forms</h1>
-        <h4>Faculty: {facultyId}</h4>
+        <h1>User Details</h1>
         <FormsContainer>
           {formData.map((eachForm) => (
             <FormsList key={eachForm._id}>
@@ -142,22 +138,6 @@ const UserDetail = () => {
               >
                 {eachForm.formName}
               </SubSectionHeading>
-              <div className="icon-buttons-container">
-      <button
-        className="icon-button"
-        onClick={() => handleFormClick(eachForm._id)}
-        aria-label="Edit"
-      >
-        <i class="fa-solid fa-pen-to-square"></i>
-      </button>
-      <button
-        className="icon-button"
-        onClick={() => handleFormClick(eachForm._id)}
-        aria-label="Print"
-      >
-       <i class="fa-solid fa-print"></i>
-      </button>
-    </div>
             </FormsList>
           ))}
         </FormsContainer>
@@ -167,9 +147,3 @@ const UserDetail = () => {
 };
 
 export default UserDetail;
-
-
-
-
-
-

@@ -530,6 +530,19 @@ app.post("/academic-work-2", upload.array("files"), async (req, res) => {
       await academicWork.save();
     }
 
+    const existingApiScore = await ApiScore.findOne({ userId, formId });
+    if (existingApiScore) {
+      existingApiScore.apiScores.academicWorkPartB = 5;
+      await existingApiScore.save();
+    } else {
+      const newApiScore = new ApiScore({
+        userId,
+        formId,
+        apiScores: { academicWorkPartA: 5 },
+      });
+      await newApiScore.save();
+    }
+
     res.json({ message: "Data saved successfully", data: academicWork });
   } catch (error) {
     console.error("Error saving data:", error);
@@ -804,7 +817,7 @@ app.get("/rdConfo/:userId", async (request, response) => {
 
 app.post("/RD/PartB", upload.array("files"), async (request, response) => {
   try {
-    const { userId, formId, tableData } = request.body;
+    const { userId, formId, tableData, totalApiScore } = request.body;
     let { deletedFiles } = request.body;
     const files = request.files;
     let parsedTableData;
@@ -881,6 +894,18 @@ app.post("/RD/PartB", upload.array("files"), async (request, response) => {
         files: fileData,
       });
       await newResearchAndDevelopmentPartB.save();
+    }
+    const existingApiScore = await ApiScore.findOne({ userId, formId });
+    if (existingApiScore) {
+      existingApiScore.apiScores.researchAndDevelopmentPartB = totalApiScore;
+      await existingApiScore.save();
+    } else {
+      const newApiScore = new ApiScore({
+        userId,
+        formId,
+        apiScores: { researchAndDevelopmentPartB: totalApiScore },
+      });
+      await newApiScore.save();
     }
     response.status(200).json({ success_msg: "Successfully Saved" });
   } catch (error) {
@@ -972,7 +997,7 @@ app.get("/RD/PartB/:userId", async (request, response) => {
 
 app.post("/RD/PartC", upload.array("files"), async (request, response) => {
   try {
-    const { userId, tableData, formId } = request.body;
+    const { userId, tableData, formId, totalApiScore } = request.body;
     let { deletedFiles } = request.body;
     const files = request.files;
     let parsedTableData;
@@ -1048,6 +1073,19 @@ app.post("/RD/PartC", upload.array("files"), async (request, response) => {
         files: fileData,
       });
       const res = await newResearchAndDevelopmentPartC.save();
+    }
+
+    const existingApiScore = await ApiScore.findOne({ userId, formId });
+    if (existingApiScore) {
+      existingApiScore.apiScores.researchAndDevelopmentPartC = totalApiScore;
+      await existingApiScore.save();
+    } else {
+      const newApiScore = new ApiScore({
+        userId,
+        formId,
+        apiScores: { researchAndDevelopmentPartC: totalApiScore },
+      });
+      await newApiScore.save();
     }
     response.status(200).json({ success_msg: "Successfully Saved1" });
   } catch (error) {
@@ -1136,7 +1174,7 @@ app.get("/RD/PartC/:userId", async (request, response) => {
 
 app.post("/RD/PartD", upload.array("files"), async (request, response) => {
   try {
-    const { userId, tableData, formId } = request.body;
+    const { userId, tableData, formId, totalApiScore } = request.body;
     let { deletedFiles } = request.body;
     const files = request.files;
     let parsedTableData;
@@ -1212,6 +1250,18 @@ app.post("/RD/PartD", upload.array("files"), async (request, response) => {
         files: fileData,
       });
       const res = await newResearchAndDevelopmentPartD.save();
+    }
+    const existingApiScore = await ApiScore.findOne({ userId, formId });
+    if (existingApiScore) {
+      existingApiScore.apiScores.researchAndDevelopmentPartD = totalApiScore;
+      await existingApiScore.save();
+    } else {
+      const newApiScore = new ApiScore({
+        userId,
+        formId,
+        apiScores: { researchAndDevelopmentPartD: totalApiScore },
+      });
+      await newApiScore.save();
     }
     response.status(200).json({ success_msg: "Successfully Saved1" });
   } catch (error) {
@@ -1303,7 +1353,7 @@ app.post(
   upload.array("files"),
   async (request, response) => {
     try {
-      const { userId, tableData, formId } = request.body;
+      const { userId, tableData, formId, totalApiScore } = request.body;
       let { deletedFiles } = request.body;
       const files = request.files;
       let parsedTableData;
@@ -1383,6 +1433,19 @@ app.post(
             files: fileData,
           });
         const res = await newContributionToUniversitySchool.save();
+      }
+
+      const existingApiScore = await ApiScore.findOne({ userId, formId });
+      if (existingApiScore) {
+        existingApiScore.apiScores.contributionToSchool = totalApiScore;
+        await existingApiScore.save();
+      } else {
+        const newApiScore = new ApiScore({
+          userId,
+          formId,
+          apiScores: { contributionToSchool: totalApiScore },
+        });
+        await newApiScore.save();
       }
       response.status(200).json({ success_msg: "Successfully Saved1" });
     } catch (error) {
@@ -1477,7 +1540,7 @@ app.post(
   upload.array("files"),
   async (request, response) => {
     try {
-      const { userId, tableData, formId } = request.body;
+      const { userId, tableData, formId, totalApiScore } = request.body;
       let { deletedFiles } = request.body;
       const files = request.files;
       let parsedTableData;
@@ -1556,6 +1619,18 @@ app.post(
           files: fileData,
         });
         const res = await newContributionToDepartment.save();
+      }
+      const existingApiScore = await ApiScore.findOne({ userId, formId });
+      if (existingApiScore) {
+        existingApiScore.apiScores.contributionToDepartment = totalApiScore;
+        await existingApiScore.save();
+      } else {
+        const newApiScore = new ApiScore({
+          userId,
+          formId,
+          apiScores: { contributionToDepartment: totalApiScore },
+        });
+        await newApiScore.save();
       }
       response.status(200).json({ success_msg: "Successfully Saved1" });
     } catch (error) {
@@ -1644,7 +1719,7 @@ app.post(
   upload.array("files"),
   async (request, response) => {
     try {
-      const { userId, tableData, formId } = request.body;
+      const { userId, tableData, formId, totalApiScore } = request.body;
       let { deletedFiles } = request.body;
       const files = request.files;
       let parsedTableData;
@@ -1723,6 +1798,18 @@ app.post(
           files: fileData,
         });
         const res = await newContributionToSociety.save();
+      }
+      const existingApiScore = await ApiScore.findOne({ userId, formId });
+      if (existingApiScore) {
+        existingApiScore.apiScores.contributionToSociety = totalApiScore;
+        await existingApiScore.save();
+      } else {
+        const newApiScore = new ApiScore({
+          userId,
+          formId,
+          apiScores: { contributionToSociety: totalApiScore },
+        });
+        await newApiScore.save();
       }
       response.status(200).json({ success_msg: "Successfully Saved1" });
     } catch (error) {
@@ -1810,7 +1897,7 @@ app.get("/ContributionToSociety/:userId", async (request, response) => {
 
 app.get("/teachers/:department", async (req, res) => {
   try {
-    const { department } = req.params; // Extract department from the URL params
+    const { department } = req.params; 
     const teachers = await User.find({
       department,
       designation: { $ne: "HOD" },
@@ -1897,5 +1984,23 @@ app.get("/faculty/forms/:formId", async (req, res) => {
   } catch (error) {
     console.error(`Error fetching data for formId: ${formId}`, error);
     res.status(500).json({ message: "Server Error" });
+  }
+});
+
+app.patch("/hod/remarks/:f_id", async (req, res) => {
+  try {
+    const { semesterIndex, courseIndex, hodRemark } = req.body;
+    const academicWork = await AcademicWorkPartA.findById(req.params.f_id);
+    if (!academicWork) return res.status(404).json({ message: "Not found" });
+
+    academicWork.academic_work_part_a[semesterIndex].courses[
+      courseIndex
+    ].hodRemark = hodRemark;
+    academicWork.status = "reviewed";
+    await academicWork.save();
+
+    res.json(academicWork);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });

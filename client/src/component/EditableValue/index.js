@@ -12,7 +12,7 @@ const EditableValue = ({ value, onValueChange, validate, type, disabled }) => {
   const [currentValue, setCurrentValue] = useState(value || "");
   const [error, setError] = useState("");
   const role = Cookies.get("role");
-  const isHOD = role === "HOD";
+  const isHOD = role === "HODww";
   useEffect(() => {
     setCurrentValue(String(value));
     if (value != null && value !== "") {

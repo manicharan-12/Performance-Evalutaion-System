@@ -53,6 +53,8 @@ const AcademicWorkI = (props) => {
           apiScoreResults: "",
           studentFeedbackPercentage: "",
           studentFeedbackScore: "",
+          remarkA: "",
+          remarkB: "",
         },
       ],
     },
@@ -68,6 +70,8 @@ const AcademicWorkI = (props) => {
           apiScoreResults: "",
           studentFeedbackPercentage: "",
           studentFeedbackScore: "",
+          remarkA: "",
+          remarkB: "",
         },
       ],
     },
@@ -474,9 +478,11 @@ const AcademicWorkI = (props) => {
                 <TableHead>No. of classes actually held</TableHead>
                 <TableHead>Result (Pass %)</TableHead>
                 <TableHead>API Score-Results (Max. 20) (A)</TableHead>
+                {isReview && <TableHead>HOD Remark (Max. 20) (A)</TableHead>}
                 <TableHead>Student Feedback %</TableHead>
                 <TableHead>API Score-Feedback (Max. 20) (B)</TableHead>
                 {!isSummaryPath && <TableHead>Actions</TableHead>}
+                {isReview && <TableHead>HOD Remark (Max. 20) (B)</TableHead>}
               </TableRow>
             </TableMainHead>
             <TableBody>
@@ -557,6 +563,24 @@ const AcademicWorkI = (props) => {
                     <TableData>
                       <SpanEle>{course.apiScoreResults}</SpanEle>
                     </TableData>
+                    {isReview &&
+                      (
+                        <TableData>
+                          <EditableValue
+                            value={course.remarkA || ""}
+                            onValueChange={(newValue) =>
+                              handleEditCourse(semesterIndex, courseIndex, {
+                                ...course,
+                                remark: newValue,
+                              })
+                            }
+                            validate={(input) => /^[0-20]+$/.test(input)}
+                            type="text"
+                            disabled={false}
+                          />
+                        </TableData>
+                      )
+                    }
                     <TableData>
                       <EditableValue
                         value={course.studentFeedbackPercentage}
@@ -618,6 +642,24 @@ const AcademicWorkI = (props) => {
                         )}
                       </TableData>
                     )}
+                    {isReview &&
+                      (
+                        <TableData>
+                          <EditableValue
+                            value={course.remarkB || ""}
+                            onValueChange={(newValue) =>
+                              handleEditCourse(semesterIndex, courseIndex, {
+                                ...course,
+                                remark: newValue,
+                              })
+                            }
+                            validate={(input) => /^[0-20]+$/.test(input)}
+                            type="text"
+                            disabled={false}
+                          />
+                        </TableData>
+                      )
+                    }
                   </TableRow>
                 ));
               })}
@@ -625,15 +667,36 @@ const AcademicWorkI = (props) => {
                 <TableHead colSpan="5">Average Percentage</TableHead>
                 <TableData>{averageResultPercentage}</TableData>
                 <TableData></TableData>
+                {isReview &&
+                  (
+                    <TableData>
+                      {/* Calculate Average Score */}
+                    </TableData>
+                  )
+                }
                 <TableData>{averageFeedbackPercentage}</TableData>
                 <TableData></TableData>
+                {isReview &&
+                  (
+                    <TableData>
+                      {/* Calculate Average Score */}
+                    </TableData>
+                  )
+                }
                 {!isSummaryPath && <TableData></TableData>}
               </TableRow>
               <TableRow>
                 <TableHead colSpan="5">
                   Total API score (Results + Feedback)
                 </TableHead>
-                <TableData colSpan="4">{totalApiScore}</TableData>
+                <TableData colSpan="5">{totalApiScore}</TableData>
+                {isReview &&
+                  (
+                    <TableData>
+                      {/* Calculate Average Score */}
+                    </TableData>
+                  )
+                }
               </TableRow>
             </TableBody>
           </Table>

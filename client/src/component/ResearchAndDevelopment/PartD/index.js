@@ -55,6 +55,7 @@ const RDPartD = (props) => {
       organization: "",
       score: "",
       apiScore: "",
+      hodRemark: "",
     },
   ]);
   const [formId, setFormId] = useState("");
@@ -105,6 +106,7 @@ const RDPartD = (props) => {
               organization: item.organization,
               score: item.score,
               apiScore: item.apiScore,
+              hodRemark: item.hodRemark,
             }));
             setTableData(transformedData);
             setFiles(data.phdPartD.files || []);
@@ -151,6 +153,7 @@ const RDPartD = (props) => {
       organization: "",
       score: "",
       apiScore: "",
+      hodRemark: "",
     };
     setTableData([...tableData, newArticle]);
   };
@@ -239,6 +242,11 @@ const RDPartD = (props) => {
     setDeletedFiles((prevDeletedFiles) => [...prevDeletedFiles, fileId]);
   };
 
+  const calculateTotalApiScore = (data) => {
+    const score = data.reduce((total, item) => total + (parseFloat(item.apiScore) || 0), 0);
+    return score >= 5 ? 5 : score;
+  };
+
   const submitRDPartD = async () => {
     // if(!navigator.onLine){
     //   await toast.error("You are offline. Please connect to the internet and try again.", {
@@ -275,9 +283,11 @@ const RDPartD = (props) => {
       setDisabled(true);
       const userId = Cookies.get("user_id");
       const formData = new FormData();
+      const totalApiScore=calculateTotalApiScore(tableData)
       formData.append("userId", userId);
       formData.append("formId", formId);
       formData.append("tableData", JSON.stringify(tableData));
+      formData.append('totalApiScore',totalApiScore)
       files.forEach((file) => {
         if (!file.fileId) {
           formData.append("files", file);
@@ -345,6 +355,7 @@ const RDPartD = (props) => {
               <TableHead>Organization from which it is acquired</TableHead>
               <TableHead>Score / Grade</TableHead>
               <TableHead>Score (Max. 5)</TableHead>
+              {isReview && <TableHead>HOD Remark <br/> (Max. 5)</TableHead>}
             </TableRow>
           </TableMainHead>
           <TableBody>
@@ -390,6 +401,22 @@ const RDPartD = (props) => {
                   />
                 </TableData>
                 <TableData>{certificate.apiScore}</TableData>
+                {isReview && (
+                  <TableData>
+                    <EditableValue
+                      value={certificate.hodRemark || ""}
+                      onValueChange={(newValue) =>
+                        handleEditCertificate(certificateIndex, {
+                          ...certificate,
+                          hodRemark: newValue,
+                        })
+                      }
+                      validate={(input) => /^[0-5]+$/.test(input)}
+                      type="text"
+                      disabled={false}
+                    />
+                  </TableData>
+                )}
               </TableRow>
             ))}
           </TableBody>

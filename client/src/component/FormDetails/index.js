@@ -20,6 +20,7 @@ import ContributionToSociety from "../ContributionToSociety";
 import ContributionToUniversity from "../ContributionToUniversitySchool";
 import ApiScoreSummary from "../ApiScoreSummary";
 import AssessmentOfFunctionalHead from "../AssessmentOfFunctionalHead";
+import Conformation from "../ResearchAndDevelopment/Conformation";
 
 const FormDetails = () => {
   const [formId, setFormId] = useState();
@@ -97,8 +98,7 @@ const FormDetails = () => {
           <AcademicWorkII data={formData.academicWorkPartB} />
         </section>
         <section>
-          <h2>PhD Confirmation</h2>
-          <pre>{JSON.stringify(formData?.phdConformation, null, 2)}</pre>
+          <Conformation data={formData.phdConformation} />
         </section>
         <section>
           <RDPartB data={formData.researchAndDevelopmentPartB} />

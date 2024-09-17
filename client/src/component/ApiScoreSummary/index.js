@@ -117,7 +117,9 @@ const ApiScoreSummary = (props) => {
                 <TableData>I</TableData>
                 <TableData>Academic Work (a+b)</TableData>
                 <TableData>45</TableData>
-                <TableData>{tableData.academicWorkPartA}</TableData>
+                <TableData>
+                  {tableData.academicWorkPartA + tableData.academicWorkPartB}
+                </TableData>
                 <TableData
                   rowSpan="6"
                   style={{
@@ -134,31 +136,46 @@ const ApiScoreSummary = (props) => {
                 <TableData>II</TableData>
                 <TableData>Research work (a+b+c) or (a+b+d)</TableData>
                 <TableData>25</TableData>
-                <TableData></TableData>
+                <TableData>
+                  {tableData.researchAndDevelopmentPartB +
+                    tableData.researchAndDevelopmentPartC +
+                    tableData.researchAndDevelopmentPartD +
+                    5}
+                </TableData>
               </TableRow>
               <TableRow>
                 <TableData>III</TableData>
                 <TableData>Contribution to the University </TableData>
                 <TableData>5</TableData>
-                <TableData></TableData>
+                <TableData>{tableData.contributionToSchool}</TableData>
               </TableRow>
               <TableRow>
                 <TableData>IV</TableData>
                 <TableData>Contribution to the Department</TableData>
                 <TableData>5</TableData>
-                <TableData></TableData>
+                <TableData>{tableData.contributionToDepartment}</TableData>
               </TableRow>
               <TableRow>
                 <TableData>V</TableData>
                 <TableData>Contribution to Society</TableData>
                 <TableData>5</TableData>
-                <TableData></TableData>
+                <TableData>{tableData.contributionToSociety}</TableData>
               </TableRow>
               <TableRow>
                 <TableData>I</TableData>
                 <TableData>Assessment by functional head </TableData>
                 <TableData>15</TableData>
-                <TableData></TableData>
+                <TableData>
+                  {tableData.academicWorkPartA +
+                    tableData.academicWorkPartB +
+                    tableData.researchAndDevelopmentPartB +
+                    tableData.researchAndDevelopmentPartC +
+                    tableData.researchAndDevelopmentPartD +
+                    5 +
+                    tableData.contributionToSchool +
+                    tableData.contributionToDepartment +
+                    tableData.contributionToSociety}
+                </TableData>
               </TableRow>
             </TableBody>
           </Table>

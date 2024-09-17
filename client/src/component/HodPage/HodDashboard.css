@@ -1,0 +1,60 @@
+/* Basic Table Styling */
+.teacher-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 25px 0;
+  font-size: 18px;
+  text-align: left;
+  background-color: #f9f9f9;
+}
+
+.teacher-table thead {
+  border-radius: 8px;
+  background-image: linear-gradient(127deg, #c02633 -40%, #233659 100%);
+  color: #fff;
+  border: none;
+  color: white;
+}
+
+.teacher-table th, .teacher-table td {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+}
+
+.teacher-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.teacher-table tbody tr:hover {
+  background-color: #e9e9e9;
+}
+
+/* Faculty Icon */
+.faculty-icon {
+  width: 30px;
+  height: 30px;
+}
+
+/* Clickable Faculty Name */
+.clickable-name {
+  color: #233659;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.clickable-name:hover {
+  color: #c02633;
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+  .teacher-table th, .teacher-table td {
+    padding: 8px 10px;
+    font-size: 16px;
+  }
+
+  .faculty-icon {
+    width: 25px;
+    height: 25px;
+  }
+}

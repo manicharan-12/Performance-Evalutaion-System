@@ -10,11 +10,13 @@ import {
   Dropdown,
   DropdownList,
   DropdownItem,
+  ButtonContainer,
 } from "./StyledComponents";
 import logo from "../Images/AU LOGO.png";
 
 const Header = () => {
   const navigate = useNavigate();
+  const isHod = Cookies.get("role") === "HOD";
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
   const handleProfileClick = () => {
@@ -53,9 +55,31 @@ const Header = () => {
     navigate("/home");
   };
 
+  const handleNavigate = () => {
+    navigate("/hod-dashboard");
+  }
+
   return (
     <MainNavContainer className="shadow">
       <NavImage src={logo} alt="Anurag University" onClick={onClickImage} />
+      {isHod && (
+
+        <button
+          onClick={handleNavigate}
+          style={{
+            // Update Here
+            height: "60px",
+            padding: "4px",
+            borderRadius: "8px",
+            backgroundImage:
+              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+            color: "#fff",
+            border: "none",
+          }}
+        >
+          Dashboard
+        </button>
+      )}
       <LoginButtonContainer className="dropdown-container">
         <ProfileButton onClick={handleProfileClick}>
           <ProfileIcon />

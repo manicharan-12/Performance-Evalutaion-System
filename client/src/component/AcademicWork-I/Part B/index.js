@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import EditableValue from "../../EditableValue";
 import Cookies from "js-cookie";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useDropzone } from "react-dropzone";
 import Back from "../../Back";
-import Header from "../../Header";
 import { TiDelete } from "react-icons/ti";
 import failure from "../../Images/failure view.png";
 import { toast } from "react-toastify";
@@ -30,6 +30,13 @@ import {
   ListItems,
   SpanEle,
   DeleteButton,
+  TableContainer,
+  Table,
+  TableHead,
+  TableData,
+  TableMainHead,
+  TableBody,
+  TableRow,
 } from "./StyledComponents";
 
 const apiStatusConstants = {
@@ -98,6 +105,7 @@ const AcademicWorkII = (props) => {
   const [disabled, setDisabled] = useState(false);
   const [formId, setFormId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [hodRemark, setHodRemark] = useState('')
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -465,6 +473,33 @@ const AcademicWorkII = (props) => {
               )}
             </SaveNextButton>
           </SaveNextButtonContainer>
+        )}
+        {/* Add Here */}
+        {isReview && (
+          <TableContainer className="mt-4">
+            <Table>
+              <TableMainHead>
+                <TableRow>
+                  <TableHead>HOD Remark</TableHead>
+                </TableRow>
+              </TableMainHead>
+              <TableBody>
+                <TableRow>
+                  <TableData>
+                    <EditableValue
+                      value={hodRemark || ""}
+                      onValueChange={(newValue) =>
+                        setHodRemark(newValue)
+                      }
+                      validate={(input) => /^[0-5]+$/.test(input)}
+                      type="text"
+                      disabled={false}
+                    />
+                  </TableData>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
       </>
     );

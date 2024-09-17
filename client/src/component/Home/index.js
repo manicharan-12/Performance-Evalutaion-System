@@ -318,6 +318,19 @@ const Home = () => {
               border: "none",
             }}
           >
+            Faculty
+          </button>
+          <button
+            onClick={openModal}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
             Create a new form
           </button>
         </ButtonContainer>

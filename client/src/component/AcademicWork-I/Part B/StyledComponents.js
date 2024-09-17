@@ -127,3 +127,34 @@ export const DeleteButton = styled.button`
   background-color: transparent;
   font-size: 22px;
 `;
+
+export const TableContainer = styled.div`
+  width: 100%;
+  overflow-x: auto;
+`;
+export const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+`;
+
+export const TableMainHead = styled.thead``;
+export const TableBody = styled.tbody``;
+
+export const TableHead = styled.th`
+  text-align: left;
+  padding: 8px;
+  border: 1px solid #ddd;
+  word-wrap: break-word;
+  text-align: center;
+`;
+
+export const TableData = styled.td`
+  text-align: left;
+  padding: 8px;
+  border: 1px solid #ddd;
+  word-wrap: break-word;
+  text-align: center;
+`;
+
+export const TableRow = styled.tr``;
