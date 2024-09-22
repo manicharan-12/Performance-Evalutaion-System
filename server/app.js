@@ -408,8 +408,8 @@ app.post("/academic-work-1", async (request, response) => {
       averageFeedbackPercentage,
       totalApiScore,
     } = request.body;
-    console.log(userId,formId);
-    
+    console.log(userId, formId);
+
     const existingData = await AcademicWorkPartA.findOne({
       userId,
       formId,
@@ -470,7 +470,8 @@ app.get("/academic-work-1/data/:userId", async (request, response) => {
 });
 
 app.post("/academic-work-2", upload.array("files"), async (req, res) => {
-  const { userId, formId, editorContent, deletedFiles } = req.body;
+  const { userId, formId, editorContent, reviewerScore, deletedFiles } =
+    req.body;
   const files = req.files || [];
 
   try {
@@ -515,6 +516,7 @@ app.post("/academic-work-2", upload.array("files"), async (req, res) => {
 
     if (academicWork) {
       academicWork.editorContent = editorContent;
+      academicWork.reviewerScore = reviewerScore;
       if (Array.isArray(deletedFiles)) {
         academicWork.files = academicWork.files.filter(
           (file) => !deletedFiles.includes(file.fileId.toString())
@@ -527,6 +529,7 @@ app.post("/academic-work-2", upload.array("files"), async (req, res) => {
         userId,
         formId,
         editorContent,
+        reviewerScore,
         files: fileData,
       });
       await academicWork.save();
@@ -1899,7 +1902,7 @@ app.get("/ContributionToSociety/:userId", async (request, response) => {
 
 app.get("/teachers/:department", async (req, res) => {
   try {
-    const { department } = req.params; 
+    const { department } = req.params;
     const teachers = await User.find({
       department,
       designation: { $ne: "HOD" },

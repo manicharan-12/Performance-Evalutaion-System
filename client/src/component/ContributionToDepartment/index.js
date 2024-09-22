@@ -56,7 +56,7 @@ const ContributionToDepartment = (props) => {
       nameOfTheResponsibility: "",
       contribution: "",
       apiScore: "",
-      hodRemark: "",
+      reviewerScore: "",
     },
   ]);
   const [formId, setFormId] = useState("");
@@ -70,64 +70,62 @@ const ContributionToDepartment = (props) => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    if (!isReview) {
-      let id;
-      async function fetchYear() {
-        // if(!navigator.onLine){
-        //   await toast.error("You are offline. Please connect to the internet and try again.", {
-        //     position: "bottom-center",
-        //     autoClose: 6969,
-        //     hideProgressBar: true,
-        //     closeOnClick: true,
-        //     pauseOnHover: false,
-        //     draggable: true,
-        //   });
-        //   return;
-        // }
-        try {
-          const formId = await searchParams.get("f_id");
-          id = formId;
-          await setFormId(id);
-        } catch (error) {
-          console.error(error);
-          navigate("/home");
-        }
-        try {
-          setApiStatus(apiStatusConstants.inProgress);
-          const userId = Cookies.get("user_id");
-          const api = "http://localhost:6969";
-          const response = await fetch(
-            `${api}/ContributionToDepartment/${userId}/?formId=${id}`
-          );
-          const data = await response.json();
-          if (data.contributionToDepartment.contribution_data !== null) {
-            const contribution_data =
-              data.contributionToDepartment.contribution_data;
-            const transformedData = contribution_data.map((item) => ({
+    const getFormIdFromSearchParams = () => {
+      try {
+        const formId = searchParams.get("f_id");
+        return formId;
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        navigate("/home");
+      }
+    };
+
+    const fetchContributionToDepartment = async (id) => {
+      try {
+        setApiStatus(apiStatusConstants.inProgress);
+        const userId = Cookies.get("user_id");
+        const api = "http://localhost:6969";
+
+        const response = await fetch(
+          `${api}/ContributionToDepartment/${userId}/?formId=${id}`
+        );
+        const data = await response.json();
+
+        if (data.contributionToDepartment.contribution_data) {
+          const transformedData =
+            data.contributionToDepartment.contribution_data.map((item) => ({
               nameOfTheResponsibility: item.nameOfTheResponsibility,
               contribution: item.contribution,
               apiScore: item.apiScore,
               hodRemark: item.hodRemark,
             }));
-            setTableData(transformedData);
-            setFiles(data.contributionToDepartment.files || []);
-          }
-          setDisabled(false);
-          setApiStatus(apiStatusConstants.success);
-        } catch (error) {
-          console.log(error);
-          setApiStatus(apiStatusConstants.failure);
+          setTableData(transformedData);
+          setFiles(data.contributionToDepartment.files || []);
         }
+
+        setDisabled(false);
+        setApiStatus(apiStatusConstants.success);
+      } catch (error) {
+        console.error("Error fetching contribution data:", error);
+        setDisabled(false);
+        setApiStatus(apiStatusConstants.failure);
       }
-      fetchYear();
-    } else {
-      setApiStatus(apiStatusConstants.inProgress);
-      const { contribution_data, files } = props.data;
-      setTableData(contribution_data);
-      setFiles(files);
-      setApiStatus(apiStatusConstants.success);
+    };
+
+    const formId = getFormIdFromSearchParams();
+    if (formId) {
+      setFormId(formId);
+      if (!isReview) {
+        fetchContributionToDepartment(formId);
+      } else {
+        setApiStatus(apiStatusConstants.inProgress);
+        const { contribution_data, files } = props.data;
+        setTableData(contribution_data);
+        setFiles(files);
+        setApiStatus(apiStatusConstants.success);
+      }
     }
-  }, []);
+  }, [isReview, searchParams, props.data]);
 
   const handleEditContribution = (contributionIndex, updatedContribution) => {
     const updatedState = tableData.map((eachContribution, cIndex) => {
@@ -222,7 +220,7 @@ const ContributionToDepartment = (props) => {
         body: formData,
       };
       const response = await fetch(`${api}/ContributionToDepartment`, option);
-      navigate(`/contribution-to-society/?f_id=${formId}`);
+      !isReview && navigate(`/contribution-to-society/?f_id=${formId}`);
     } catch (error) {
       console.error(error);
       setDisabled(false);
@@ -236,6 +234,8 @@ const ContributionToDepartment = (props) => {
         progress: undefined,
         theme: "colored",
       });
+    } finally {
+      setDisabled(false);
     }
   };
 
@@ -365,7 +365,7 @@ const ContributionToDepartment = (props) => {
                 <TableHead>Score (Max. 5)</TableHead>
                 {isReview && (
                   <TableHead>
-                    HOD Remark <br /> (Max. 5)
+                    Reviewer Remark <br /> (Max. 5)
                   </TableHead>
                 )}
               </TableRow>
@@ -406,11 +406,11 @@ const ContributionToDepartment = (props) => {
                     {isReview && (
                       <TableData>
                         <EditableValue
-                          value={contribution.hodRemark || ""}
+                          value={contribution.reviewerScore || ""}
                           onValueChange={(newValue) =>
                             handleEditContribution(contributionIndex, {
                               ...contribution,
-                              hodRemark: newValue,
+                              reviewerScore: newValue,
                             })
                           }
                           validate={(input) => /^[0-5]+$/.test(input)}
@@ -522,6 +522,36 @@ const ContributionToDepartment = (props) => {
                 />
               ) : (
                 "Save & Next"
+              )}
+            </SaveNextButton>
+          )}
+
+          {isReview && (
+            <SaveNextButton
+              type="submit"
+              onClick={submitContributionToDepartment}
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
+            >
+              {disabled ? (
+                <Oval
+                  visible={true}
+                  height="25"
+                  width="25"
+                  color="#ffffff"
+                  ariaLabel="oval-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  className="text-center"
+                />
+              ) : (
+                "Save"
               )}
             </SaveNextButton>
           )}

@@ -56,7 +56,7 @@ const ContributionToSociety = (props) => {
       nameOfTheResponsibility: "",
       contribution: "",
       apiScore: "",
-      hodRemark: "",
+      reviewerScore: "",
     },
   ]);
   const [formId, setFormId] = useState("");
@@ -69,65 +69,63 @@ const ContributionToSociety = (props) => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    if (!isReview) {
-      let id;
-      async function fetchYear() {
-        // if(!navigator.onLine){
-        //   await toast.error("You are offline. Please connect to the internet and try again.", {
-        //     position: "bottom-center",
-        //     autoClose: 6969,
-        //     hideProgressBar: true,
-        //     closeOnClick: true,
-        //     pauseOnHover: false,
-        //     draggable: true,
-        //   });
-        //   return;
-        // }
-        try {
-          try {
-            const formId = await searchParams.get("f_id");
-            id = formId;
-            await setFormId(id);
-          } catch (error) {
-            console.error(error);
-            navigate("/home");
-          }
-          setApiStatus(apiStatusConstants.inProgress);
-          const userId = Cookies.get("user_id");
-          const api = "http://localhost:6969";
-          const response = await fetch(
-            `${api}/ContributionToSociety/${userId}/?formId=${id}`
-          );
-          const data = await response.json();
-          if (data.contributionToSociety.contribution_data !== null) {
-            const contribution_data =
-              data.contributionToSociety.contribution_data;
-            const transformedData = contribution_data.map((item) => ({
+    const getFormIdFromSearchParams = () => {
+      try {
+        const formId = searchParams.get("f_id");
+        return formId;
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        navigate("/home");
+      }
+    };
+
+    const fetchContributionToSociety = async (id) => {
+      try {
+        setApiStatus(apiStatusConstants.inProgress);
+        const userId = Cookies.get("user_id");
+        const api = "http://localhost:6969";
+
+        const response = await fetch(
+          `${api}/ContributionToSociety/${userId}/?formId=${id}`
+        );
+        const data = await response.json();
+
+        if (data.contributionToSociety.contribution_data) {
+          const transformedData =
+            data.contributionToSociety.contribution_data.map((item) => ({
               nameOfTheResponsibility: item.nameOfTheResponsibility,
               contribution: item.contribution,
               apiScore: item.apiScore,
               hodRemark: item.hodRemark,
             }));
-            setTableData(transformedData);
-            setFiles(data.contributionToSociety.files || []);
-          }
-          setDisabled(false);
-
-          setApiStatus(apiStatusConstants.success);
-        } catch (error) {
-          console.log(error);
-          setApiStatus(apiStatusConstants.failure);
+          setTableData(transformedData);
+          setFiles(data.contributionToSociety.files || []);
         }
+
+        setDisabled(false);
+        setApiStatus(apiStatusConstants.success);
+      } catch (error) {
+        console.error("Error fetching contribution data:", error);
+        setDisabled(false);
+        setApiStatus(apiStatusConstants.failure);
       }
-      fetchYear();
-    } else {
-      setApiStatus(apiStatusConstants.inProgress);
-      const { contribution_data, files } = props.data;
-      setTableData(contribution_data);
-      setFiles(files);
-      setApiStatus(apiStatusConstants.success);
+    };
+
+    const formId = getFormIdFromSearchParams();
+    if (formId) {
+      setFormId(formId);
+
+      if (!isReview) {
+        fetchContributionToSociety(formId);
+      } else {
+        setApiStatus(apiStatusConstants.inProgress);
+        const { contribution_data, files } = props.data;
+        setTableData(contribution_data);
+        setFiles(files);
+        setApiStatus(apiStatusConstants.success);
+      }
     }
-  }, []);
+  }, [isReview, searchParams, props.data]);
 
   const handleEditContribution = (contributionIndex, updatedContribution) => {
     const updatedState = tableData.map((eachContribution, cIndex) => {
@@ -223,7 +221,7 @@ const ContributionToSociety = (props) => {
       };
       const response = await fetch(`${api}/ContributionToSociety`, option);
 
-      navigate(`/summary/?f_id=${formId}`);
+      !isReview && navigate(`/summary/?f_id=${formId}`);
     } catch (error) {
       setDisabled(false);
       toast.error("Internal Server Error! Please try again Later", {
@@ -236,6 +234,8 @@ const ContributionToSociety = (props) => {
         progress: undefined,
         theme: "colored",
       });
+    } finally {
+      setDisabled(false);
     }
   };
 
@@ -363,7 +363,7 @@ const ContributionToSociety = (props) => {
                 <TableHead>Contribution(s)</TableHead>
                 <TableHead>Score (Max. 5)</TableHead>
                 <TableHead>
-                  HOD Remark <br /> (Max. 5)
+                  Reviewer Remark <br /> (Max. 5)
                 </TableHead>
               </TableRow>
             </TableMainHead>
@@ -403,11 +403,11 @@ const ContributionToSociety = (props) => {
                     {isReview && (
                       <TableData>
                         <EditableValue
-                          value={contribution.hodRemark || ""}
+                          value={contribution.reviewerScore || ""}
                           onValueChange={(newValue) =>
                             handleEditContribution(contributionIndex, {
                               ...contribution,
-                              hodRemark: newValue,
+                              reviewerScore: newValue,
                             })
                           }
                           validate={(input) => /^[0-5]+$/.test(input)}
@@ -495,6 +495,35 @@ const ContributionToSociety = (props) => {
         </FileContainer>
         <SaveNextButtonContainer className="mt-3">
           {!isSummaryPath && (
+            <SaveNextButton
+              type="submit"
+              onClick={submitContributionToSociety}
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
+            >
+              {disabled ? (
+                <Oval
+                  visible={true}
+                  height="25"
+                  width="25"
+                  color="#ffffff"
+                  ariaLabel="oval-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  className="text-center"
+                />
+              ) : (
+                "Save & Next"
+              )}
+            </SaveNextButton>
+          )}
+          {isReview && (
             <SaveNextButton
               type="submit"
               onClick={submitContributionToSociety}

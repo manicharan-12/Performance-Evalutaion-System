@@ -55,7 +55,7 @@ const RDPartD = (props) => {
       organization: "",
       score: "",
       apiScore: "",
-      hodRemark: "",
+      reviewerScore: "",
     },
   ]);
   const [formId, setFormId] = useState("");
@@ -69,64 +69,63 @@ const RDPartD = (props) => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    if (!isReview) {
-      let id;
-      async function fetchYear() {
-        // if(!navigator.onLine){
-        //   await toast.error("You are offline. Please connect to the internet and try again.", {
-        //     position: "bottom-center",
-        //     autoClose: 6969,
-        //     hideProgressBar: true,
-        //     closeOnClick: true,
-        //     pauseOnHover: false,
-        //     draggable: true,
-        //   });
-        //   return;
-        // }
-        try {
-          const formId = await searchParams.get("f_id");
-          id = formId;
-          await setFormId(id);
-        } catch (error) {
-          console.error(error);
-          navigate("/home");
-        }
-        try {
-          setApiStatus(apiStatusConstants.inProgress);
-          const userId = Cookies.get("user_id");
-          const api = "http://localhost:6969";
-          const response = await fetch(
-            `${api}/RD/PartD/${userId}/?formId=${id}`
-          );
-          const data = await response.json();
-          if (data.phdPartD.certificates_data !== null) {
-            const certificates_data = data.phdPartD.certificates_data;
-            const transformedData = certificates_data.map((item) => ({
+    const getFormIdFromSearchParams = () => {
+      try {
+        const formId = searchParams.get("f_id");
+        return formId;
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        navigate("/home");
+      }
+    };
+
+    const fetchCertificates = async (id) => {
+      try {
+        setApiStatus(apiStatusConstants.inProgress);
+        const userId = Cookies.get("user_id");
+        const api = "http://localhost:6969";
+
+        const response = await fetch(`${api}/RD/PartD/${userId}/?formId=${id}`);
+        const data = await response.json();
+
+        if (data.phdPartD.certificates_data) {
+          const transformedData = data.phdPartD.certificates_data.map(
+            (item) => ({
               nameOfTheCertificate: item.nameOfTheCertificate,
               organization: item.organization,
               score: item.score,
               apiScore: item.apiScore,
               hodRemark: item.hodRemark,
-            }));
-            setTableData(transformedData);
-            setFiles(data.phdPartD.files || []);
-          }
-          setDisabled(false);
-          setApiStatus(apiStatusConstants.success);
-        } catch (error) {
-          console.log(error);
-          setApiStatus(apiStatusConstants.failure);
+            })
+          );
+          setTableData(transformedData);
+          setFiles(data.phdPartD.files || []);
         }
+
+        setDisabled(false);
+        setApiStatus(apiStatusConstants.success);
+      } catch (error) {
+        console.error("Error fetching certificates data:", error);
+        setDisabled(false);
+        setApiStatus(apiStatusConstants.failure);
       }
-      fetchYear();
-    } else {
-      setApiStatus(apiStatusConstants.inProgress);
-      const { certificates_data, files } = props.data;
-      setTableData(certificates_data);
-      setFiles(files);
-      setApiStatus(apiStatusConstants.success);
+    };
+
+    const formId = getFormIdFromSearchParams();
+    if (formId) {
+      setFormId(formId);
+
+      if (!isReview) {
+        fetchCertificates(formId);
+      } else {
+        setApiStatus(apiStatusConstants.inProgress);
+        const { certificates_data, files } = props.data;
+        setTableData(certificates_data);
+        setFiles(files);
+        setApiStatus(apiStatusConstants.success);
+      }
     }
-  }, []);
+  }, [isReview, searchParams, props.data]);
 
   const handleEditCertificate = (certificateIndex, updatedCertificate) => {
     const updatedState = tableData.map((eachCertificate, aIndex) => {
@@ -243,7 +242,10 @@ const RDPartD = (props) => {
   };
 
   const calculateTotalApiScore = (data) => {
-    const score = data.reduce((total, item) => total + (parseFloat(item.apiScore) || 0), 0);
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.apiScore) || 0),
+      0
+    );
     return score >= 5 ? 5 : score;
   };
 
@@ -283,11 +285,11 @@ const RDPartD = (props) => {
       setDisabled(true);
       const userId = Cookies.get("user_id");
       const formData = new FormData();
-      const totalApiScore=calculateTotalApiScore(tableData)
+      const totalApiScore = calculateTotalApiScore(tableData);
       formData.append("userId", userId);
       formData.append("formId", formId);
       formData.append("tableData", JSON.stringify(tableData));
-      formData.append('totalApiScore',totalApiScore)
+      formData.append("totalApiScore", totalApiScore);
       files.forEach((file) => {
         if (!file.fileId) {
           formData.append("files", file);
@@ -302,7 +304,8 @@ const RDPartD = (props) => {
         body: formData,
       };
       const response = await fetch(`${api}/RD/PartD`, option);
-      navigate(`/contribution-to-university-school/?f_id=${formId}`);
+      !isReview &&
+        navigate(`/contribution-to-university-school/?f_id=${formId}`);
     } catch (error) {
       setDisabled(false);
       console.error(error);
@@ -316,6 +319,8 @@ const RDPartD = (props) => {
         progress: undefined,
         theme: "colored",
       });
+    } finally {
+      setDisabled(false);
     }
   };
 
@@ -355,7 +360,11 @@ const RDPartD = (props) => {
               <TableHead>Organization from which it is acquired</TableHead>
               <TableHead>Score / Grade</TableHead>
               <TableHead>Score (Max. 5)</TableHead>
-              {isReview && <TableHead>HOD Remark <br/> (Max. 5)</TableHead>}
+              {isReview && (
+                <TableHead>
+                  Reviewer Remark <br /> (Max. 5)
+                </TableHead>
+              )}
             </TableRow>
           </TableMainHead>
           <TableBody>
@@ -404,11 +413,11 @@ const RDPartD = (props) => {
                 {isReview && (
                   <TableData>
                     <EditableValue
-                      value={certificate.hodRemark || ""}
+                      value={certificate.reviewerScore || ""}
                       onValueChange={(newValue) =>
                         handleEditCertificate(certificateIndex, {
                           ...certificate,
-                          hodRemark: newValue,
+                          reviewerScore: newValue,
                         })
                       }
                       validate={(input) => /^[0-5]+$/.test(input)}
@@ -520,6 +529,35 @@ const RDPartD = (props) => {
               />
             ) : (
               "Save & Next"
+            )}
+          </SaveNextButton>
+        )}
+        {isReview && (
+          <SaveNextButton
+            type="submit"
+            onClick={submitRDPartD}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            {disabled ? (
+              <Oval
+                visible={true}
+                height="25"
+                width="25"
+                color="#ffffff"
+                ariaLabel="oval-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                className="text-center"
+              />
+            ) : (
+              "Save"
             )}
           </SaveNextButton>
         )}

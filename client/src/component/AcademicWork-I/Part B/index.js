@@ -105,7 +105,7 @@ const AcademicWorkII = (props) => {
   const [disabled, setDisabled] = useState(false);
   const [formId, setFormId] = useState("");
   const [loading, setLoading] = useState(false);
-  const [hodRemark, setHodRemark] = useState('')
+  const [reviewerScore, setReviewerScore] = useState("");
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -118,62 +118,59 @@ const AcademicWorkII = (props) => {
   const role = Cookies.get("role");
 
   useEffect(() => {
-    if (!isReview) {
-      let id;
-      async function fetchData() {
-        // if(!navigator.onLine){
-        //   await toast.error("You are offline. Please connect to the internet and try again.", {
-        //     position: "bottom-center",
-        //     autoClose: 6969,
-        //     hideProgressBar: true,
-        //     closeOnClick: true,
-        //     pauseOnHover: false,
-        //     draggable: true,
-        //   });
-        //   return;
-        // }
-        try {
-          const formId = await searchParams.get("f_id");
-          id = formId;
-          await setFormId(id);
-        } catch (error) {
-          console.error(error);
-          navigate("/home");
-        }
-        try {
-          setApiStatus(apiStatusConstants.inProgress);
-          const userId = Cookies.get("user_id");
-          const response = await fetch(
-            `http://localhost:6969/academic-work-2/data/${userId}/?formId=${id}`
-          );
-          if (response.ok) {
-            const data = await response.json();
-            if (data.academicWork) {
-              setEditorContent(data.academicWork.editorContent || "");
-              setFiles(data.academicWork.files || []);
-              setApiStatus(apiStatusConstants.success);
-            } else {
-              setEditorContent("");
-              setFiles([]);
-              setApiStatus(apiStatusConstants.success);
-            }
+    const getFormIdFromSearchParams = () => {
+      try {
+        const formId = searchParams.get("f_id");
+        return formId;
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        navigate("/home");
+      }
+    };
+
+    const fetchData = async (id) => {
+      try {
+        setApiStatus(apiStatusConstants.inProgress);
+        const userId = Cookies.get("user_id");
+        const response = await fetch(
+          `http://localhost:6969/academic-work-2/data/${userId}/?formId=${id}`
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.academicWork) {
+            setEditorContent(data.academicWork.editorContent || "");
+            setFiles(data.academicWork.files || []);
+            setApiStatus(apiStatusConstants.success);
           } else {
-            setApiStatus(apiStatusConstants.failure);
+            setEditorContent("");
+            setFiles([]);
+            setApiStatus(apiStatusConstants.success);
           }
-        } catch (error) {
-          console.error(error);
+        } else {
           setApiStatus(apiStatusConstants.failure);
         }
+      } catch (error) {
+        console.error("Error fetching data from API:", error);
+        setApiStatus(apiStatusConstants.failure);
       }
-      fetchData();
-    } else {
-      setApiStatus(apiStatusConstants.inProgress);
-      const { editorContent, files } = props.data;
-      setEditorContent(editorContent);
-      setFiles(files);
-      setApiStatus(apiStatusConstants.success);
+    };
+
+    const formId = getFormIdFromSearchParams();
+    if (formId) {
+      setFormId(formId);
+
+      if (!isReview) {
+        fetchData(formId);
+      } else {
+        setApiStatus(apiStatusConstants.inProgress);
+        const { editorContent, files } = props.data;
+        setEditorContent(editorContent);
+        setFiles(files);
+        setApiStatus(apiStatusConstants.success);
+      }
     }
-  }, []);
+  }, [isReview, searchParams, props.data]);
 
   const onDrop = useCallback((acceptedFiles) => {
     setFiles((prevFiles) => [
@@ -225,6 +222,7 @@ const AcademicWorkII = (props) => {
     formData.append("userId", userId);
     formData.append("formId", formId);
     formData.append("editorContent", editorContent);
+    formData.append("reviewerScore", reviewerScore);
     files.forEach((file) => {
       if (!file.fileId) {
         formData.append("files", file);
@@ -240,7 +238,8 @@ const AcademicWorkII = (props) => {
         body: formData,
       });
       if (response.ok === true) {
-        navigate(`/research-and-development/conformation/?f_id=${formId}`);
+        !isReview &&
+          navigate(`/research-and-development/conformation/?f_id=${formId}`);
       } else {
         setOnClick(false);
         setDisabled(false);
@@ -269,6 +268,9 @@ const AcademicWorkII = (props) => {
         theme: "colored",
         progress: undefined,
       });
+    } finally {
+      setOnClick(false);
+      setDisabled(false);
     }
   };
 
@@ -440,6 +442,30 @@ const AcademicWorkII = (props) => {
             ))}
           </UnorderedList>
         </FileContainer>
+        {isReview && (
+          <TableContainer className="mt-4">
+            <Table>
+              <TableMainHead>
+                <TableRow>
+                  <TableHead>Reviewer Remark</TableHead>
+                </TableRow>
+              </TableMainHead>
+              <TableBody>
+                <TableRow>
+                  <TableData>
+                    <EditableValue
+                      value={reviewerScore || ""}
+                      onValueChange={(newValue) => setReviewerScore(newValue)}
+                      validate={(input) => /^[0-5]+$/.test(input)}
+                      type="text"
+                      disabled={false}
+                    />
+                  </TableData>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
         {!isSummaryPath && (
           <SaveNextButtonContainer className="mt-3">
             <SaveNextButton
@@ -474,32 +500,38 @@ const AcademicWorkII = (props) => {
             </SaveNextButton>
           </SaveNextButtonContainer>
         )}
-        {/* Add Here */}
         {isReview && (
-          <TableContainer className="mt-4">
-            <Table>
-              <TableMainHead>
-                <TableRow>
-                  <TableHead>HOD Remark</TableHead>
-                </TableRow>
-              </TableMainHead>
-              <TableBody>
-                <TableRow>
-                  <TableData>
-                    <EditableValue
-                      value={hodRemark || ""}
-                      onValueChange={(newValue) =>
-                        setHodRemark(newValue)
-                      }
-                      validate={(input) => /^[0-5]+$/.test(input)}
-                      type="text"
-                      disabled={false}
-                    />
-                  </TableData>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <SaveNextButtonContainer className="mt-3">
+            <SaveNextButton
+              className="btn btn-primary"
+              type="submit"
+              onClick={submitAcademicForm2}
+              disabled={disabled}
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
+            >
+              {disabled ? (
+                <Oval
+                  visible={true}
+                  height="25"
+                  width="25"
+                  color="#ffffff"
+                  ariaLabel="oval-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  className="text-center"
+                />
+              ) : (
+                "Save"
+              )}
+            </SaveNextButton>
+          </SaveNextButtonContainer>
         )}
       </>
     );

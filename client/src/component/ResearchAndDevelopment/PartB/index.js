@@ -62,7 +62,7 @@ const RDPartB = (props) => {
       indexedIn: "",
       noOfDays: "",
       apiScore: "",
-      hodRemark: "",
+      reviewerScore: "",
     },
   ]);
   const [formId, setFormId] = useState("");
@@ -75,43 +75,35 @@ const RDPartB = (props) => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    if (!isReview) {
-      let id;
-      async function fetchYear() {
-        try {
-          // if(!navigator.onLine){
-          //   await toast.error("You are offline. Please connect to the internet and try again.", {
-          //     position: "bottom-center",
-          //     autoClose: 6969,
-          //     hideProgressBar: true,
-          //     closeOnClick: true,
-          //     pauseOnHover: false,
-          //     draggable: true,
-          //   });
-          //   return;
-          // }
-          const formId = await searchParams.get("f_id");
-          id = formId;
-          await setFormId(id);
-        } catch (error) {
-          console.error(error);
-          navigate("/home");
-        }
-        try {
-          setApiStatus(apiStatusConstants.inProgress);
-          const userId = Cookies.get("user_id");
-          const api = "http://localhost:6969";
-          const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
-          if (response.ok) {
-            const data = await response.json();
-            setYear(data.academic_year);
-            const response2 = await fetch(
-              `${api}/RD/PartB/${userId}/?formId=${id}`
-            );
-            const data2 = await response2.json();
-            if (data2.phdPartB.presentation_data) {
-              const presentation_data = data2.phdPartB.presentation_data;
-              const transformedData = presentation_data.map((item) => ({
+    const getFormIdFromSearchParams = () => {
+      try {
+        const formId = searchParams.get("f_id");
+        return formId;
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        navigate("/home");
+      }
+    };
+
+    const fetchYear = async (id) => {
+      try {
+        setApiStatus(apiStatusConstants.inProgress);
+        const userId = Cookies.get("user_id");
+        const api = "http://localhost:6969";
+
+        const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setYear(data.academic_year);
+
+          const response2 = await fetch(
+            `${api}/RD/PartB/${userId}/?formId=${id}`
+          );
+          const data2 = await response2.json();
+
+          if (data2.phdPartB.presentation_data) {
+            const presentation_data = data2.phdPartB.presentation_data.map(
+              (item) => ({
                 titleOfThePaper: item.titleOfThePaper,
                 titleOfTheme: item.titleOfTheme,
                 organizedBy: item.organizedBy,
@@ -119,29 +111,38 @@ const RDPartB = (props) => {
                 noOfDays: item.noOfDays,
                 apiScore: item.apiScore,
                 hodRemark: item.hodRemark,
-              }));
-              setTableData(transformedData);
-              setFiles(data2.phdPartB.files || []);
-            }
-            setApiStatus(apiStatusConstants.success);
-          } else {
-            setApiStatus(apiStatusConstants.failure);
+              })
+            );
+            setTableData(presentation_data);
+            setFiles(data2.phdPartB.files || []);
           }
-        } catch (error) {
-          console.error(error);
-          setDisabled(false);
+
+          setApiStatus(apiStatusConstants.success);
+        } else {
           setApiStatus(apiStatusConstants.failure);
         }
+      } catch (error) {
+        console.error("Error fetching year data:", error);
+        setApiStatus(apiStatusConstants.failure);
+        setDisabled(false);
       }
-      fetchYear();
-    } else {
-      setApiStatus(apiStatusConstants.inProgress)
-      const {presentation_data,files}=props.data
-      setTableData(presentation_data)
-      setFiles(files)
-      setApiStatus(apiStatusConstants.success)
+    };
+
+    const formId = getFormIdFromSearchParams();
+    if (formId) {
+      setFormId(formId);
+
+      if (!isReview) {
+        fetchYear(formId);
+      } else {
+        setApiStatus(apiStatusConstants.inProgress);
+        const { presentation_data, files } = props.data;
+        setTableData(presentation_data);
+        setFiles(files);
+        setApiStatus(apiStatusConstants.success);
+      }
     }
-  }, []);
+  }, [isReview, searchParams, props.data]);
 
   const calculateApiScore = (value1, value2) => {
     if (value1 === "wos" || value1 === "scopus") {
@@ -267,7 +268,10 @@ const RDPartB = (props) => {
   };
 
   const calculateTotalApiScore = (data) => {
-    const score = data.reduce((total, item) => total + (parseFloat(item.apiScore) || 0), 0);
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.apiScore) || 0),
+      0
+    );
     return score >= 5 ? 5 : score;
   };
 
@@ -311,7 +315,8 @@ const RDPartB = (props) => {
         });
         if (response.ok) {
           setDisabled(false);
-          navigate(`/research-and-development/partC/?f_id=${formId}`);
+          !isReview &&
+            navigate(`/research-and-development/partC/?f_id=${formId}`);
         } else {
           setDisabled(false);
           toast.error("Error while saving the data! Please try again Later", {
@@ -351,6 +356,8 @@ const RDPartB = (props) => {
         progress: undefined,
         theme: "colored",
       });
+    } finally {
+      setDisabled(false);
     }
   };
 
@@ -400,7 +407,12 @@ const RDPartB = (props) => {
               <TableHead>Indexed in? (WoS/Scopus)</TableHead>
               <TableHead>No. of days</TableHead>
               <TableHead>Score (Max. 5)</TableHead>
-              {isReview &&<TableHead>HOD Remark <br/>(Max. 5)</TableHead>}
+              {isReview && (
+                <TableHead>
+                  Reviewer Remark <br />
+                  (Max. 5)
+                </TableHead>
+              )}
             </TableRow>
           </TableMainHead>
           <TableBody>
@@ -481,11 +493,11 @@ const RDPartB = (props) => {
                 {isReview && (
                   <TableData>
                     <EditableValue
-                      value={paper.hodRemark || ""}
+                      value={paper.reviewerScore || ""}
                       onValueChange={(newValue) =>
                         handleEditPresentation(paperIndex, {
                           ...paper,
-                          hodRemark: newValue,
+                          reviewerScore: newValue,
                         })
                       }
                       validate={(input) => /^[0-5]+$/.test(input)}
@@ -533,26 +545,30 @@ const RDPartB = (props) => {
         )}
       </TableContainer>
       <FileContainer className="mt-4">
-      {!isSummaryPath && <><SubSectionHeading>
-          Submit the documentary evidences below
-        </SubSectionHeading>
-        <StyledDropzone {...getRootProps({ isDragActive })}>
-          <InputFile {...getInputProps()} />
-          {isDragActive ? (
-            <>
-              <Paragraph>Drop the files here...</Paragraph>
-              <Paragraph>(Max File size is 50mb)</Paragraph>
-            </>
-          ) : (
-            <>
-              <Paragraph>
-                Drag or drop some files here, or click to select files
-              </Paragraph>
-              <Paragraph>(Max File size is 50mb)</Paragraph>
-            </>
-          )}
-        </StyledDropzone></>}
-        
+        {!isSummaryPath && (
+          <>
+            <SubSectionHeading>
+              Submit the documentary evidences below
+            </SubSectionHeading>
+            <StyledDropzone {...getRootProps({ isDragActive })}>
+              <InputFile {...getInputProps()} />
+              {isDragActive ? (
+                <>
+                  <Paragraph>Drop the files here...</Paragraph>
+                  <Paragraph>(Max File size is 50mb)</Paragraph>
+                </>
+              ) : (
+                <>
+                  <Paragraph>
+                    Drag or drop some files here, or click to select files
+                  </Paragraph>
+                  <Paragraph>(Max File size is 50mb)</Paragraph>
+                </>
+              )}
+            </StyledDropzone>
+          </>
+        )}
+
         <UnorderedList className="mt-3">
           {files.map((file, index) => (
             <ListItems key={index}>
@@ -595,6 +611,37 @@ const RDPartB = (props) => {
               />
             ) : (
               "Save & Next"
+            )}
+          </SaveNextButton>
+        )}
+        {isReview && (
+          <SaveNextButton
+            className="btn btn-primary"
+            type="submit"
+            onClick={submitRDPartB}
+            disabled={disabled}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            {disabled ? (
+              <Oval
+                visible={true}
+                height="25"
+                width="25"
+                color="#ffffff"
+                ariaLabel="oval-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                className="text-center"
+              />
+            ) : (
+              "Save"
             )}
           </SaveNextButton>
         )}
@@ -675,8 +722,8 @@ const RDPartB = (props) => {
             marginBottom: "18px",
           }}
         >
-        {!isSummaryPath && <Back />}
-          
+          {!isSummaryPath && <Back />}
+
           <div
             style={{
               display: "flex",

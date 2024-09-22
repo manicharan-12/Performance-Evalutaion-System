@@ -323,7 +323,7 @@ const Home = () => {
               border: "none",
             }}
           >
-            Faculty
+            Faculty Submissions
           </button>
           <button
             onClick={openModal}

@@ -2,10 +2,6 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const remarkSchema = new mongoose.Schema({
-  content: {type: Number, default: null},
-})
-
 const contributionToUniversitySchool = new Schema({
   userId: { type: String },
   formId: { type: String },
@@ -14,6 +10,7 @@ const contributionToUniversitySchool = new Schema({
       nameOfTheResponsibility: { type: String },
       contribution: { type: String },
       apiScore: { type: Number },
+      reviewerScore: { type: Number },
     },
   ],
   files: [
@@ -24,10 +21,9 @@ const contributionToUniversitySchool = new Schema({
       fileContent: { type: String },
     },
   ],
-  remark: remarkSchema,
 });
 
 module.exports = mongoose.model(
   "ContributionToUniversitySchool",
-  contributionToUniversitySchool,
+  contributionToUniversitySchool
 );

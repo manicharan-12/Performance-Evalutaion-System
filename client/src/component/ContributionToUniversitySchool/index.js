@@ -57,7 +57,7 @@ const ContributionToUniversity = (props) => {
       nameOfTheResponsibility: "",
       contribution: "",
       apiScore: "",
-      hodRemark: "",
+      reviewerScore: "",
     },
   ]);
   const [formId, setFormId] = useState("");
@@ -71,64 +71,65 @@ const ContributionToUniversity = (props) => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    if (!isReview) {
-      let id;
-      const fetchYear = async () => {
-        // if(!navigator.onLine){
-        //   await toast.error("You are offline. Please connect to the internet and try again.", {
-        //     position: "bottom-center",
-        //     autoClose: 6969,
-        //     hideProgressBar: true,
-        //     closeOnClick: true,
-        //     pauseOnHover: false,
-        //     draggable: true,
-        //   });
-        //   return;
-        // }
-        try {
-          const formId = await searchParams.get("f_id");
-          id = formId;
-          await setFormId(id);
-        } catch (error) {
-          console.error(error);
-          navigate("/home");
+    const getFormIdFromSearchParams = () => {
+      try {
+        const formId = searchParams.get("f_id");
+        return formId;
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        navigate("/home");
+      }
+    };
+
+    const fetchContributionToUniversitySchool = async (id) => {
+      try {
+        setApiStatus(apiStatusConstants.inProgress);
+        const userId = Cookies.get("user_id");
+        const api = "http://localhost:6969";
+
+        const response = await fetch(
+          `${api}/ContributionToUniversitySchool/${userId}/?formId=${id}`
+        );
+        const data = await response.json();
+
+        if (data.contributionToUniversitySchool.contribution_data) {
+          const transformedData =
+            data.contributionToUniversitySchool.contribution_data.map(
+              (item) => ({
+                nameOfTheResponsibility: item.nameOfTheResponsibility,
+                contribution: item.contribution,
+                apiScore: item.apiScore,
+                hodRemark: item.hodRemark,
+              })
+            );
+          setTableData(transformedData);
+          setFiles(data.contributionToUniversitySchool.files || []);
         }
-        try {
-          setApiStatus(apiStatusConstants.inProgress);
-          const userId = Cookies.get("user_id");
-          const api = "http://localhost:6969";
-          const response = await fetch(
-            `${api}/ContributionToUniversitySchool/${userId}/?formId=${id}`
-          );
-          const data = await response.json();
-          if (data.contributionToUniversitySchool.contribution_data !== null) {
-            const contribution_data =
-              data.contributionToUniversitySchool.contribution_data;
-            const transformedData = contribution_data.map((item) => ({
-              nameOfTheResponsibility: item.nameOfTheResponsibility,
-              contribution: item.contribution,
-              apiScore: item.apiScore,
-              hodRemark: item.hodRemark,
-            }));
-            setTableData(transformedData);
-            setFiles(data.contributionToUniversitySchool.files || []);
-          }
-          setDisabled(false);
-          setApiStatus(apiStatusConstants.success);
-        } catch (error) {
-          console.log(error);
-          setApiStatus(apiStatusConstants.failure);
-        }
-      };
-      fetchYear();
-    } else {
-      setApiStatus(apiStatusConstants.inProgress);
-      const { contribution_data, files } = props.data;
-      setTableData(contribution_data);
-      setFiles(files);
-      setApiStatus(apiStatusConstants.success);
+
+        setDisabled(false);
+        setApiStatus(apiStatusConstants.success);
+      } catch (error) {
+        console.error("Error fetching contribution data:", error);
+        setDisabled(false);
+        setApiStatus(apiStatusConstants.failure);
+      }
+    };
+
+    const formId = getFormIdFromSearchParams();
+    if (formId) {
+      setFormId(formId);
+
+      if (!isReview) {
+        fetchContributionToUniversitySchool(formId);
+      } else {
+        setApiStatus(apiStatusConstants.inProgress);
+        const { contribution_data, files } = props.data;
+        setTableData(contribution_data);
+        setFiles(files);
+        setApiStatus(apiStatusConstants.success);
+      }
     }
-  }, []);
+  }, [isReview, searchParams, props.data]);
 
   const handleEditContribution = (contributionIndex, updatedContribution) => {
     const updatedState = tableData.map((eachContribution, cIndex) => {
@@ -226,7 +227,7 @@ const ContributionToUniversity = (props) => {
         `${api}/ContributionToUniversitySchool`,
         option
       );
-      navigate(`/contribution-to-department/?f_id=${formId}`);
+      !isReview && navigate(`/contribution-to-department/?f_id=${formId}`);
     } catch (error) {
       console.error(error);
       setDisabled(false);
@@ -240,6 +241,8 @@ const ContributionToUniversity = (props) => {
         progress: undefined,
         theme: "colored",
       });
+    } finally {
+      setDisabled(false);
     }
   };
 
@@ -364,9 +367,11 @@ const ContributionToUniversity = (props) => {
               </TableHead>
               <TableHead>Contribution(s)</TableHead>
               <TableHead>Score (Max. 5)</TableHead>
-              {isReview&&<TableHead>
-                HOD Remark <br /> (Max. 5)
-              </TableHead>}
+              {isReview && (
+                <TableHead>
+                  Reviewer Remark <br /> (Max. 5)
+                </TableHead>
+              )}
             </TableRow>
           </TableMainHead>
           <TableBody>
@@ -404,11 +409,11 @@ const ContributionToUniversity = (props) => {
                 {isReview && (
                   <TableData>
                     <EditableValue
-                      value={contribution.hodRemark || ""}
+                      value={contribution.reviewerScore || ""}
                       onValueChange={(newValue) =>
                         handleEditContribution(index, {
                           ...contribution,
-                          hodRemark: newValue,
+                          reviewerScore: newValue,
                         })
                       }
                       validate={(input) => /^[0-5]+$/.test(input)}
@@ -520,6 +525,35 @@ const ContributionToUniversity = (props) => {
               />
             ) : (
               "Save & Next"
+            )}
+          </SaveNextButton>
+        )}
+        {isReview && (
+          <SaveNextButton
+            type="submit"
+            onClick={submitContributionToUniversity}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            {disabled ? (
+              <Oval
+                visible={true}
+                height="25"
+                width="25"
+                color="#ffffff"
+                ariaLabel="oval-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                className="text-center"
+              />
+            ) : (
+              "Save"
             )}
           </SaveNextButton>
         )}

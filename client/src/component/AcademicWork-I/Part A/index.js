@@ -343,8 +343,7 @@ const AcademicWorkI = (props) => {
         progress: undefined,
         theme: "colored",
       });
-    }
-    finally{
+    } finally {
       setDisabled(false);
     }
   };
@@ -478,11 +477,15 @@ const AcademicWorkI = (props) => {
                 <TableHead>No. of classes actually held</TableHead>
                 <TableHead>Result (Pass %)</TableHead>
                 <TableHead>API Score-Results (Max. 20) (A)</TableHead>
-                {isReview && <TableHead>HOD Remark (Max. 20) (A)</TableHead>}
+                {isReview && (
+                  <TableHead>Reviewer Remark (Max. 20) (A)</TableHead>
+                )}
                 <TableHead>Student Feedback %</TableHead>
                 <TableHead>API Score-Feedback (Max. 20) (B)</TableHead>
                 {!isSummaryPath && <TableHead>Actions</TableHead>}
-                {isReview && <TableHead>HOD Remark (Max. 20) (B)</TableHead>}
+                {isReview && (
+                  <TableHead>Reviewer Remark (Max. 20) (B)</TableHead>
+                )}
               </TableRow>
             </TableMainHead>
             <TableBody>

@@ -2,10 +2,6 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const remarkSchema = new mongoose.Schema({
-  content: {type: Number, default: null},
-})
-
 const academicWorkPartB = new Schema({
   userId: { type: String, required: true },
   formId: { type: String, required: true },
@@ -18,7 +14,7 @@ const academicWorkPartB = new Schema({
       fileContent: { type: String },
     },
   ],
-  remarkA: remarkSchema,
+  reviewerScore: { type: Number, default: null },
 });
 
 module.exports = mongoose.model("AcademicWorkPartB", academicWorkPartB);

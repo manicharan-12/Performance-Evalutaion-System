@@ -60,7 +60,7 @@ const RDPartC = (props) => {
       grant: "",
       status: "",
       apiScore: "",
-      hodRemark: "",
+      reviewerScore: "",
     },
   ]);
   const [formId, setFormId] = useState("");
@@ -74,74 +74,75 @@ const RDPartC = (props) => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    if (!isReview) {
-      let id;
-      async function fetchYear() {
-        // if(!navigator.onLine){
-        //   await toast.error("You are offline. Please connect to the internet and try again.", {
-        //     position: "bottom-center",
-        //     autoClose: 6969,
-        //     hideProgressBar: true,
-        //     closeOnClick: true,
-        //     pauseOnHover: false,
-        //     draggable: true,
-        //   });
-        //   return;
-        // }
-        try {
-          const formId = await searchParams.get("f_id");
-          id = formId;
-          await setFormId(id);
-        } catch (error) {
-          console.error(error);
-          navigate("/home");
-        }
-        try {
-          setApiStatus(apiStatusConstants.inProgress);
-          setDisabled(true);
-          const userId = Cookies.get("user_id");
-          const api = "http://localhost:6969";
-          const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
-          if (response.ok) {
-            const data = await response.json();
-            setYear(data.academic_year);
-            const response2 = await fetch(
-              `${api}/RD/PartC/${userId}/?formId=${id}`
-            );
-            const data2 = await response2.json();
-            if (data2.phdPartC.projects_data !== null) {
-              const projects_data = data2.phdPartC.projects_data;
-              const transformedData = projects_data.map((item) => ({
+    const getFormIdFromSearchParams = () => {
+      try {
+        const formId = searchParams.get("f_id");
+        return formId;
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        navigate("/home");
+      }
+    };
+
+    const fetchYear = async (id) => {
+      try {
+        setApiStatus(apiStatusConstants.inProgress);
+        setDisabled(true);
+        const userId = Cookies.get("user_id");
+        const api = "http://localhost:6969";
+
+        const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setYear(data.academic_year);
+
+          const response2 = await fetch(
+            `${api}/RD/PartC/${userId}/?formId=${id}`
+          );
+          const data2 = await response2.json();
+
+          if (data2.phdPartC.projects_data) {
+            const transformedData = data2.phdPartC.projects_data.map(
+              (item) => ({
                 titleOfTheFundingProject: item.titleOfTheFundingProject,
                 fundingAgencyDetails: item.fundingAgencyDetails,
                 grant: item.grant,
                 status: item.status,
                 apiScore: item.apiScore,
                 hodRemark: item.hodRemark,
-              }));
-              setTableData(transformedData);
-              setFiles(data2.phdPartC.files || []);
-            }
-            setDisabled(false);
-            setApiStatus(apiStatusConstants.success);
-          } else {
-            setDisabled(false);
-            setApiStatus(apiStatusConstants.failure);
+              })
+            );
+            setTableData(transformedData);
+            setFiles(data2.phdPartC.files || []);
           }
-        } catch (error) {
-          console.error(error);
+
+          setDisabled(false);
+          setApiStatus(apiStatusConstants.success);
+        } else {
+          setDisabled(false);
           setApiStatus(apiStatusConstants.failure);
         }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setDisabled(false);
+        setApiStatus(apiStatusConstants.failure);
       }
-      fetchYear();
-    } else {
-      setApiStatus(apiStatusConstants.inProgress);
-      const { projects_data, files } = props.data;
-      setTableData(projects_data);
-      setFiles(files);
-      setApiStatus(apiStatusConstants.success);
+    };
+
+    const formId = getFormIdFromSearchParams();
+    if (formId) {
+      setFormId(formId);
+      if (!isReview) {
+        fetchYear(formId);
+      } else {
+        setApiStatus(apiStatusConstants.inProgress);
+        const { projects_data, files } = props.data;
+        setTableData(projects_data);
+        setFiles(files);
+        setApiStatus(apiStatusConstants.success);
+      }
     }
-  }, []);
+  }, [isReview, searchParams, props.data]);
 
   const calculateApiScore = (value) => {
     if (value === "sanctioned") {
@@ -266,7 +267,10 @@ const RDPartC = (props) => {
   };
 
   const calculateTotalApiScore = (data) => {
-    const score = data.reduce((total, item) => total + (parseFloat(item.apiScore) || 0), 0);
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.apiScore) || 0),
+      0
+    );
     return score >= 5 ? 5 : score;
   };
 
@@ -290,11 +294,11 @@ const RDPartC = (props) => {
         setDisabled(true);
         const userId = Cookies.get("user_id");
         const formData = new FormData();
-        const totalApiScore=calculateTotalApiScore(tableData)
+        const totalApiScore = calculateTotalApiScore(tableData);
         formData.append("userId", userId);
         formData.append("formId", formId);
         formData.append("tableData", JSON.stringify(tableData));
-        formData.append('totalApiScore',totalApiScore)
+        formData.append("totalApiScore", totalApiScore);
         files.forEach((file) => {
           if (!file.fileId) {
             formData.append("files", file);
@@ -311,7 +315,8 @@ const RDPartC = (props) => {
         const response = await fetch(`${api}/RD/PartC`, option);
         if (response.ok === true) {
           setDisabled(false);
-          navigate(`/research-and-development/partD/?f_id=${formId}`);
+          !isReview &&
+            navigate(`/research-and-development/partD/?f_id=${formId}`);
         } else {
           setDisabled(false);
           toast.error(`Failed to save data! Please try again Later`, {
@@ -351,6 +356,8 @@ const RDPartC = (props) => {
         progress: undefined,
         theme: "colored",
       });
+    } finally {
+      setDisabled(false);
     }
   };
 
@@ -398,7 +405,11 @@ const RDPartC = (props) => {
                 <TableHead>Grant (in Rs.)</TableHead>
                 <TableHead>Status (Sanctioned/ Submitted)</TableHead>
                 <TableHead>Score (Max. 5)</TableHead>
-                {isReview &&<TableHead>HOD Remark <br/> (Max. 5)</TableHead>}
+                {isReview && (
+                  <TableHead>
+                    Reviewer Remark <br /> (Max. 5)
+                  </TableHead>
+                )}
               </TableRow>
             </TableMainHead>
             <TableBody>
@@ -465,21 +476,21 @@ const RDPartC = (props) => {
                     <TableData>{project.apiScore}</TableData>
 
                     {isReview && (
-                  <TableData>
-                    <EditableValue
-                      value={project.hodRemark || ""}
-                      onValueChange={(newValue) =>
-                        handleEditSanctionProject(projectIndex, {
-                          ...project,
-                          hodRemark: newValue,
-                        })
-                      }
-                      validate={(input) => /^[0-5]+$/.test(input)}
-                      type="text"
-                      disabled={false}
-                    />
-                  </TableData>
-                )}
+                      <TableData>
+                        <EditableValue
+                          value={project.reviewerScore || ""}
+                          onValueChange={(newValue) =>
+                            handleEditSanctionProject(projectIndex, {
+                              ...project,
+                              reviewerScore: newValue,
+                            })
+                          }
+                          validate={(input) => /^[0-5]+$/.test(input)}
+                          type="text"
+                          disabled={false}
+                        />
+                      </TableData>
+                    )}
                   </TableRow>
                 );
               })}
@@ -584,6 +595,35 @@ const RDPartC = (props) => {
                 />
               ) : (
                 "Save & Next"
+              )}
+            </SaveNextButton>
+          )}
+          {isReview && (
+            <SaveNextButton
+              type="submit"
+              onClick={submitRDPartC}
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
+            >
+              {disabled ? (
+                <Oval
+                  visible={true}
+                  height="25"
+                  width="25"
+                  color="#ffffff"
+                  ariaLabel="oval-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  className="text-center"
+                />
+              ) : (
+                "Save"
               )}
             </SaveNextButton>
           )}

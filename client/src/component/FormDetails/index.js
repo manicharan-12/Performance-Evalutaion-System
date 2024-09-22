@@ -89,7 +89,7 @@ const FormDetails = () => {
     <div>
       <DataContainer>
         <section>
-        <pre>{JSON.stringify(formData.academicWorkPartA,null,2)}</pre>
+          {/* <pre>{JSON.stringify(formData.academicWorkPartA,null,2)}</pre> */}
           <AcademicWorkI data={formData.academicWorkPartA} />
         </section>
         <section>
@@ -108,15 +108,15 @@ const FormDetails = () => {
           <RDPartD data={formData.researchAndDevelopmentPartD} />
         </section>
         <section>
+          <ContributionToUniversity
+            data={formData.contributionToUniversitySchool}
+          />
+        </section>
+        <section>
           <ContributionToDepartment data={formData.contributionToDepartment} />
         </section>
         <section>
           <ContributionToSociety data={formData.contributionToSociety} />
-        </section>
-        <section>
-          <ContributionToUniversity
-            data={formData.contributionToUniversitySchool}
-          />
         </section>
         <section>
           <ApiScoreSummary data={formData.apiScore} />
