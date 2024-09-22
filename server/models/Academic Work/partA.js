@@ -1,9 +1,5 @@
 const mongoose = require("mongoose");
 
-const remarkSchema = new mongoose.Schema({
-    content: {type: Number, default: null},
-})
-
 const courseSchema = new mongoose.Schema({
     name: {type: String, required: true},
     courseTaught: {type: String, required: true},
@@ -11,10 +7,10 @@ const courseSchema = new mongoose.Schema({
     actualClasses: {type: Number, required: true},
     passPercentage: {type: Number, required: true},
     apiScoreResults: {type: Number, required: true},
-    remarkA: remarkSchema,
+    remarkA: {type: Number, default: null},
     studentFeedbackPercentage: {type: Number, required: true},
     studentFeedbackScore: {type: Number, required: true},
-    remarkB: remarkSchema,
+    remarkB: {type: Number, default: null},
 });
 
 const semesterSchema = new mongoose.Schema({

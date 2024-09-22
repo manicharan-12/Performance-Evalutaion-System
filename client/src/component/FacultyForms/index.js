@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { ThreeDots } from "react-loader-spinner";
 import failureImage from "../Images/failure view.png";
+import Back from "../Back";
 import {
   LoaderContainer,
   FailureContainer,
@@ -16,7 +17,7 @@ import {
   FormsContainer,
   HomeMainContainer,
 } from "./StyledComponents"; // Adjust the path to your styled components
-import './UserDetail.css';
+import "./UserDetail.css";
 
 const UserDetail = () => {
   const [formData, setFormData] = useState(null);
@@ -27,6 +28,10 @@ const UserDetail = () => {
   const [facultyName, setFacultyName] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const isSummaryPath =
+    location.pathname.startsWith("/summary") ||
+    location.pathname.startsWith("/review");
 
   // useEffect(() => {
   //   const fetchData = async () => {
@@ -118,11 +123,12 @@ const UserDetail = () => {
   }
 
   const handleFormClick = (f_id) => {
-    navigate(`/review/user-details/?fac_id=${f_id}`)
+    navigate(`/review/user-details/?f_id=${f_id}`);
   };
   return (
     <HomeMainContainer>
       <MainContainer>
+        {!isSummaryPath && <Back />}
         <h1>List of Forms</h1>
         <h4>Faculty: {facultyId}</h4>
         <FormsContainer>
@@ -143,21 +149,24 @@ const UserDetail = () => {
                 {eachForm.formName}
               </SubSectionHeading>
               <div className="icon-buttons-container">
-      <button
-        className="icon-button"
-        onClick={() => handleFormClick(eachForm._id)}
-        aria-label="Edit"
-      >
-        <i class="fa-solid fa-pen-to-square"></i>
-      </button>
-      <button
-        className="icon-button"
-        onClick={() => handleFormClick(eachForm._id)}
-        aria-label="Print"
-      >
-       <i class="fa-solid fa-print"></i>
-      </button>
-    </div>
+                <button
+                  className="icon-button"
+                  onClick={() => handleFormClick(eachForm._id)}
+                  aria-label="Edit"
+                >
+                  <i
+                    class="fa-solid fa-pen-to-square"
+                    style={{ fontSize: "25px" }}
+                  ></i>
+                </button>
+                <button
+                  className="icon-button"
+                  onClick={() => handleFormClick(eachForm._id)}
+                  aria-label="Print"
+                >
+                  <i class="fa-solid fa-print" style={{ fontSize: "25px" }}></i>
+                </button>
+              </div>
             </FormsList>
           ))}
         </FormsContainer>
@@ -167,9 +176,3 @@ const UserDetail = () => {
 };
 
 export default UserDetail;
-
-
-
-
-
-

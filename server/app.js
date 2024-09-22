@@ -408,6 +408,8 @@ app.post("/academic-work-1", async (request, response) => {
       averageFeedbackPercentage,
       totalApiScore,
     } = request.body;
+    console.log(userId,formId);
+    
     const existingData = await AcademicWorkPartA.findOne({
       userId,
       formId,
@@ -1927,7 +1929,6 @@ app.get("/faculty/:f_id", async (req, res) => {
 
 app.get("/faculty/forms/:formId", async (req, res) => {
   const formId = req.params.formId;
-  console.log(`Fetching data for formId: ${formId}`);
 
   try {
     const academicWorkPartA = await AcademicWorkPartA.findOne({ formId });

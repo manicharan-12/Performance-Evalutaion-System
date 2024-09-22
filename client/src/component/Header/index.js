@@ -62,7 +62,7 @@ const Header = () => {
   return (
     <MainNavContainer className="shadow">
       <NavImage src={logo} alt="Anurag University" onClick={onClickImage} />
-      {isHod && (
+      {/* {isHod && (
 
         <button
           onClick={handleNavigate}
@@ -79,7 +79,7 @@ const Header = () => {
         >
           Dashboard
         </button>
-      )}
+      )} */}
       <LoginButtonContainer className="dropdown-container">
         <ProfileButton onClick={handleProfileClick}>
           <ProfileIcon />

@@ -26,7 +26,6 @@ import {
   HeadingContainer,
   SectionHeading,
 } from "./StyledComponents";
-import EditableValue from "../EditableValue";
 
 const apiStatusConstants = {
   initial: "INITIAL",

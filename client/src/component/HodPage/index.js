@@ -139,6 +139,7 @@
 
 
 
+import Back from "../Back";
 import { useEffect, useState } from "react";
 import { ThreeDots } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
@@ -152,7 +153,7 @@ import {
   MainContainer,
 } from "../Home/StyledComponents";
 import { TeacherCard, TeacherCardContainer } from "./StyledComponents";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import './HodDashboard.css';
 
@@ -171,6 +172,10 @@ const HodDashboard = () => {
   const [disabled, setDisabled] = useState(false);
   const [userName, setUserName] = useState("");
   const [teachers, setTeachers] = useState([]);
+  const location = useLocation();
+  const isSummaryPath =
+    location.pathname.startsWith("/summary") ||
+    location.pathname.startsWith("/review");
 
   useEffect(() => {
     async function fetchData() {
@@ -256,7 +261,7 @@ const HodDashboard = () => {
 
   const renderSuccessView = () => (
     <>
-      <h1>Welcome to your Dashboard, {userName}!</h1>
+      <h1>List of Faculty</h1>
       <table className="teacher-table">
         <thead>
           <tr>
@@ -290,7 +295,10 @@ const HodDashboard = () => {
 
   return (
     <HomeMainContainer className="mb-5">
-      <MainContainer className="mt-5">{renderHomePage()}</MainContainer>
+      <MainContainer className="mt-5">
+      {!isSummaryPath && <Back />}
+        {renderHomePage()}
+        </MainContainer>
     </HomeMainContainer>
   );
 };

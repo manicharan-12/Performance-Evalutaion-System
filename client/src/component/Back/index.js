@@ -6,7 +6,6 @@ const Back = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isSummaryPath = location.pathname.startsWith('/summary');
-  console.log(isSummaryPath);
 
   return (
     <>

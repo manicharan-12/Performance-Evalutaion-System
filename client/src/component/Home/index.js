@@ -31,6 +31,7 @@ const apiStatusConstants = {
   failure: "FAILURE",
 };
 
+
 const Home = () => {
   const [formList, setFormList] = useState([]);
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
@@ -42,6 +43,7 @@ const Home = () => {
   const [disabled, setDisabled] = useState(false);
   const [userName, setUserName] = useState("");
   const [searchText, setSearchText] = useState("");
+  
 
   useEffect(() => {
     async function fetchForms() {
@@ -107,7 +109,9 @@ const Home = () => {
     setIsEditing(false);
     setEditingFormId(null);
   };
-
+  const handleNavigate = () => {
+    navigate("/hod-dashboard");
+  }
   const closeModal = () => {
     setModal(false);
     setName("");
@@ -307,8 +311,9 @@ const Home = () => {
             value={searchText}
             onChange={onChangeSearchText}
           />
+          <span style={{'display':'flex', 'gap':'10px'}}>
           <button
-            onClick={openModal}
+            onClick={handleNavigate}
             style={{
               padding: "12px",
               borderRadius: "8px",
@@ -333,6 +338,7 @@ const Home = () => {
           >
             Create a new form
           </button>
+          </span>
         </ButtonContainer>
         {modal && (
           <ModelContainer className="pb-3 shadow-lg">

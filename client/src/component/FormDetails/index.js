@@ -32,7 +32,7 @@ const FormDetails = () => {
 
   useEffect(() => {
     const getFacultyId = () => {
-      const id = searchParams.get("fac_id");
+      const id = searchParams.get("f_id");
       setFormId(id);
     };
 
@@ -40,15 +40,12 @@ const FormDetails = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    console.log(formId);
-
     const getFormData = async () => {
       try {
         setLoading(true);
         const response = await axios.get(
           `http://localhost:6969/faculty/forms/${formId}`
         );
-        console.log(response.data);
 
         setFormData(response.data);
       } catch (err) {
@@ -92,6 +89,7 @@ const FormDetails = () => {
     <div>
       <DataContainer>
         <section>
+        <pre>{JSON.stringify(formData.academicWorkPartA,null,2)}</pre>
           <AcademicWorkI data={formData.academicWorkPartA} />
         </section>
         <section>
@@ -116,15 +114,15 @@ const FormDetails = () => {
           <ContributionToSociety data={formData.contributionToSociety} />
         </section>
         <section>
-          <ContributionToUniversity data={formData.contributionToUniversitySchool}/>
+          <ContributionToUniversity
+            data={formData.contributionToUniversitySchool}
+          />
         </section>
         <section>
-          <h2>API Score</h2>
-          <pre>{JSON.stringify(formData?.apiScore, null, 2)}</pre>
-          <ApiScoreSummary data={formData.apiScore}/>
+          <ApiScoreSummary data={formData.apiScore} />
         </section>
         <section>
-            <AssessmentOfFunctionalHead/>
+          <AssessmentOfFunctionalHead />
         </section>
       </DataContainer>
     </div>

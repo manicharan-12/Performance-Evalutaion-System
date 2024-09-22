@@ -315,7 +315,7 @@ const AcademicWorkI = (props) => {
         };
         const response = await fetch(`${api}/academic-work-1`, option);
         if (response.ok === true) {
-          navigate(`/academicWork/part-b/?f_id=${formId}`);
+          !isReview && navigate(`/academicWork/part-b/?f_id=${formId}`);
         } else {
           setDisabled(false);
           await toast.error("Failed to save data! Please try again later", {
@@ -344,6 +344,9 @@ const AcademicWorkI = (props) => {
         theme: "colored",
       });
     }
+    finally{
+      setDisabled(false);
+    }
   };
 
   useEffect(() => {
@@ -351,76 +354,73 @@ const AcademicWorkI = (props) => {
   }, [tableData, recalculateAveragesAndTotalApiScore]);
 
   useEffect(() => {
-    if (!isReview) {
-      let id;
-      async function fetchData() {
-        // if(!navigator.onLine){
-        //   await toast.error("You are offline. Please connect to the internet and try again.", {
-        //     position: "bottom-center",
-        //     autoClose: 6969,
-        //     hideProgressBar: true,
-        //     closeOnClick: true,
-        //     pauseOnHover: false,
-        //     draggable: true,
-        //   });
-        //   return;
-        // }
-        try {
-          const formId = searchParams.get("f_id");
-          id = formId;
-          await setFormId(id);
-        } catch (error) {
-          console.error(error);
-          navigate("/home");
-        }
-        try {
-          setApiStatus(apiStatusConstants.inProgress);
-          setDisabled(true);
-          const userId = Cookies.get("user_id");
-          const api = "http://localhost:6969";
-          const response = await fetch(
-            `${api}/academic-work-1/data/${userId}/?formId=${id}`
-          );
-          if (response.ok === true) {
-            const data = await response.json();
-            if (data === null) {
-              setApiStatus(apiStatusConstants.success);
-              setDisabled(false);
-            } else {
-              setTableData(data.academic_work_part_a || tableData);
-              setYear(data.academic_year);
-              setAverageFeedbackPercentage(data.averageFeedbackPercentage);
-              setAverageResultPercentage(data.averageResultPercentage);
-              setTotalApiScore(data.totalApiScore);
-              setDisabled(false);
-              setApiStatus(apiStatusConstants.success);
-            }
+    const getFormIdFromSearchParams = () => {
+      try {
+        const formId = searchParams.get("f_id");
+        return formId;
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        navigate("/home");
+      }
+    };
+    const fetchData = async (id) => {
+      try {
+        setApiStatus(apiStatusConstants.inProgress);
+        setDisabled(true);
+        const userId = Cookies.get("user_id");
+        const api = "http://localhost:6969";
+        const response = await fetch(
+          `${api}/academic-work-1/data/${userId}/?formId=${id}`
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data === null) {
+            setApiStatus(apiStatusConstants.success);
+            setDisabled(false);
           } else {
-            setApiStatus(apiStatusConstants.failure);
+            setTableData(data.academic_work_part_a || tableData);
+            setYear(data.academic_year);
+            setAverageFeedbackPercentage(data.averageFeedbackPercentage);
+            setAverageResultPercentage(data.averageResultPercentage);
+            setTotalApiScore(data.totalApiScore);
+            setDisabled(false);
+            setApiStatus(apiStatusConstants.success);
           }
-        } catch (error) {
-          console.error(error);
+        } else {
           setApiStatus(apiStatusConstants.failure);
         }
+      } catch (error) {
+        console.error("Error fetching data from API:", error);
+        setApiStatus(apiStatusConstants.failure);
       }
-      fetchData();
-    } else {
-      setApiStatus(apiStatusConstants.inProgress);
-      const {
-        academic_work_part_a,
-        academic_year,
-        averageFeedbackPercentage,
-        averageResultPercentage,
-        totalApiScore,
-      } = props.data;
-      setTableData(academic_work_part_a);
-      setYear(academic_year);
-      setAverageFeedbackPercentage(averageFeedbackPercentage);
-      setAverageResultPercentage(averageResultPercentage);
-      setTotalApiScore(totalApiScore);
-      setApiStatus(apiStatusConstants.success);
+    };
+
+    const formId = getFormIdFromSearchParams();
+    if (formId) {
+      setFormId(formId);
+
+      if (!isReview) {
+        fetchData(formId);
+      } else {
+        setApiStatus(apiStatusConstants.inProgress);
+        const {
+          academic_work_part_a,
+          academic_year,
+          averageFeedbackPercentage,
+          averageResultPercentage,
+          totalApiScore,
+        } = props.data;
+
+        setTableData(academic_work_part_a);
+        setYear(academic_year);
+        setAverageFeedbackPercentage(averageFeedbackPercentage);
+        setAverageResultPercentage(averageResultPercentage);
+        setTotalApiScore(totalApiScore);
+        setApiStatus(apiStatusConstants.success);
+      }
     }
-  }, []);
+  }, [isReview, searchParams, props.data]);
 
   const renderLoadingView = () => {
     return (
@@ -563,24 +563,24 @@ const AcademicWorkI = (props) => {
                     <TableData>
                       <SpanEle>{course.apiScoreResults}</SpanEle>
                     </TableData>
-                    {isReview &&
-                      (
-                        <TableData>
-                          <EditableValue
-                            value={course.remarkA || ""}
-                            onValueChange={(newValue) =>
-                              handleEditCourse(semesterIndex, courseIndex, {
-                                ...course,
-                                remark: newValue,
-                              })
-                            }
-                            validate={(input) => /^[0-20]+$/.test(input)}
-                            type="text"
-                            disabled={false}
-                          />
-                        </TableData>
-                      )
-                    }
+                    {isReview && (
+                      <TableData>
+                        <EditableValue
+                          value={course.remarkA || ""}
+                          onValueChange={(newValue) =>
+                            handleEditCourse(semesterIndex, courseIndex, {
+                              ...course,
+                              remarkA: newValue,
+                            })
+                          }
+                          validate={(input) =>
+                            /^(?:[0-9]|1[0-9]|20)$/.test(input)
+                          }
+                          type="text"
+                          disabled={false}
+                        />
+                      </TableData>
+                    )}
                     <TableData>
                       <EditableValue
                         value={course.studentFeedbackPercentage}
@@ -642,24 +642,24 @@ const AcademicWorkI = (props) => {
                         )}
                       </TableData>
                     )}
-                    {isReview &&
-                      (
-                        <TableData>
-                          <EditableValue
-                            value={course.remarkB || ""}
-                            onValueChange={(newValue) =>
-                              handleEditCourse(semesterIndex, courseIndex, {
-                                ...course,
-                                remark: newValue,
-                              })
-                            }
-                            validate={(input) => /^[0-20]+$/.test(input)}
-                            type="text"
-                            disabled={false}
-                          />
-                        </TableData>
-                      )
-                    }
+                    {isReview && (
+                      <TableData>
+                        <EditableValue
+                          value={course.remarkB || ""}
+                          onValueChange={(newValue) =>
+                            handleEditCourse(semesterIndex, courseIndex, {
+                              ...course,
+                              remarkB: newValue,
+                            })
+                          }
+                          validate={(input) =>
+                            /^(?:[0-9]|1[0-9]|20)$/.test(input)
+                          }
+                          type="text"
+                          disabled={false}
+                        />
+                      </TableData>
+                    )}
                   </TableRow>
                 ));
               })}
@@ -667,22 +667,14 @@ const AcademicWorkI = (props) => {
                 <TableHead colSpan="5">Average Percentage</TableHead>
                 <TableData>{averageResultPercentage}</TableData>
                 <TableData></TableData>
-                {isReview &&
-                  (
-                    <TableData>
-                      {/* Calculate Average Score */}
-                    </TableData>
-                  )
-                }
+                {isReview && (
+                  <TableData>{/* Calculate Average Score */}</TableData>
+                )}
                 <TableData>{averageFeedbackPercentage}</TableData>
                 <TableData></TableData>
-                {isReview &&
-                  (
-                    <TableData>
-                      {/* Calculate Average Score */}
-                    </TableData>
-                  )
-                }
+                {isReview && (
+                  <TableData>{/* Calculate Average Score */}</TableData>
+                )}
                 {!isSummaryPath && <TableData></TableData>}
               </TableRow>
               <TableRow>
@@ -690,13 +682,9 @@ const AcademicWorkI = (props) => {
                   Total API score (Results + Feedback)
                 </TableHead>
                 <TableData colSpan="5">{totalApiScore}</TableData>
-                {isReview &&
-                  (
-                    <TableData>
-                      {/* Calculate Average Score */}
-                    </TableData>
-                  )
-                }
+                {isReview && (
+                  <TableData>{/* Calculate Average Score */}</TableData>
+                )}
               </TableRow>
             </TableBody>
           </Table>
@@ -800,6 +788,39 @@ const AcademicWorkI = (props) => {
                 />
               ) : (
                 "Save & Next"
+              )}
+            </SaveNextButton>
+          </SaveNextButtonContainer>
+        )}
+        {isReview && (
+          <SaveNextButtonContainer className="mt-3">
+            <SaveNextButton
+              className="btn btn-primary"
+              type="submit"
+              onClick={submitAcademicForm1}
+              disabled={disabled}
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
+            >
+              {disabled ? (
+                <Oval
+                  visible={true}
+                  height="25"
+                  width="25"
+                  color="#ffffff"
+                  ariaLabel="oval-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  className="text-center"
+                />
+              ) : (
+                "Save"
               )}
             </SaveNextButton>
           </SaveNextButtonContainer>
