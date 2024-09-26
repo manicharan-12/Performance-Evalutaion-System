@@ -262,7 +262,6 @@ const ContributionToSociety = (props) => {
     }
     try {
       setDisabled(true);
-      const userId = Cookies.get("user_id");
       const formData = new FormData();
       const totalApiScore = calculateTotalApiScore(tableData);
       formData.append("userId", userId);
@@ -284,7 +283,7 @@ const ContributionToSociety = (props) => {
       };
       const response = await fetch(`${api}/ContributionToSociety`, option);
 
-      !isReview && navigate(`/summary/?f_id=${formId}`);
+      !isReview && navigate(`/summary/?fac_id=${userId}&f_id=${formId}`);
     } catch (error) {
       setDisabled(false);
       toast.error("Internal Server Error! Please try again Later", {

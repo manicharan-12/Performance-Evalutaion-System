@@ -268,7 +268,6 @@ const ContributionToUniversity = (props) => {
     }
     try {
       setDisabled(true);
-      const userId = Cookies.get("user_id");
       const formData = new FormData();
       const totalApiScore = calculateTotalApiScore(tableData);
       formData.append("userId", userId);
@@ -292,7 +291,7 @@ const ContributionToUniversity = (props) => {
         `${api}/ContributionToUniversitySchool`,
         option
       );
-      !isReview && navigate(`/contribution-to-department/?f_id=${formId}`);
+      !isReview && navigate(`/contribution-to-department/?fac_id=${userId}&f_id=${formId}`);
     } catch (error) {
       console.error(error);
       setDisabled(false);

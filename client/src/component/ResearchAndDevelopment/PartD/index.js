@@ -348,7 +348,6 @@ const RDPartD = (props) => {
     }
     try {
       setDisabled(true);
-      const userId = Cookies.get("user_id");
       const formData = new FormData();
       const totalApiScore = calculateTotalApiScore(tableData);
       formData.append("userId", userId);
@@ -370,7 +369,7 @@ const RDPartD = (props) => {
       };
       const response = await fetch(`${api}/RD/PartD`, option);
       !isReview &&
-        navigate(`/contribution-to-university-school/?f_id=${formId}`);
+        navigate(`/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`);
     } catch (error) {
       setDisabled(false);
       console.error(error);

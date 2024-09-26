@@ -365,7 +365,6 @@ const RDPartC = (props) => {
       );
       if (isEmpty) {
         setDisabled(true);
-        const userId = Cookies.get("user_id");
         const formData = new FormData();
         const totalApiScore = calculateTotalApiScore(tableData);
         formData.append("userId", userId);
@@ -389,7 +388,7 @@ const RDPartC = (props) => {
         if (response.ok === true) {
           setDisabled(false);
           !isReview &&
-            navigate(`/research-and-development/partD/?f_id=${formId}`);
+            navigate(`/research-and-development/partD/?fac_id=${userId}&f_id=${formId}`);
         } else {
           setDisabled(false);
           toast.error(`Failed to save data! Please try again Later`, {
