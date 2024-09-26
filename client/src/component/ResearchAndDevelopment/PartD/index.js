@@ -128,7 +128,6 @@ const RDPartD = (props) => {
   //   }
   // }, [isReview, searchParams, props.data]);
 
-
   useEffect(() => {
     // Updated getFormIdFromSearchParams to return formId and userId
     const getFormIdFromSearchParams = () => {
@@ -152,13 +151,15 @@ const RDPartD = (props) => {
         const data = await response.json();
 
         if (data.phdPartD.certificates_data) {
-          const transformedData = data.phdPartD.certificates_data.map((item) => ({
-            nameOfTheCertificate: item.nameOfTheCertificate,
-            organization: item.organization,
-            score: item.score,
-            apiScore: item.apiScore,
-            hodRemark: item.hodRemark,
-          }));
+          const transformedData = data.phdPartD.certificates_data.map(
+            (item) => ({
+              nameOfTheCertificate: item.nameOfTheCertificate,
+              organization: item.organization,
+              score: item.score,
+              apiScore: item.apiScore,
+              hodRemark: item.hodRemark,
+            })
+          );
           setTableData(transformedData);
           setFiles(data.phdPartD.files || []);
         }
@@ -189,8 +190,6 @@ const RDPartD = (props) => {
       }
     }
   }, [isReview, searchParams, props.data]);
-
-
 
   const handleEditCertificate = (certificateIndex, updatedCertificate) => {
     const updatedState = tableData.map((eachCertificate, aIndex) => {
@@ -369,7 +368,9 @@ const RDPartD = (props) => {
       };
       const response = await fetch(`${api}/RD/PartD`, option);
       !isReview &&
-        navigate(`/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`);
+        navigate(
+          `/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`
+        );
     } catch (error) {
       setDisabled(false);
       console.error(error);
@@ -656,34 +657,48 @@ const RDPartD = (props) => {
 
     switch (selectedOption) {
       case "AcademicWork I":
-        navigate(`/academicWork/part-a/?f_id=${formId}`);
+        navigate(`/academicWork/part-a/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "AcademicWork II":
-        navigate(`/academicWork/part-b/?f_id=${formId}`);
+        navigate(`/academicWork/part-b/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "R&D Conformation":
-        navigate(`/research-and-development/conformation/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/conformation/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part A":
-        navigate(`/research-and-development/partA/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partA/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part B":
-        navigate(`/research-and-development/partB/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partB/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part C":
-        navigate(`/research-and-development/partC/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partC/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part D":
-        navigate(`/research-and-development/partD/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partD/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To University School":
-        navigate(`/contribution-to-university-school/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Department":
-        navigate(`/contribution-to-department/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-department/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Society":
-        navigate(`/contribution-to-society/?f_id=${formId}`);
+        navigate(`/contribution-to-society/?fac_id=${userId}&f_id=${formId}`);
         break;
       default:
         break;

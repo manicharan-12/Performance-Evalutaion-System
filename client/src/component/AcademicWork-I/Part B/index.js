@@ -106,7 +106,7 @@ const AcademicWorkII = (props) => {
   const [formId, setFormId] = useState("");
   const [loading, setLoading] = useState(false);
   const [reviewerScore, setReviewerScore] = useState("");
-  const [userId,setUserId]=useState('')
+  const [userId, setUserId] = useState("");
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -133,7 +133,6 @@ const AcademicWorkII = (props) => {
     const fetchData = async (formId, userId) => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
-        const userId = Cookies.get("user_id");
         const response = await fetch(
           `http://localhost:6969/academic-work-2/data/${userId}/?formId=${formId}`
         );
@@ -164,7 +163,7 @@ const AcademicWorkII = (props) => {
       setUserId(userId);
 
       if (!isReview) {
-        fetchData(formId,userId);
+        fetchData(formId, userId);
       } else {
         setApiStatus(apiStatusConstants.inProgress);
         const { editorContent, files } = props.data;
@@ -241,7 +240,9 @@ const AcademicWorkII = (props) => {
       });
       if (response.ok === true) {
         !isReview &&
-          navigate(`/research-and-development/conformation/?f_id=${formId}`);
+          navigate(
+            `/research-and-development/conformation/?f_id=${formId}&fac_id=${userId}`
+          );
       } else {
         setOnClick(false);
         setDisabled(false);
@@ -571,34 +572,48 @@ const AcademicWorkII = (props) => {
 
     switch (selectedOption) {
       case "AcademicWork I":
-        navigate(`/academicWork/part-a/?f_id=${formId}`);
+        navigate(`/academicWork/part-a/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "AcademicWork II":
-        navigate(`/academicWork/part-b/?f_id=${formId}`);
+        navigate(`/academicWork/part-b/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "R&D Conformation":
-        navigate(`/research-and-development/conformation/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/conformation/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part A":
-        navigate(`/research-and-development/partA/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partA/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part B":
-        navigate(`/research-and-development/partB/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partB/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part C":
-        navigate(`/research-and-development/partC/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partC/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part D":
-        navigate(`/research-and-development/partD/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partD/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To University School":
-        navigate(`/contribution-to-university-school/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Department":
-        navigate(`/contribution-to-department/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-department/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Society":
-        navigate(`/contribution-to-society/?f_id=${formId}`);
+        navigate(`/contribution-to-society/?fac_id=${userId}&f_id=${formId}`);
         break;
       default:
         break;

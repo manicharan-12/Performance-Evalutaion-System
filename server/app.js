@@ -17,6 +17,7 @@ const Form = require("./models/newForm");
 const AcademicWorkPartA = require("./models/Academic Work/partA");
 const AcademicWorkPartB = require("./models/Academic Work/partB");
 const PhdConformation = require("./models/Research And Development/rdConformation");
+const ResearchAndDevelopmentPartA = require("./models/Research And Development/partA");
 const ResearchAndDevelopmentPartB = require("./models/Research And Development/partB");
 const ResearchAndDevelopmentPartC = require("./models/Research And Development/partC");
 const ResearchAndDevelopmentPartD = require("./models/Research And Development/partD");
@@ -24,6 +25,7 @@ const ContributionToUniversitySchool = require("./models/contributionToUniversit
 const ContributionToDepartment = require("./models/contributionToDepartment");
 const ContributionToSociety = require("./models/contributionToSociety");
 const ApiScore = require("./models/apiScore");
+const AssessmentOfFunctionalHead = require("./models/assessmentOfFunctionalHead");
 
 // const mongoURI = "mongodb://localhost:27017/faculty_evaluation_system";
 const mongoURI =
@@ -820,6 +822,188 @@ app.get("/rdConfo/:userId", async (request, response) => {
   }
 });
 
+app.post("/RD/PartA", upload.array("files"), async (request, response) => {
+  try {
+    const { userId, formId, tableData, totalApiScore } = request.body;
+    let { deletedFiles } = request.body;
+    const files = request.files;
+    let parsedTableData;
+
+    if (typeof tableData === "string") {
+      try {
+        parsedTableData = JSON.parse(tableData);
+      } catch (err) {
+        console.error("Error parsing tableData:", err);
+        return response
+          .status(400)
+          .json({ message: "Invalid tableData format" });
+      }
+    } else {
+      parsedTableData = tableData;
+    }
+
+    if (deletedFiles && deletedFiles.length > 0) {
+      const deletedFilesArray = Array.isArray(deletedFiles)
+        ? deletedFiles
+        : [deletedFiles];
+      for (const fileId of deletedFilesArray) {
+        try {
+          await gridFSBucket.delete(new mongoose.Types.ObjectId(fileId));
+        } catch (err) {
+          return res.status(500).json({ message: "Error deleting file" });
+        }
+      }
+    }
+
+    const fileUploadPromises = files.map((file) => {
+      const readableStream = new Readable();
+      readableStream.push(file.buffer);
+      readableStream.push(null);
+      return new Promise((resolve, reject) => {
+        const uploadStream = gridFSBucket.openUploadStream(file.originalname, {
+          contentType: file.mimetype,
+        });
+
+        readableStream
+          .pipe(uploadStream)
+          .on("error", reject)
+          .on("finish", () => {
+            resolve({
+              filename: file.originalname,
+              mimetype: file.mimetype,
+              fileId: uploadStream.id,
+            });
+          });
+      });
+    });
+
+    const fileData = await Promise.all(fileUploadPromises);
+    const existingData = await ResearchAndDevelopmentPartA.findOne({
+      userId,
+      formId,
+    });
+
+    if (existingData) {
+      existingData.presentation_data = parsedTableData; // Use parsed table data
+      if (Array.isArray(deletedFiles)) {
+        existingData.files = existingData.files.filter(
+          (file) => !deletedFiles.includes(file.fileId.toString())
+        );
+      }
+      existingData.files = existingData.files || [];
+      existingData.files.push(...fileData);
+      await existingData.save();
+    } else {
+      const newResearchAndDevelopmentPartA = new ResearchAndDevelopmentPartA({
+        userId,
+        formId,
+        presentation_data: parsedTableData,
+        files: fileData,
+      });
+      await newResearchAndDevelopmentPartA.save();
+    }
+    const existingApiScore = await ApiScore.findOne({ userId, formId });
+    if (existingApiScore) {
+      existingApiScore.apiScores.researchAndDevelopmentPartA = totalApiScore;
+      await existingApiScore.save();
+    } else {
+      const newApiScore = new ApiScore({
+        userId,
+        formId,
+        apiScores: { researchAndDevelopmentPartA: totalApiScore },
+      });
+      await newApiScore.save();
+    }
+
+    response.status(200).json({ success_msg: "Successfully Saved" });
+  } catch (error) {
+    console.error(error);
+    response
+      .status(500)
+      .json({ error_msg: "Internal Server Error! Please try again later." });
+  }
+});
+
+app.get("/RD/PartA/:userId", async (request, response) => {
+  try {
+    const { userId } = request.params;
+    const { formId } = request.query;
+
+    const researchAndDevelopmentPartADetails =
+      await ResearchAndDevelopmentPartA.findOne({ userId, formId });
+    if (researchAndDevelopmentPartADetails) {
+      const filePromises = researchAndDevelopmentPartADetails.files.map(
+        (file) => {
+          return new Promise((resolve, reject) => {
+            try {
+              const fileStream = gfs.openDownloadStream(file.fileId);
+              let fileBuffer = Buffer.from([]);
+              fileStream.on("data", (chunk) => {
+                fileBuffer = Buffer.concat([fileBuffer, chunk]);
+              });
+
+              fileStream.on("end", () => {
+                resolve({
+                  ...file.toObject(),
+                  fileContent: fileBuffer.toString("base64"),
+                });
+              });
+
+              fileStream.on("error", (error) => {
+                console.error(
+                  `Error downloading file with ID: ${file.fileId}`,
+                  error
+                );
+                reject(error);
+              });
+            } catch (error) {
+              console.error(
+                `Error opening download stream for file with ID: ${file.fileId}`,
+                error
+              );
+              reject(error);
+            }
+          });
+        }
+      );
+
+      const filesData = await Promise.allSettled(filePromises);
+      const successfulFiles = filesData
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+
+      response.status(200).json({
+        phdPartA: {
+          presentation_data:
+            researchAndDevelopmentPartADetails.presentation_data,
+          files: successfulFiles,
+        },
+      });
+    } else {
+      response.status(200).json({
+        phdPartA: {
+          presentation_data: [
+            {
+              titleOfThePaper: "",
+              titleOfTheme: "",
+              organizedBy: "",
+              indexedIn: "",
+              noOfDays: "",
+              apiScore: "",
+            },
+          ],
+          files: [],
+        },
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    response
+      .status(500)
+      .json({ error_msg: "Internal Server Error! Please try again later." });
+  }
+});
+
 app.post("/RD/PartB", upload.array("files"), async (request, response) => {
   try {
     const { userId, formId, tableData, totalApiScore } = request.body;
@@ -967,7 +1151,7 @@ app.get("/RD/PartB/:userId", async (request, response) => {
       const successfulFiles = filesData
         .filter((result) => result.status === "fulfilled")
         .map((result) => result.value);
-
+      // console.log(researchAndDevelopmentPartBDetails);
       response.status(200).json({
         phdPartB: {
           presentation_data:
@@ -1936,6 +2120,8 @@ app.get("/faculty/forms/:formId", async (req, res) => {
   try {
     const academicWorkPartA = await AcademicWorkPartA.findOne({ formId });
     const academicWorkPartB = await AcademicWorkPartB.findOne({ formId });
+    const researchAndDevelopmentPartA =
+      await ResearchAndDevelopmentPartA.findOne({ formId });
     const researchAndDevelopmentPartB =
       await ResearchAndDevelopmentPartB.findOne({ formId });
     const researchAndDevelopmentPartC =
@@ -1957,6 +2143,7 @@ app.get("/faculty/forms/:formId", async (req, res) => {
     if (
       !academicWorkPartA &&
       !academicWorkPartB &&
+      !researchAndDevelopmentPartA &&
       !researchAndDevelopmentPartB &&
       !researchAndDevelopmentPartC &&
       !researchAndDevelopmentPartD &&
@@ -1974,6 +2161,7 @@ app.get("/faculty/forms/:formId", async (req, res) => {
     const consolidatedData = {
       academicWorkPartA,
       academicWorkPartB,
+      researchAndDevelopmentPartA,
       researchAndDevelopmentPartB,
       researchAndDevelopmentPartC,
       researchAndDevelopmentPartD,
@@ -2006,5 +2194,58 @@ app.patch("/hod/remarks/:f_id", async (req, res) => {
     res.json(academicWork);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+
+app.post("/functional-head-assessment", async (request, response) => {
+  try {
+    const { userId, formId, impression, examination, interpersonal, totalScore } = request.body;
+
+    // Optionally recalculate the total score on the backend for verification
+    const calculatedTotalScore = impression + examination + interpersonal;
+
+    if (calculatedTotalScore !== totalScore) {
+      return response.status(400).json({ error_msg: "Total score mismatch. Please try again." });
+    }
+
+    const existingAssessment = await AssessmentOfFunctionalHead.findOne({ userId, formId });
+
+    if (existingAssessment) {
+      existingAssessment.impression = impression;
+      existingAssessment.examination = examination;
+      existingAssessment.interpersonal = interpersonal;
+      existingAssessment.totalScore = totalScore;
+      await existingAssessment.save();
+    } else {
+      const newAssessment = new AssessmentOfFunctionalHead({
+        userId,
+        formId,
+        impression,
+        examination,
+        interpersonal,
+        totalScore,
+      });
+      await newAssessment.save();
+    }
+
+    // Update the ApiScore model
+    const existingApiScore = await ApiScore.findOne({ userId, formId });
+    if (existingApiScore) {
+      existingApiScore.apiScores.functionalHeadAssessment = totalScore;
+      await existingApiScore.save();
+    } else {
+      const newApiScore = new ApiScore({
+        userId,
+        formId,
+        apiScores: { functionalHeadAssessment: totalScore },
+      });
+      await newApiScore.save();
+    }
+
+    response.status(200).json({ message: "Assessment saved successfully!", totalScore });
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({ error_msg: "Internal Server Error! Please try again later." });
   }
 });

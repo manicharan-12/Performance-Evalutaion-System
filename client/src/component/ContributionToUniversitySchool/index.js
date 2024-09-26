@@ -132,7 +132,6 @@ const ContributionToUniversity = (props) => {
   //   }
   // }, [isReview, searchParams, props.data]);
 
-
   useEffect(() => {
     // Updated getFormIdFromSearchParams to return both formId and userId
     const getFormIdFromSearchParams = () => {
@@ -152,18 +151,21 @@ const ContributionToUniversity = (props) => {
         const api = "http://localhost:6969";
 
         // Use formId and userId in the API request
-        const response = await fetch(`${api}/ContributionToUniversitySchool/${uid}/?formId=${id}`);
+        const response = await fetch(
+          `${api}/ContributionToUniversitySchool/${uid}/?formId=${id}`
+        );
         const data = await response.json();
 
         if (data.contributionToUniversitySchool.contribution_data) {
-          const transformedData = data.contributionToUniversitySchool.contribution_data.map(
-            (item) => ({
-              nameOfTheResponsibility: item.nameOfTheResponsibility,
-              contribution: item.contribution,
-              apiScore: item.apiScore,
-              hodRemark: item.hodRemark,
-            })
-          );
+          const transformedData =
+            data.contributionToUniversitySchool.contribution_data.map(
+              (item) => ({
+                nameOfTheResponsibility: item.nameOfTheResponsibility,
+                contribution: item.contribution,
+                apiScore: item.apiScore,
+                hodRemark: item.hodRemark,
+              })
+            );
           setTableData(transformedData);
           setFiles(data.contributionToUniversitySchool.files || []);
         }
@@ -194,7 +196,6 @@ const ContributionToUniversity = (props) => {
       }
     }
   }, [isReview, searchParams, props.data]);
-
 
   const handleEditContribution = (contributionIndex, updatedContribution) => {
     const updatedState = tableData.map((eachContribution, cIndex) => {
@@ -291,7 +292,10 @@ const ContributionToUniversity = (props) => {
         `${api}/ContributionToUniversitySchool`,
         option
       );
-      !isReview && navigate(`/contribution-to-department/?fac_id=${userId}&f_id=${formId}`);
+      !isReview &&
+        navigate(
+          `/contribution-to-department/?fac_id=${userId}&f_id=${formId}`
+        );
     } catch (error) {
       console.error(error);
       setDisabled(false);
@@ -652,34 +656,48 @@ const ContributionToUniversity = (props) => {
 
     switch (selectedOption) {
       case "AcademicWork I":
-        navigate(`/academicWork/part-a/?f_id=${formId}`);
+        navigate(`/academicWork/part-a/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "AcademicWork II":
-        navigate(`/academicWork/part-b/?f_id=${formId}`);
+        navigate(`/academicWork/part-b/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "R&D Conformation":
-        navigate(`/research-and-development/conformation/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/conformation/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part A":
-        navigate(`/research-and-development/partA/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partA/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part B":
-        navigate(`/research-and-development/partB/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partB/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part C":
-        navigate(`/research-and-development/partC/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partC/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part D":
-        navigate(`/research-and-development/partD/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partD/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To University School":
-        navigate(`/contribution-to-university-school/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Department":
-        navigate(`/contribution-to-department/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-department/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Society":
-        navigate(`/contribution-to-society/?f_id=${formId}`);
+        navigate(`/contribution-to-society/?fac_id=${userId}&f_id=${formId}`);
         break;
       default:
         break;

@@ -128,7 +128,6 @@ const ContributionToSociety = (props) => {
   //   }
   // }, [isReview, searchParams, props.data]);
 
-
   useEffect(() => {
     // Updated getFormIdFromSearchParams to return formId and userId
     const getFormIdFromSearchParams = () => {
@@ -148,16 +147,19 @@ const ContributionToSociety = (props) => {
         const api = "http://localhost:6969";
 
         // Use formId and userId in the API request
-        const response = await fetch(`${api}/ContributionToSociety/${uid}/?formId=${id}`);
+        const response = await fetch(
+          `${api}/ContributionToSociety/${uid}/?formId=${id}`
+        );
         const data = await response.json();
 
         if (data.contributionToSociety.contribution_data) {
-          const transformedData = data.contributionToSociety.contribution_data.map((item) => ({
-            nameOfTheResponsibility: item.nameOfTheResponsibility,
-            contribution: item.contribution,
-            apiScore: item.apiScore,
-            hodRemark: item.hodRemark,
-          }));
+          const transformedData =
+            data.contributionToSociety.contribution_data.map((item) => ({
+              nameOfTheResponsibility: item.nameOfTheResponsibility,
+              contribution: item.contribution,
+              apiScore: item.apiScore,
+              hodRemark: item.hodRemark,
+            }));
           setTableData(transformedData);
           setFiles(data.contributionToSociety.files || []);
         }
@@ -188,7 +190,6 @@ const ContributionToSociety = (props) => {
       }
     }
   }, [isReview, searchParams, props.data]);
-
 
   const handleEditContribution = (contributionIndex, updatedContribution) => {
     const updatedState = tableData.map((eachContribution, cIndex) => {
@@ -652,39 +653,54 @@ const ContributionToSociety = (props) => {
 
     switch (selectedOption) {
       case "AcademicWork I":
-        navigate(`/academicWork/part-a/?f_id=${formId}`);
+        navigate(`/academicWork/part-a/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "AcademicWork II":
-        navigate(`/academicWork/part-b/?f_id=${formId}`);
+        navigate(`/academicWork/part-b/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "R&D Conformation":
-        navigate(`/research-and-development/conformation/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/conformation/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part A":
-        navigate(`/research-and-development/partA/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partA/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part B":
-        navigate(`/research-and-development/partB/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partB/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part C":
-        navigate(`/research-and-development/partC/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partC/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part D":
-        navigate(`/research-and-development/partD/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partD/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To University School":
-        navigate(`/contribution-to-university-school/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Department":
-        navigate(`/contribution-to-department/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-department/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Society":
-        navigate(`/contribution-to-society/?f_id=${formId}`);
+        navigate(`/contribution-to-society/?fac_id=${userId}&f_id=${formId}`);
         break;
       default:
         break;
     }
   };
+
   return (
     <HomeMainContainer>
       <MainContainer className="mt-5 mb-5">

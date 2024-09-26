@@ -15,6 +15,7 @@ const apiScore = new Schema({
     contributionToSchool: { type: Number },
     contributionToDepartment: { type: Number },
     contributionToSociety: { type: Number },
+    functionalHeadAssessment: { type: Number },
   },
 });
 

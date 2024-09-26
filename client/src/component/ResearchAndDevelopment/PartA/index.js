@@ -46,11 +46,10 @@ const apiStatusConstants = {
   failure: "FAILURE",
 };
 
-const RDPartA = () => {
-
+const RDPartA = (props) => {
   const location = useLocation();
-  const isSummaryPath = location.pathname.startsWith('/summary');
-
+  const [userId, setUserId] = useState();
+  const [disabled, setDisabled] = useState(false);
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [year, setYear] = useState("");
   const [files, setFiles] = useState([]);
@@ -66,59 +65,91 @@ const RDPartA = () => {
     },
   ]);
   const [formId, setFormId] = useState("");
-
+  const isSummaryPath =
+    location.pathname.startsWith("/summary") ||
+    location.pathname.startsWith("/review");
+  const isReview = location.pathname.startsWith("/review");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const getFormIdFromSearchParams = () => {
+    try {
+      const formId = searchParams.get("f_id");
+      const userId = searchParams.get("fac_id");
+      return [formId, userId];
+    } catch (error) {
+      console.error("Error fetching form ID from search params:", error);
+      navigate("/home");
+    }
+  };
+
   useEffect(() => {
-    let id;
     const fetchYear = async () => {
-      // if(!navigator.onLine){
-    //   await toast.error("You are offline. Please connect to the internet and try again.", {
-    //     position: "bottom-center",
-    //     autoClose: 6969,
-    //     hideProgressBar: true,
-    //     closeOnClick: true,
-    //     pauseOnHover: false,
-    //     draggable: true,
-    //   });
-    //   return;
-    // }
       try {
-        const formId = await searchParams.get("f_id");
-        id = formId;
-        await setFormId(id);
-      } catch (error) {
-        console.error(error);
-        navigate("/home");
-      }
-      try {
+        const [formId, userId] = getFormIdFromSearchParams();
+  
+        if (formId) {
+          setFormId(formId);
+          setUserId(userId);
+        }
+  
         setApiStatus(apiStatusConstants.inProgress);
-        const userId = Cookies.get("user_id");
-        const response = await fetch(
-          `http://localhost:6969/year/${userId}/?formId=${id}`,
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setYear(data.academic_year);
-          setApiStatus(apiStatusConstants.success);
+  
+        // Check if it's in review mode
+        if (!isReview) {
+          const response = await fetch(
+            `http://localhost:6969/RD/PartA/${userId}/?formId=${formId}`
+          );
+  
+          if (response.ok) {
+            const data = await response.json();
+            console.log(data.phdPartA.presentation_data);
+  
+            if (data.phdPartA.presentation_data) {
+              const presentation_data = data.phdPartA.presentation_data.map(
+                (item) => ({
+                  articleTitle: item.articleTitle,
+                  journalName: item.journalName,
+                  dateOfPublication: item.dateOfPublication,
+                  indexedIn: item.indexedIn,
+                  oneOrCorrespondingAuthor: item.oneOrCorrespondingAuthor,
+                  apiScore: item.apiScore,
+                  hodRemark: item.hodRemark,
+                })
+              );
+              setTableData(presentation_data);
+              setFiles(data.phdPartA.files || []);
+              setYear(data.academic_year);
+              setApiStatus(apiStatusConstants.success);
+            } else {
+              setApiStatus(apiStatusConstants.failure);
+            }
+          } else {
+            setApiStatus(apiStatusConstants.failure);
+          }
         } else {
-          setApiStatus(apiStatusConstants.failure);
+          setApiStatus(apiStatusConstants.inProgress);
+          const { presentation_data, files } = props.data.phdPartA || {};
+          setTableData(presentation_data || []);
+          setFiles(files || []);
+          setYear(props.data.academic_year);
+          setApiStatus(apiStatusConstants.success);
         }
       } catch (error) {
         console.error(error);
         setApiStatus(apiStatusConstants.failure);
       }
     };
-
+  
     fetchYear();
-  }, []);
+  }, [isReview, searchParams, props.data]);
+  
 
   const onDrop = useCallback((acceptedFiles) => {
     setFiles((prevFiles) => [
       ...prevFiles,
       ...acceptedFiles.map((file) =>
-        Object.assign(file, { preview: URL.createObjectURL(file) }),
+        Object.assign(file, { preview: URL.createObjectURL(file) })
       ),
     ]);
   }, []);
@@ -144,7 +175,7 @@ const RDPartA = () => {
     if (file.fileId) {
       try {
         const response = await fetch(
-          `http://localhost:6969/files/${file.fileId}`,
+          `http://localhost:6969/files/${file.fileId}`
         );
         if (response.ok) {
           const blob = await response.blob();
@@ -163,7 +194,7 @@ const RDPartA = () => {
               draggable: true,
               progress: undefined,
               theme: "colored",
-            },
+            }
           );
         }
       } catch (error) {
@@ -179,7 +210,7 @@ const RDPartA = () => {
             draggable: true,
             progress: undefined,
             theme: "colored",
-          },
+          }
         );
       }
     } else {
@@ -196,17 +227,33 @@ const RDPartA = () => {
   const handleEditArticle = (articleIndex, updatedArticle) => {
     setTableData((prevData) =>
       prevData.map((article, index) =>
-        index === articleIndex ? updatedArticle : article,
-      ),
+        index === articleIndex ? updatedArticle : article
+      )
     );
+  };
+
+  const calculateApiScore = (indexedIn) => {
+    switch (indexedIn) {
+      case "wos":
+        return 5;
+      case "scopus":
+        return 3;
+      case "ugc":
+        return 2;
+      default:
+        return 0;
+    }
   };
 
   const handleSelectOption = (event, articleIndex) => {
     const { value } = event.target;
+    const apiScore = calculateApiScore(value);
     setTableData((prevData) =>
       prevData.map((article, index) =>
-        index === articleIndex ? { ...article, indexedIn: value } : article,
-      ),
+        index === articleIndex
+          ? { ...article, indexedIn: value, apiScore: apiScore.toString() }
+          : article
+      )
     );
   };
 
@@ -228,8 +275,15 @@ const RDPartA = () => {
     setTableData((prevData) => prevData.slice(0, -1));
   };
 
-  const submitRDPartA = async () => {
+  const calculateTotalApiScore = (data) => {
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.apiScore) || 0),
+      0
+    );
+    return score >= 5 ? 5 : score;
+  };
 
+  const submitRDPartA = async () => {
     // if(!navigator.onLine){
     //   await toast.error("You are offline. Please connect to the internet and try again.", {
     //     position: "bottom-center",
@@ -244,9 +298,11 @@ const RDPartA = () => {
 
     try {
       const formData = new FormData();
-      const userId = Cookies.get("user_id");
+      const totalApiScore = calculateTotalApiScore(tableData);
       formData.append("userId", userId);
+      formData.append("formId", formId);
       formData.append("tableData", JSON.stringify(tableData));
+      formData.append("totalApiScore", totalApiScore);
       files.forEach((file) => {
         if (!file.fileId) {
           formData.append("files", file);
@@ -255,8 +311,30 @@ const RDPartA = () => {
       deletedFiles.forEach((fileId) => {
         formData.append("deletedFiles", fileId);
       });
-      console.log(tableData);
-      navigate(`/research-and-development/partB/?f_id=${formId}`);
+      const api = "http://localhost:6969";
+      const response = await fetch(`${api}/RD/PartA`, {
+        method: "POST",
+        body: formData,
+      });
+      if (response.ok) {
+        setDisabled(false);
+        !isReview &&
+          navigate(
+            `/research-and-development/partB/?fac_id=${userId}&f_id=${formId}`
+          );
+      } else {
+        setDisabled(false);
+        toast.error("Error while saving the data! Please try again Later", {
+          position: "bottom-center",
+          autoClose: 6969,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+      }
     } catch (error) {
       console.error("Error submitting RD Part A:", error);
       toast.error("An error occurred during submission. Please try again.", {
@@ -391,24 +469,22 @@ const RDPartA = () => {
             ))}
           </TableBody>
         </Table>
-        {
-          !isSummaryPath && (
-            <SaveNextButton
-          onClick={handleAddArticle}
-          className="mt-3 mr-3"
-          style={{
-            padding: "12px",
-            borderRadius: "8px",
-            backgroundImage:
-              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-            color: "#fff",
-            border: "none",
-          }}
-        >
-          Add Article
-        </SaveNextButton>
-          )
-        }
+        {!isSummaryPath && (
+          <SaveNextButton
+            onClick={handleAddArticle}
+            className="mt-3 mr-3"
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            Add Article
+          </SaveNextButton>
+        )}
         {tableData.length > 1 && (
           <SaveNextButton
             onClick={handleDeleteArticle}
@@ -461,25 +537,23 @@ const RDPartA = () => {
           ))}
         </UnorderedList>
       </FileContainer>
-      {
-        !isSummaryPath && (
-          <SaveNextButtonContainer className="mt-3">
-        <SaveNextButton
-          onClick={submitRDPartA}
-          style={{
-            padding: "12px",
-            borderRadius: "8px",
-            backgroundImage:
-              "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-            color: "#fff",
-            border: "none",
-          }}
-        >
-          Save & Next
-        </SaveNextButton>
-      </SaveNextButtonContainer>
-        )
-      }
+      {!isSummaryPath && (
+        <SaveNextButtonContainer className="mt-3">
+          <SaveNextButton
+            onClick={submitRDPartA}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            Save & Next
+          </SaveNextButton>
+        </SaveNextButtonContainer>
+      )}
     </>
   );
 
@@ -510,34 +584,48 @@ const RDPartA = () => {
 
     switch (selectedOption) {
       case "AcademicWork I":
-        navigate(`/academicWork/part-a/?f_id=${formId}`);
+        navigate(`/academicWork/part-a/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "AcademicWork II":
-        navigate(`/academicWork/part-b/?f_id=${formId}`);
+        navigate(`/academicWork/part-b/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "R&D Conformation":
-        navigate(`/research-and-development/conformation/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/conformation/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part A":
-        navigate(`/research-and-development/partA/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partA/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part B":
-        navigate(`/research-and-development/partB/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partB/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part C":
-        navigate(`/research-and-development/partC/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partC/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part D":
-        navigate(`/research-and-development/partD/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partD/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To University School":
-        navigate(`/contribution-to-university-school/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Department":
-        navigate(`/contribution-to-department/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-department/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Society":
-        navigate(`/contribution-to-society/?f_id=${formId}`);
+        navigate(`/contribution-to-society/?fac_id=${userId}&f_id=${formId}`);
         break;
       default:
         break;
@@ -566,16 +654,13 @@ const RDPartA = () => {
               width: "100%",
             }}
           >
-            {
-              !isSummaryPath && (
-                <p style={{ marginRight: "10px", marginTop: "10px" }}>
-              Navigate to
-            </p>
-              )
-            }
-            {
-              !isSummaryPath && (
-                <select
+            {!isSummaryPath && (
+              <p style={{ marginRight: "10px", marginTop: "10px" }}>
+                Navigate to
+              </p>
+            )}
+            {!isSummaryPath && (
+              <select
                 style={{
                   border: "1px solid #000",
                   borderRadius: "5px",
@@ -594,8 +679,7 @@ const RDPartA = () => {
                 <option>Contribution To Department</option>
                 <option>Contribution To Society</option>
               </select>
-              )
-            }
+            )}
           </div>
         </div>
         {renderRDPartAPage()}

@@ -48,7 +48,7 @@ const apiStatusConstants = {
 
 const RDPartB = (props) => {
   const location = useLocation();
-
+  const [userId, setUserId] = useState("");
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [year, setYear] = useState("");
   const [disabled, setDisabled] = useState(false);
@@ -66,7 +66,6 @@ const RDPartB = (props) => {
     },
   ]);
   const [formId, setFormId] = useState("");
-  const [userId, setUserId] = useState("");
   const isSummaryPath =
     location.pathname.startsWith("/summary") ||
     location.pathname.startsWith("/review");
@@ -75,131 +74,75 @@ const RDPartB = (props) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const getFormIdFromSearchParams = () => {
-    try {
-      const formId = searchParams.get("f_id");
-      const userId = searchParams.get("fac_id"); // Fetch userId from params
-      return [formId, userId];
-    } catch (error) {
-      console.error("Error fetching form ID from search params:", error);
-      navigate("/home");
-    }
-  };
-
   useEffect(() => {
-    // const getFormIdFromSearchParams = () => {
-    //   try {
-    //     const formId = searchParams.get("f_id");
-    //     return formId;
-    //   } catch (error) {
-    //     console.error("Error fetching form ID from search params:", error);
-    //     navigate("/home");
-    //   }
-    // };
+    const getFormIdFromSearchParams = () => {
+      try {
+        const formId = searchParams.get("f_id");
+        const userId = searchParams.get("fac_id");
+        return formId, userId;
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        navigate("/home");
+      }
+    };
 
-    // const fetchYear = async (id) => {
-    //   try {
-    //     setApiStatus(apiStatusConstants.inProgress);
-    //     const userId = Cookies.get("user_id");
-    //     const api = "http://localhost:6969";
+    const fetchYear = async (userId, id) => {
+      try {
+        setApiStatus(apiStatusConstants.inProgress);
+        const api = "http://localhost:6969";
 
-    //     const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
-    //     if (response.ok) {
-    //       const data = await response.json();
-    //       setYear(data.academic_year);
+        const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setYear(data.academic_year);
 
-    //       const response2 = await fetch(
-    //         `${api}/RD/PartB/${userId}/?formId=${id}`
-    //       );
-    //       const data2 = await response2.json();
+          const response2 = await fetch(
+            `${api}/RD/PartB/${userId}/?formId=${id}`
+          );
+          const data2 = await response2.json();
 
-    //       if (data2.phdPartB.presentation_data) {
-    //         const presentation_data = data2.phdPartB.presentation_data.map(
-    //           (item) => ({
-    //             titleOfThePaper: item.titleOfThePaper,
-    //             titleOfTheme: item.titleOfTheme,
-    //             organizedBy: item.organizedBy,
-    //             indexedIn: item.indexedIn,
-    //             noOfDays: item.noOfDays,
-    //             apiScore: item.apiScore,
-    //             hodRemark: item.hodRemark,
-    //           })
-    //         );
-    //         setTableData(presentation_data);
-    //         setFiles(data2.phdPartB.files || []);
-    //       }
+          if (data2.phdPartB.presentation_data) {
+            const presentation_data = data2.phdPartB.presentation_data.map(
+              (item) => ({
+                titleOfThePaper: item.titleOfThePaper,
+                titleOfTheme: item.titleOfTheme,
+                organizedBy: item.organizedBy,
+                indexedIn: item.indexedIn,
+                noOfDays: item.noOfDays,
+                apiScore: item.apiScore,
+                hodRemark: item.hodRemark,
+              })
+            );
+            setTableData(presentation_data);
+            setFiles(data2.phdPartB.files || []);
+          }
 
-    //       setApiStatus(apiStatusConstants.success);
-    //     } else {
-    //       setApiStatus(apiStatusConstants.failure);
-    //     }
-    //   } catch (error) {
-    //     console.error("Error fetching year data:", error);
-    //     setApiStatus(apiStatusConstants.failure);
-    //     setDisabled(false);
-    //   }
-    // };
+          setApiStatus(apiStatusConstants.success);
+        } else {
+          setApiStatus(apiStatusConstants.failure);
+        }
+      } catch (error) {
+        console.error("Error fetching year data:", error);
+        setApiStatus(apiStatusConstants.failure);
+        setDisabled(false);
+      }
+    };
 
-    const [formId, userId] = getFormIdFromSearchParams();
-    if (formId && userId) {
-      setFormId(formId);
-      setUserId(userId); // Save userId to state
-
+    const [fId, uId] = getFormIdFromSearchParams();
+    if (fId) {
+      setFormId(fId);
+      setUserId(uId);
       if (!isReview) {
-        fetchYear(formId, userId);
+        fetchYear(fId);
       } else {
         setApiStatus(apiStatusConstants.inProgress);
-        const { presentation_data, files } = props.data;
-        setTableData(presentation_data);
+        const { projects_data, files } = props.data;
+        setTableData(projects_data);
         setFiles(files);
         setApiStatus(apiStatusConstants.success);
       }
     }
   }, [isReview, searchParams, props.data]);
-
-
-  const fetchYear = async (formId, userId) => {
-    try {
-      setApiStatus(apiStatusConstants.inProgress);
-      const api = "http://localhost:6969";
-
-      const response = await fetch(`${api}/year/${userId}/?formId=${formId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setYear(data.academic_year);
-
-        const response2 = await fetch(
-          `${api}/RD/PartB/${userId}/?formId=${formId}`
-        );
-        const data2 = await response2.json();
-
-        if (data2.phdPartB.presentation_data) {
-          const presentation_data = data2.phdPartB.presentation_data.map(
-            (item) => ({
-              titleOfThePaper: item.titleOfThePaper,
-              titleOfTheme: item.titleOfTheme,
-              organizedBy: item.organizedBy,
-              indexedIn: item.indexedIn,
-              noOfDays: item.noOfDays,
-              apiScore: item.apiScore,
-              hodRemark: item.hodRemark,
-            })
-          );
-          setTableData(presentation_data);
-          setFiles(data2.phdPartB.files || []);
-        }
-
-        setApiStatus(apiStatusConstants.success);
-      } else {
-        setApiStatus(apiStatusConstants.failure);
-      }
-    } catch (error) {
-      console.error("Error fetching year data:", error);
-      setApiStatus(apiStatusConstants.failure);
-      setDisabled(false);
-    }
-  };
-
 
   const calculateApiScore = (value1, value2) => {
     if (value1 === "wos" || value1 === "scopus") {
@@ -372,7 +315,7 @@ const RDPartB = (props) => {
         if (response.ok) {
           setDisabled(false);
           !isReview &&
-            navigate(`/research-and-development/partC/?fac_id=${userId}&f_id=${formId}`);
+            navigate(`/research-and-development/partC/?f_id=${formId}`);
         } else {
           setDisabled(false);
           toast.error("Error while saving the data! Please try again Later", {
@@ -732,34 +675,48 @@ const RDPartB = (props) => {
 
     switch (selectedOption) {
       case "AcademicWork I":
-        navigate(`/academicWork/part-a/?f_id=${formId}`);
+        navigate(`/academicWork/part-a/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "AcademicWork II":
-        navigate(`/academicWork/part-b/?f_id=${formId}`);
+        navigate(`/academicWork/part-b/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "R&D Conformation":
-        navigate(`/research-and-development/conformation/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/conformation/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part A":
-        navigate(`/research-and-development/partA/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partA/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part B":
-        navigate(`/research-and-development/partB/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partB/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part C":
-        navigate(`/research-and-development/partC/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partC/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part D":
-        navigate(`/research-and-development/partD/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partD/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To University School":
-        navigate(`/contribution-to-university-school/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Department":
-        navigate(`/contribution-to-department/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-department/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Society":
-        navigate(`/contribution-to-society/?f_id=${formId}`);
+        navigate(`/contribution-to-society/?fac_id=${userId}&f_id=${formId}`);
         break;
       default:
         break;

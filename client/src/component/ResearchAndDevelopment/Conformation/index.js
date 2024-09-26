@@ -49,10 +49,8 @@ const apiStatusConstants = {
   failure: "FAILURE",
 };
 
-const Conformation = () => {
+const Conformation = (props) => {
   const location = useLocation();
-  const isSummaryPath = location.pathname.startsWith("/summary");
-
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [year, setYear] = useState("");
   const [files, setFiles] = useState([]);
@@ -93,17 +91,35 @@ const Conformation = () => {
     },
   });
   const [formId, setFormId] = useState("");
+  const [userId, setUserId] = useState("");
+  const isSummaryPath =
+    location.pathname.startsWith("/summary") ||
+    location.pathname.startsWith("/review");
+  const isReview = location.pathname.startsWith("/review");
   const [searchParams] = useSearchParams();
 
   const navigate = useNavigate();
 
+  const getFormIdFromSearchParams = () => {
+    try {
+      const formId = searchParams.get("f_id");
+      const userId = searchParams.get("fac_id"); // Fetch userId from params
+      return [formId, userId];
+    } catch (error) {
+      console.error("Error fetching form ID from search params:", error);
+      navigate("/home");
+    }
+  };
+
   useEffect(() => {
-    let id;
+    let id, f_id;
     async function fetchYear() {
       try {
-        const formId = await searchParams.get("f_id");
+        const [formId, userId] = getFormIdFromSearchParams();
         id = formId;
+        f_id = userId;
         await setFormId(id);
+        await setUserId(userId);
       } catch (error) {
         console.error(error);
         navigate("/home");
@@ -111,15 +127,12 @@ const Conformation = () => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
-        const userId = Cookies.get("user_id");
         const api = "http://localhost:6969";
-        const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
+        const response = await fetch(`${api}/year/${f_id}/?formId=${id}`);
         if (response.ok === true) {
           const data = await response.json();
           setYear(data.academic_year);
-          const response2 = await fetch(
-            `${api}/rdConfo/${userId}/?formId=${id}`
-          );
+          const response2 = await fetch(`${api}/rdConfo/${f_id}/?formId=${id}`);
           if (response2.ok === true) {
             const data2 = await response2.json();
             if (data2 === null) {
@@ -194,7 +207,7 @@ const Conformation = () => {
       }
     }
     fetchYear();
-  }, []);
+  }, [isReview, searchParams, props.data]);
 
   const onDrop = useCallback((acceptedFiles) => {
     setFiles((prevFiles) => [
@@ -427,7 +440,9 @@ const Conformation = () => {
         const response = await fetch(`${api}/rdConfo`, option);
         if (response.ok === true) {
           setDisabled(false);
-          navigate(`/research-and-development/partA/?f_id=${formId}`);
+          navigate(
+            `/research-and-development/partA/?f_id=${formId}&fac_id=${userId}`
+          );
         }
       } else {
         setDisabled(false);
@@ -963,34 +978,48 @@ const Conformation = () => {
 
     switch (selectedOption) {
       case "AcademicWork I":
-        navigate(`/academicWork/part-a/?f_id=${formId}`);
+        navigate(`/academicWork/part-a/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "AcademicWork II":
-        navigate(`/academicWork/part-b/?f_id=${formId}`);
+        navigate(`/academicWork/part-b/?fac_id=${userId}&f_id=${formId}`);
         break;
       case "R&D Conformation":
-        navigate(`/research-and-development/conformation/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/conformation/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part A":
-        navigate(`/research-and-development/partA/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partA/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part B":
-        navigate(`/research-and-development/partB/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partB/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part C":
-        navigate(`/research-and-development/partC/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partC/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "R&D Part D":
-        navigate(`/research-and-development/partD/?f_id=${formId}`);
+        navigate(
+          `/research-and-development/partD/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To University School":
-        navigate(`/contribution-to-university-school/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Department":
-        navigate(`/contribution-to-department/?f_id=${formId}`);
+        navigate(
+          `/contribution-to-department/?fac_id=${userId}&f_id=${formId}`
+        );
         break;
       case "Contribution To Society":
-        navigate(`/contribution-to-society/?f_id=${formId}`);
+        navigate(`/contribution-to-society/?fac_id=${userId}&f_id=${formId}`);
         break;
       default:
         break;

@@ -21,6 +21,7 @@ import ContributionToUniversity from "../ContributionToUniversitySchool";
 import ApiScoreSummary from "../ApiScoreSummary";
 import AssessmentOfFunctionalHead from "../AssessmentOfFunctionalHead";
 import Conformation from "../ResearchAndDevelopment/Conformation";
+import RDPartA from "../ResearchAndDevelopment/PartA";
 
 const FormDetails = () => {
   const [formId, setFormId] = useState();
@@ -89,7 +90,6 @@ const FormDetails = () => {
     <div>
       <DataContainer>
         <section>
-          {/* <pre>{JSON.stringify(formData.academicWorkPartA,null,2)}</pre> */}
           <AcademicWorkI data={formData.academicWorkPartA} />
         </section>
         <section>
@@ -99,8 +99,11 @@ const FormDetails = () => {
           <Conformation data={formData.phdConformation} />
         </section>
         <section>
-          <RDPartB data={formData.researchAndDevelopmentPartB} />
+          <RDPartA data={formData.researchAndDevelopmentPartA}/>
         </section>
+        {/* <section>
+          <RDPartB data={formData.researchAndDevelopmentPartB} />
+        </section> */}
         <section>
           <RDPartC data={formData.researchAndDevelopmentPartC} />
         </section>
