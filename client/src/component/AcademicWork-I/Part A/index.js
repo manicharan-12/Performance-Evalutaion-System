@@ -316,6 +316,7 @@ const AcademicWorkI = (props) => {
         const response = await fetch(`${api}/academic-work-1`, option);
         if (response.ok === true) {
           !isReview &&
+          // update fac_id
             navigate(`/academicWork/part-b/?f_id=${formId}&fac_id=${userId}`);
         } else {
           setDisabled(false);

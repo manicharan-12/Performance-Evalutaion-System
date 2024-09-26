@@ -123,7 +123,7 @@ const UserDetail = () => {
   }
 
   const handleFormClick = (f_id) => {
-    navigate(`/review/user-details/?f_id=${f_id}`);
+    navigate(`/review/user-details/?fac_id=${facultyId}&f_id=${f_id}`);
   };
   return (
     <HomeMainContainer>

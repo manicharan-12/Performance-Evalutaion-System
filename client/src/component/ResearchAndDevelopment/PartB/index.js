@@ -66,6 +66,7 @@ const RDPartB = (props) => {
     },
   ]);
   const [formId, setFormId] = useState("");
+  const [userId, setUserId] = useState("");
   const isSummaryPath =
     location.pathname.startsWith("/summary") ||
     location.pathname.startsWith("/review");
@@ -74,66 +75,78 @@ const RDPartB = (props) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const getFormIdFromSearchParams = () => {
+    try {
+      const formId = searchParams.get("f_id");
+      const userId = searchParams.get("fac_id"); // Fetch userId from params
+      return [formId, userId];
+    } catch (error) {
+      console.error("Error fetching form ID from search params:", error);
+      navigate("/home");
+    }
+  };
+
   useEffect(() => {
-    const getFormIdFromSearchParams = () => {
-      try {
-        const formId = searchParams.get("f_id");
-        return formId;
-      } catch (error) {
-        console.error("Error fetching form ID from search params:", error);
-        navigate("/home");
-      }
-    };
+    // const getFormIdFromSearchParams = () => {
+    //   try {
+    //     const formId = searchParams.get("f_id");
+    //     return formId;
+    //   } catch (error) {
+    //     console.error("Error fetching form ID from search params:", error);
+    //     navigate("/home");
+    //   }
+    // };
 
-    const fetchYear = async (id) => {
-      try {
-        setApiStatus(apiStatusConstants.inProgress);
-        const userId = Cookies.get("user_id");
-        const api = "http://localhost:6969";
+    // const fetchYear = async (id) => {
+    //   try {
+    //     setApiStatus(apiStatusConstants.inProgress);
+    //     const userId = Cookies.get("user_id");
+    //     const api = "http://localhost:6969";
 
-        const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setYear(data.academic_year);
+    //     const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
+    //     if (response.ok) {
+    //       const data = await response.json();
+    //       setYear(data.academic_year);
 
-          const response2 = await fetch(
-            `${api}/RD/PartB/${userId}/?formId=${id}`
-          );
-          const data2 = await response2.json();
+    //       const response2 = await fetch(
+    //         `${api}/RD/PartB/${userId}/?formId=${id}`
+    //       );
+    //       const data2 = await response2.json();
 
-          if (data2.phdPartB.presentation_data) {
-            const presentation_data = data2.phdPartB.presentation_data.map(
-              (item) => ({
-                titleOfThePaper: item.titleOfThePaper,
-                titleOfTheme: item.titleOfTheme,
-                organizedBy: item.organizedBy,
-                indexedIn: item.indexedIn,
-                noOfDays: item.noOfDays,
-                apiScore: item.apiScore,
-                hodRemark: item.hodRemark,
-              })
-            );
-            setTableData(presentation_data);
-            setFiles(data2.phdPartB.files || []);
-          }
+    //       if (data2.phdPartB.presentation_data) {
+    //         const presentation_data = data2.phdPartB.presentation_data.map(
+    //           (item) => ({
+    //             titleOfThePaper: item.titleOfThePaper,
+    //             titleOfTheme: item.titleOfTheme,
+    //             organizedBy: item.organizedBy,
+    //             indexedIn: item.indexedIn,
+    //             noOfDays: item.noOfDays,
+    //             apiScore: item.apiScore,
+    //             hodRemark: item.hodRemark,
+    //           })
+    //         );
+    //         setTableData(presentation_data);
+    //         setFiles(data2.phdPartB.files || []);
+    //       }
 
-          setApiStatus(apiStatusConstants.success);
-        } else {
-          setApiStatus(apiStatusConstants.failure);
-        }
-      } catch (error) {
-        console.error("Error fetching year data:", error);
-        setApiStatus(apiStatusConstants.failure);
-        setDisabled(false);
-      }
-    };
+    //       setApiStatus(apiStatusConstants.success);
+    //     } else {
+    //       setApiStatus(apiStatusConstants.failure);
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching year data:", error);
+    //     setApiStatus(apiStatusConstants.failure);
+    //     setDisabled(false);
+    //   }
+    // };
 
-    const formId = getFormIdFromSearchParams();
-    if (formId) {
+    const [formId, userId] = getFormIdFromSearchParams();
+    if (formId && userId) {
       setFormId(formId);
+      setUserId(userId); // Save userId to state
 
       if (!isReview) {
-        fetchYear(formId);
+        fetchYear(formId, userId);
       } else {
         setApiStatus(apiStatusConstants.inProgress);
         const { presentation_data, files } = props.data;
@@ -143,6 +156,50 @@ const RDPartB = (props) => {
       }
     }
   }, [isReview, searchParams, props.data]);
+
+
+  const fetchYear = async (formId, userId) => {
+    try {
+      setApiStatus(apiStatusConstants.inProgress);
+      const api = "http://localhost:6969";
+
+      const response = await fetch(`${api}/year/${userId}/?formId=${formId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setYear(data.academic_year);
+
+        const response2 = await fetch(
+          `${api}/RD/PartB/${userId}/?formId=${formId}`
+        );
+        const data2 = await response2.json();
+
+        if (data2.phdPartB.presentation_data) {
+          const presentation_data = data2.phdPartB.presentation_data.map(
+            (item) => ({
+              titleOfThePaper: item.titleOfThePaper,
+              titleOfTheme: item.titleOfTheme,
+              organizedBy: item.organizedBy,
+              indexedIn: item.indexedIn,
+              noOfDays: item.noOfDays,
+              apiScore: item.apiScore,
+              hodRemark: item.hodRemark,
+            })
+          );
+          setTableData(presentation_data);
+          setFiles(data2.phdPartB.files || []);
+        }
+
+        setApiStatus(apiStatusConstants.success);
+      } else {
+        setApiStatus(apiStatusConstants.failure);
+      }
+    } catch (error) {
+      console.error("Error fetching year data:", error);
+      setApiStatus(apiStatusConstants.failure);
+      setDisabled(false);
+    }
+  };
+
 
   const calculateApiScore = (value1, value2) => {
     if (value1 === "wos" || value1 === "scopus") {

@@ -59,6 +59,7 @@ const RDPartD = (props) => {
     },
   ]);
   const [formId, setFormId] = useState("");
+  const [userId, setUserId] = useState("");
   const [disabled, setDisabled] = useState(false);
   const isSummaryPath =
     location.pathname.startsWith("/summary") ||
@@ -68,36 +69,96 @@ const RDPartD = (props) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // useEffect(() => {
+  //   const getFormIdFromSearchParams = () => {
+  //     try {
+  //       const formId = searchParams.get("f_id");
+  //       return formId;
+  //     } catch (error) {
+  //       console.error("Error fetching form ID from search params:", error);
+  //       navigate("/home");
+  //     }
+  //   };
+
+  //   const fetchCertificates = async (id) => {
+  //     try {
+  //       setApiStatus(apiStatusConstants.inProgress);
+  //       const userId = Cookies.get("user_id");
+  //       const api = "http://localhost:6969";
+
+  //       const response = await fetch(`${api}/RD/PartD/${userId}/?formId=${id}`);
+  //       const data = await response.json();
+
+  //       if (data.phdPartD.certificates_data) {
+  //         const transformedData = data.phdPartD.certificates_data.map(
+  //           (item) => ({
+  //             nameOfTheCertificate: item.nameOfTheCertificate,
+  //             organization: item.organization,
+  //             score: item.score,
+  //             apiScore: item.apiScore,
+  //             hodRemark: item.hodRemark,
+  //           })
+  //         );
+  //         setTableData(transformedData);
+  //         setFiles(data.phdPartD.files || []);
+  //       }
+
+  //       setDisabled(false);
+  //       setApiStatus(apiStatusConstants.success);
+  //     } catch (error) {
+  //       console.error("Error fetching certificates data:", error);
+  //       setDisabled(false);
+  //       setApiStatus(apiStatusConstants.failure);
+  //     }
+  //   };
+
+  //   const formId = getFormIdFromSearchParams();
+  //   if (formId) {
+  //     setFormId(formId);
+
+  //     if (!isReview) {
+  //       fetchCertificates(formId);
+  //     } else {
+  //       setApiStatus(apiStatusConstants.inProgress);
+  //       const { certificates_data, files } = props.data;
+  //       setTableData(certificates_data);
+  //       setFiles(files);
+  //       setApiStatus(apiStatusConstants.success);
+  //     }
+  //   }
+  // }, [isReview, searchParams, props.data]);
+
+
   useEffect(() => {
+    // Updated getFormIdFromSearchParams to return formId and userId
     const getFormIdFromSearchParams = () => {
       try {
         const formId = searchParams.get("f_id");
-        return formId;
+        const userId = searchParams.get("fac_id"); // Fetch userId as well
+        return [formId, userId];
       } catch (error) {
         console.error("Error fetching form ID from search params:", error);
         navigate("/home");
       }
     };
 
-    const fetchCertificates = async (id) => {
+    const fetchCertificates = async (id, uid) => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
-        const userId = Cookies.get("user_id");
         const api = "http://localhost:6969";
 
-        const response = await fetch(`${api}/RD/PartD/${userId}/?formId=${id}`);
+        // Use formId and userId in the API request
+        const response = await fetch(`${api}/RD/PartD/${uid}/?formId=${id}`);
         const data = await response.json();
 
         if (data.phdPartD.certificates_data) {
-          const transformedData = data.phdPartD.certificates_data.map(
-            (item) => ({
-              nameOfTheCertificate: item.nameOfTheCertificate,
-              organization: item.organization,
-              score: item.score,
-              apiScore: item.apiScore,
-              hodRemark: item.hodRemark,
-            })
-          );
+          const transformedData = data.phdPartD.certificates_data.map((item) => ({
+            nameOfTheCertificate: item.nameOfTheCertificate,
+            organization: item.organization,
+            score: item.score,
+            apiScore: item.apiScore,
+            hodRemark: item.hodRemark,
+          }));
           setTableData(transformedData);
           setFiles(data.phdPartD.files || []);
         }
@@ -111,12 +172,14 @@ const RDPartD = (props) => {
       }
     };
 
-    const formId = getFormIdFromSearchParams();
-    if (formId) {
-      setFormId(formId);
+    // Get formId and userId from search params
+    const [fId, uId] = getFormIdFromSearchParams();
+    if (fId && uId) {
+      setFormId(fId);
+      setUserId(uId);
 
       if (!isReview) {
-        fetchCertificates(formId);
+        fetchCertificates(fId, uId); // Pass formId and userId to fetch function
       } else {
         setApiStatus(apiStatusConstants.inProgress);
         const { certificates_data, files } = props.data;
@@ -126,6 +189,8 @@ const RDPartD = (props) => {
       }
     }
   }, [isReview, searchParams, props.data]);
+
+
 
   const handleEditCertificate = (certificateIndex, updatedCertificate) => {
     const updatedState = tableData.map((eachCertificate, aIndex) => {

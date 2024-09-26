@@ -64,6 +64,7 @@ const RDPartC = (props) => {
     },
   ]);
   const [formId, setFormId] = useState("");
+  const [userId, setUserId] = useState("");
 
   const isSummaryPath =
     location.pathname.startsWith("/summary") ||
@@ -73,11 +74,83 @@ const RDPartC = (props) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // useEffect(() => {
+  //   const getFormIdFromSearchParams = () => {
+  //     try {
+  //       const formId = searchParams.get("f_id");
+  //       return formId;
+  //     } catch (error) {
+  //       console.error("Error fetching form ID from search params:", error);
+  //       navigate("/home");
+  //     }
+  //   };
+
+  //   const fetchYear = async (id) => {
+  //     try {
+  //       setApiStatus(apiStatusConstants.inProgress);
+  //       setDisabled(true);
+  //       const userId = Cookies.get("user_id");
+  //       const api = "http://localhost:6969";
+
+  //       const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         setYear(data.academic_year);
+
+  //         const response2 = await fetch(
+  //           `${api}/RD/PartC/${userId}/?formId=${id}`
+  //         );
+  //         const data2 = await response2.json();
+
+  //         if (data2.phdPartC.projects_data) {
+  //           const transformedData = data2.phdPartC.projects_data.map(
+  //             (item) => ({
+  //               titleOfTheFundingProject: item.titleOfTheFundingProject,
+  //               fundingAgencyDetails: item.fundingAgencyDetails,
+  //               grant: item.grant,
+  //               status: item.status,
+  //               apiScore: item.apiScore,
+  //               hodRemark: item.hodRemark,
+  //             })
+  //           );
+  //           setTableData(transformedData);
+  //           setFiles(data2.phdPartC.files || []);
+  //         }
+
+  //         setDisabled(false);
+  //         setApiStatus(apiStatusConstants.success);
+  //       } else {
+  //         setDisabled(false);
+  //         setApiStatus(apiStatusConstants.failure);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching data:", error);
+  //       setDisabled(false);
+  //       setApiStatus(apiStatusConstants.failure);
+  //     }
+  //   };
+
+  //   const formId = getFormIdFromSearchParams();
+  //   if (formId) {
+  //     setFormId(formId);
+  //     if (!isReview) {
+  //       fetchYear(formId);
+  //     } else {
+  //       setApiStatus(apiStatusConstants.inProgress);
+  //       const { projects_data, files } = props.data;
+  //       setTableData(projects_data);
+  //       setFiles(files);
+  //       setApiStatus(apiStatusConstants.success);
+  //     }
+  //   }
+  // }, [isReview, searchParams, props.data]);
+
   useEffect(() => {
     const getFormIdFromSearchParams = () => {
       try {
         const formId = searchParams.get("f_id");
-        return formId;
+        const userId = searchParams.get("fac_id");
+        return [formId, userId];
       } catch (error) {
         console.error("Error fetching form ID from search params:", error);
         navigate("/home");
@@ -88,17 +161,15 @@ const RDPartC = (props) => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
-        const userId = Cookies.get("user_id");
+        const userIdFromCookie = Cookies.get("user_id");
         const api = "http://localhost:6969";
 
-        const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
+        const response = await fetch(`${api}/year/${userIdFromCookie}/?formId=${id}`);
         if (response.ok) {
           const data = await response.json();
           setYear(data.academic_year);
 
-          const response2 = await fetch(
-            `${api}/RD/PartC/${userId}/?formId=${id}`
-          );
+          const response2 = await fetch(`${api}/RD/PartC/${userIdFromCookie}/?formId=${id}`);
           const data2 = await response2.json();
 
           if (data2.phdPartC.projects_data) {
@@ -129,11 +200,13 @@ const RDPartC = (props) => {
       }
     };
 
-    const formId = getFormIdFromSearchParams();
-    if (formId) {
-      setFormId(formId);
+    // Retrieve formId and userId from searchParams and set state
+    const [fId, uId] = getFormIdFromSearchParams();
+    if (fId) {
+      setFormId(fId);
+      setUserId(uId);
       if (!isReview) {
-        fetchYear(formId);
+        fetchYear(fId);
       } else {
         setApiStatus(apiStatusConstants.inProgress);
         const { projects_data, files } = props.data;

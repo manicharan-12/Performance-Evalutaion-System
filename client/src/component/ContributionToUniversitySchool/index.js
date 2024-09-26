@@ -61,6 +61,7 @@ const ContributionToUniversity = (props) => {
     },
   ]);
   const [formId, setFormId] = useState("");
+  const [userId, setUserId] = useState("");
   const [disabled, setDisabled] = useState(false);
   const isSummaryPath =
     location.pathname.startsWith("/summary") ||
@@ -70,38 +71,99 @@ const ContributionToUniversity = (props) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // useEffect(() => {
+  //   const getFormIdFromSearchParams = () => {
+  //     try {
+  //       const formId = searchParams.get("f_id");
+  //       return formId;
+  //     } catch (error) {
+  //       console.error("Error fetching form ID from search params:", error);
+  //       navigate("/home");
+  //     }
+  //   };
+
+  //   const fetchContributionToUniversitySchool = async (id) => {
+  //     try {
+  //       setApiStatus(apiStatusConstants.inProgress);
+  //       const userId = Cookies.get("user_id");
+  //       const api = "http://localhost:6969";
+
+  //       const response = await fetch(
+  //         `${api}/ContributionToUniversitySchool/${userId}/?formId=${id}`
+  //       );
+  //       const data = await response.json();
+
+  //       if (data.contributionToUniversitySchool.contribution_data) {
+  //         const transformedData =
+  //           data.contributionToUniversitySchool.contribution_data.map(
+  //             (item) => ({
+  //               nameOfTheResponsibility: item.nameOfTheResponsibility,
+  //               contribution: item.contribution,
+  //               apiScore: item.apiScore,
+  //               hodRemark: item.hodRemark,
+  //             })
+  //           );
+  //         setTableData(transformedData);
+  //         setFiles(data.contributionToUniversitySchool.files || []);
+  //       }
+
+  //       setDisabled(false);
+  //       setApiStatus(apiStatusConstants.success);
+  //     } catch (error) {
+  //       console.error("Error fetching contribution data:", error);
+  //       setDisabled(false);
+  //       setApiStatus(apiStatusConstants.failure);
+  //     }
+  //   };
+
+  //   const formId = getFormIdFromSearchParams();
+  //   if (formId) {
+  //     setFormId(formId);
+
+  //     if (!isReview) {
+  //       fetchContributionToUniversitySchool(formId);
+  //     } else {
+  //       setApiStatus(apiStatusConstants.inProgress);
+  //       const { contribution_data, files } = props.data;
+  //       setTableData(contribution_data);
+  //       setFiles(files);
+  //       setApiStatus(apiStatusConstants.success);
+  //     }
+  //   }
+  // }, [isReview, searchParams, props.data]);
+
+
   useEffect(() => {
+    // Updated getFormIdFromSearchParams to return both formId and userId
     const getFormIdFromSearchParams = () => {
       try {
         const formId = searchParams.get("f_id");
-        return formId;
+        const userId = searchParams.get("fac_id"); // Fetch userId as well
+        return [formId, userId];
       } catch (error) {
         console.error("Error fetching form ID from search params:", error);
         navigate("/home");
       }
     };
 
-    const fetchContributionToUniversitySchool = async (id) => {
+    const fetchContributionToUniversitySchool = async (id, uid) => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
-        const userId = Cookies.get("user_id");
         const api = "http://localhost:6969";
 
-        const response = await fetch(
-          `${api}/ContributionToUniversitySchool/${userId}/?formId=${id}`
-        );
+        // Use formId and userId in the API request
+        const response = await fetch(`${api}/ContributionToUniversitySchool/${uid}/?formId=${id}`);
         const data = await response.json();
 
         if (data.contributionToUniversitySchool.contribution_data) {
-          const transformedData =
-            data.contributionToUniversitySchool.contribution_data.map(
-              (item) => ({
-                nameOfTheResponsibility: item.nameOfTheResponsibility,
-                contribution: item.contribution,
-                apiScore: item.apiScore,
-                hodRemark: item.hodRemark,
-              })
-            );
+          const transformedData = data.contributionToUniversitySchool.contribution_data.map(
+            (item) => ({
+              nameOfTheResponsibility: item.nameOfTheResponsibility,
+              contribution: item.contribution,
+              apiScore: item.apiScore,
+              hodRemark: item.hodRemark,
+            })
+          );
           setTableData(transformedData);
           setFiles(data.contributionToUniversitySchool.files || []);
         }
@@ -115,12 +177,14 @@ const ContributionToUniversity = (props) => {
       }
     };
 
-    const formId = getFormIdFromSearchParams();
-    if (formId) {
-      setFormId(formId);
+    // Get formId and userId from search params
+    const [fId, uId] = getFormIdFromSearchParams();
+    if (fId && uId) {
+      setFormId(fId);
+      setUserId(uId);
 
       if (!isReview) {
-        fetchContributionToUniversitySchool(formId);
+        fetchContributionToUniversitySchool(fId, uId); // Pass formId and userId to fetch function
       } else {
         setApiStatus(apiStatusConstants.inProgress);
         const { contribution_data, files } = props.data;
@@ -130,6 +194,7 @@ const ContributionToUniversity = (props) => {
       }
     }
   }, [isReview, searchParams, props.data]);
+
 
   const handleEditContribution = (contributionIndex, updatedContribution) => {
     const updatedState = tableData.map((eachContribution, cIndex) => {
