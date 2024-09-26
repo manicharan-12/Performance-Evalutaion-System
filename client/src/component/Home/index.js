@@ -23,6 +23,7 @@ import { GrClose } from "react-icons/gr";
 import { ThreeDots, Oval } from "react-loader-spinner";
 import failure from "../Images/failure view.png";
 import { toast } from "react-toastify";
+import { useSearchParams } from "react-router-dom";
 
 const apiStatusConstants = {
   initial: "INITIAL",
@@ -31,9 +32,9 @@ const apiStatusConstants = {
   failure: "FAILURE",
 };
 
-
 const Home = () => {
   const [formList, setFormList] = useState([]);
+  const [userId, setUserId] = useState();
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [modal, setModal] = useState(false);
   const [name, setName] = useState("");
@@ -43,27 +44,35 @@ const Home = () => {
   const [disabled, setDisabled] = useState(false);
   const [userName, setUserName] = useState("");
   const [searchText, setSearchText] = useState("");
-  
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    async function fetchForms() {
-      // if(!navigator.onLine){
-    //   await toast.error("You are offline. Please connect to the internet and try again.", {
-    //     position: "bottom-center",
-    //     autoClose: 6969,
-    //     hideProgressBar: true,
-    //     closeOnClick: true,
-    //     pauseOnHover: false,
-    //     draggable: true,
-    //   });
-    //   return;
-    // }
+    const getFormIdFromSearchParams = () => {
       try {
+        const userId = searchParams.get("fac_id");
+        console.log(userId)
+        return userId;
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+      }
+    };
+
+    async function fetchForms() {
+      try {
+        const userId = getFormIdFromSearchParams();
+        if (!userId) {
+          console.error("Form ID not found in search params.");
+          return;
+        }
+
+        setUserId(userId); // Assuming you need to set the formId in state
+
         setApiStatus(apiStatusConstants.inProgress);
-        const userId = Cookies.get("user_id");
         const api = "http://localhost:6969";
+
         const response = await fetch(`${api}/user/forms/${userId}`);
         const response2 = await fetch(`${api}/profile/details/${userId}`);
+
         if (response.ok) {
           const data = await response.json();
           setFormList(data.getForms);
@@ -79,13 +88,14 @@ const Home = () => {
             draggable: true,
           });
         }
+
         if (response2.ok) {
           const data = await response2.json();
           setUserName(data.name);
           setApiStatus(apiStatusConstants.success);
         } else {
           setApiStatus(apiStatusConstants.failure);
-          toast.error("Failed to fetch userData", {
+          toast.error("Failed to fetch user data", {
             position: "bottom-center",
             autoClose: 6969,
             hideProgressBar: true,
@@ -96,12 +106,12 @@ const Home = () => {
         }
       } catch (error) {
         setApiStatus(apiStatusConstants.failure);
-        console.error(error);
+        console.error("Error fetching data:", error);
       }
     }
 
     fetchForms();
-  }, []);
+  }, [searchParams]); // Ensure this effect runs when searchParams change
 
   const openModal = () => {
     setModal(true);
@@ -111,7 +121,7 @@ const Home = () => {
   };
   const handleNavigate = () => {
     navigate("/hod-dashboard");
-  }
+  };
   const closeModal = () => {
     setModal(false);
     setName("");
@@ -170,8 +180,8 @@ const Home = () => {
         if (isEditing) {
           setFormList((prevFormList) =>
             prevFormList.map((form) =>
-              form._id === editingFormId ? { ...form, formName: name } : form,
-            ),
+              form._id === editingFormId ? { ...form, formName: name } : form
+            )
           );
         } else {
           const formId = data.formId;
@@ -206,7 +216,6 @@ const Home = () => {
   };
 
   const onClickDelete = async (formId) => {
-    
     // if(!navigator.onLine){
     //   await toast.error("You are offline. Please connect to the internet and try again.", {
     //     position: "bottom-center",
@@ -220,7 +229,7 @@ const Home = () => {
     // }
 
     const isConfirmed = window.confirm(
-      "Are you sure you want to delete this form?",
+      "Are you sure you want to delete this form?"
     );
     if (isConfirmed) {
       try {
@@ -231,7 +240,7 @@ const Home = () => {
 
         if (response.ok) {
           setFormList((prevFormList) =>
-            prevFormList.filter((form) => form._id !== formId),
+            prevFormList.filter((form) => form._id !== formId)
           );
         } else {
           throw new Error("Failed to delete form");
@@ -251,7 +260,6 @@ const Home = () => {
   };
 
   const handleFormClick = async (formId) => {
-
     // if(!navigator.onLine){
     //   await toast.error("You are offline. Please connect to the internet and try again.", {
     //     position: "bottom-center",
@@ -265,7 +273,7 @@ const Home = () => {
     // }
 
     try {
-      navigate(`/academicWork/part-a/?f_id=${formId}`, { state: { formId } });
+      navigate(`/academicWork/part-a/?f_id=${formId}&fac_id=${userId}`);
     } catch (error) {
       toast.error("Internal Server Error! Please try again later", {
         position: "bottom-center",
@@ -299,7 +307,7 @@ const Home = () => {
 
   const renderSuccessView = () => {
     const filteredForms = formList.filter((form) =>
-      form.formName.toLowerCase().includes(searchText.toLowerCase()),
+      form.formName.toLowerCase().includes(searchText.toLowerCase())
     );
     return (
       <>
@@ -311,33 +319,33 @@ const Home = () => {
             value={searchText}
             onChange={onChangeSearchText}
           />
-          <span style={{'display':'flex', 'gap':'10px'}}>
-          <button
-            onClick={handleNavigate}
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              backgroundImage:
-                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-              color: "#fff",
-              border: "none",
-            }}
-          >
-            Faculty Submissions
-          </button>
-          <button
-            onClick={openModal}
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              backgroundImage:
-                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-              color: "#fff",
-              border: "none",
-            }}
-          >
-            Create a new form
-          </button>
+          <span style={{ display: "flex", gap: "10px" }}>
+            <button
+              onClick={handleNavigate}
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
+            >
+              Faculty Submissions
+            </button>
+            <button
+              onClick={openModal}
+              style={{
+                padding: "12px",
+                borderRadius: "8px",
+                backgroundImage:
+                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                color: "#fff",
+                border: "none",
+              }}
+            >
+              Create a new form
+            </button>
           </span>
         </ButtonContainer>
         {modal && (

@@ -82,6 +82,7 @@ const AcademicWorkI = (props) => {
   const [totalApiScore, setTotalApiScore] = useState();
   const [disabled, setDisabled] = useState(false);
   const [formId, setFormId] = useState("");
+  const [userId, setUserId] = useState("");
   const location = useLocation();
   const isSummaryPath =
     location.pathname.startsWith("/summary") ||
@@ -295,7 +296,6 @@ const AcademicWorkI = (props) => {
             return;
           }
         }
-        const userId = Cookies.get("user_id");
         const postData = {
           userId,
           formId,
@@ -315,7 +315,8 @@ const AcademicWorkI = (props) => {
         };
         const response = await fetch(`${api}/academic-work-1`, option);
         if (response.ok === true) {
-          !isReview && navigate(`/academicWork/part-b/?f_id=${formId}`);
+          !isReview &&
+            navigate(`/academicWork/part-b/?f_id=${formId}&fac_id=${userId}`);
         } else {
           setDisabled(false);
           await toast.error("Failed to save data! Please try again later", {
@@ -356,20 +357,20 @@ const AcademicWorkI = (props) => {
     const getFormIdFromSearchParams = () => {
       try {
         const formId = searchParams.get("f_id");
-        return formId;
+        const userId = searchParams.get("fac_id");
+        return [formId, userId];
       } catch (error) {
         console.error("Error fetching form ID from search params:", error);
         navigate("/home");
       }
     };
-    const fetchData = async (id) => {
+    const fetchData = async (formId, userId) => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
-        const userId = Cookies.get("user_id");
         const api = "http://localhost:6969";
         const response = await fetch(
-          `${api}/academic-work-1/data/${userId}/?formId=${id}`
+          `${api}/academic-work-1/data/${userId}/?formId=${formId}`
         );
 
         if (response.ok) {
@@ -395,12 +396,12 @@ const AcademicWorkI = (props) => {
       }
     };
 
-    const formId = getFormIdFromSearchParams();
-    if (formId) {
+    const [formId, userId] = getFormIdFromSearchParams();
+    if (formId && userId) {
       setFormId(formId);
-
+      setUserId(userId);
       if (!isReview) {
-        fetchData(formId);
+        fetchData(formId, userId);
       } else {
         setApiStatus(apiStatusConstants.inProgress);
         const {

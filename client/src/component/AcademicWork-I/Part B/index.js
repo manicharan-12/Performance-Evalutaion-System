@@ -106,6 +106,7 @@ const AcademicWorkII = (props) => {
   const [formId, setFormId] = useState("");
   const [loading, setLoading] = useState(false);
   const [reviewerScore, setReviewerScore] = useState("");
+  const [userId,setUserId]=useState('')
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -121,19 +122,20 @@ const AcademicWorkII = (props) => {
     const getFormIdFromSearchParams = () => {
       try {
         const formId = searchParams.get("f_id");
-        return formId;
+        const userId = searchParams.get("fac_id");
+        return [formId, userId];
       } catch (error) {
         console.error("Error fetching form ID from search params:", error);
         navigate("/home");
       }
     };
 
-    const fetchData = async (id) => {
+    const fetchData = async (formId, userId) => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
         const userId = Cookies.get("user_id");
         const response = await fetch(
-          `http://localhost:6969/academic-work-2/data/${userId}/?formId=${id}`
+          `http://localhost:6969/academic-work-2/data/${userId}/?formId=${formId}`
         );
 
         if (response.ok) {
@@ -156,12 +158,13 @@ const AcademicWorkII = (props) => {
       }
     };
 
-    const formId = getFormIdFromSearchParams();
-    if (formId) {
+    const [formId, userId] = getFormIdFromSearchParams();
+    if (formId && userId) {
       setFormId(formId);
+      setUserId(userId);
 
       if (!isReview) {
-        fetchData(formId);
+        fetchData(formId,userId);
       } else {
         setApiStatus(apiStatusConstants.inProgress);
         const { editorContent, files } = props.data;
@@ -217,7 +220,6 @@ const AcademicWorkII = (props) => {
       return;
     }
 
-    const userId = Cookies.get("user_id");
     const formData = new FormData();
     formData.append("userId", userId);
     formData.append("formId", formId);

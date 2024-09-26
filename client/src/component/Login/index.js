@@ -32,7 +32,7 @@ const Login = (props) => {
     Cookies.set("role", role, { expires: 1, path: "/" });
     console.log(role);
 
-    navigate("/");
+    navigate(`/home?fac_id=${userId}`);
     // if (role === "HOD") {
     //   navigate("/hod-dashboard");  // Redirect to the HOD Dashboard
     // } else {
