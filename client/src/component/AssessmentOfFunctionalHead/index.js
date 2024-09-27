@@ -38,6 +38,7 @@ const apiStatusConstants = {
 const AssessmentOfFunctionalHead = () => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [formId, setFormId] = useState("");
+  const [userId, setUserId] = useState("");
   const [tableData, setTableData] = useState({
     impression: "",
     examination: "",
@@ -48,15 +49,144 @@ const AssessmentOfFunctionalHead = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // useEffect(() => {
+  //   let id;
+  //   async function fetchYear() {
+  //     try {
+  //       const formId = await searchParams.get("f_id");
+  //       id = formId;
+  //       await setFormId(id);
+  //       setApiStatus(apiStatusConstants.inProgress);
+  //       const userId = Cookies.get("user_id");
+  //       const api = "http://localhost:6969";
+
+  //       setApiStatus(apiStatusConstants.success);
+  //     } catch (error) {
+  //       console.log(error);
+  //       setApiStatus(apiStatusConstants.failure);
+  //     }
+  //   }
+  //   fetchYear();
+  // }, []);
+
+  // const calculateTotalScore = (data) => {
+  //   const { impression, examination, interpersonal } = data;
+  //   const total = [impression, examination, interpersonal]
+  //     .map((value) => parseInt(value, 10) || 0)
+  //     .reduce((acc, score) => acc + score, 0);
+  //   return total;
+  // };
+
+  // const handleValueChange = (field, value) => {
+  //   setTableData((prevState) => {
+  //     const updatedData = { ...prevState, [field]: value };
+  //     return { ...updatedData, apiScore: calculateTotalScore(updatedData) };
+  //   });
+  // };
+
+  // const submitAssessmentOfFunctionalHead = () => {
+  //   try {
+  //     // Handle form submission
+
+  //   } catch (error) {
+  //     toast.error("Internal Server Error! Please try again Later", {
+  //       position: "bottom-center",
+  //       autoClose: 6969,
+  //       hideProgressBar: true,
+  //       closeOnClick: true,
+  //       pauseOnHover: false,
+  //       draggable: true,
+  //       progress: undefined,
+  //       theme: "colored",
+  //     });
+  //   }
+  // };
+
+  // const submitAssessmentOfFunctionalHead = async () => {
+  //   try {
+  //     // Assuming you have state variables for these values
+
+  //     const impression = tableData.impression(); // Replace with actual method to get impression
+  //     const examination = tableData.examination(); // Replace with actual method to get examination
+  //     const interpersonal = tableData.interpersonal(); // Replace with actual method to get interpersonal
+
+  //     // Calculate total score
+  //     const totalScore = impression + examination + interpersonal;
+
+  //     const response = await fetch('/functional-head-assessment', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         userId,
+  //         formId,
+  //         impression,
+  //         examination,
+  //         interpersonal,
+  //         totalScore,
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(errorData.error_msg || 'Failed to submit assessment');
+  //     }
+
+  //     const data = await response.json();
+
+  //     // Show success message
+  //     toast.success("Assessment submitted successfully!", {
+  //       position: "bottom-center",
+  //       autoClose: 5000,
+  //       hideProgressBar: false,
+  //       closeOnClick: true,
+  //       pauseOnHover: true,
+  //       draggable: true,
+  //       progress: undefined,
+  //       theme: "colored",
+  //     });
+
+  //     // You might want to do something with the response data here
+  //     console.log('Submission successful:', data);
+
+  //     // Optionally, you could reset form fields or update UI state here
+
+  //   } catch (error) {
+  //     console.error('Error submitting assessment:', error);
+  //     toast.error(error.message || "Internal Server Error! Please try again later", {
+  //       position: "bottom-center",
+  //       autoClose: 6969,
+  //       hideProgressBar: true,
+  //       closeOnClick: true,
+  //       pauseOnHover: false,
+  //       draggable: true,
+  //       progress: undefined,
+  //       theme: "colored",
+  //     });
+  //   }
+  // };
+
+  const getFormIdFromSearchParams = () => {
+    try {
+      const formId = searchParams.get("f_id");
+      const userId = searchParams.get("fac_id");
+      return [formId, userId];
+    } catch (error) {
+      console.error("Error fetching form ID from search params:", error);
+      navigate("/home");
+    }
+  };
+
   useEffect(() => {
     let id;
     async function fetchYear() {
       try {
-        const formId = await searchParams.get("f_id");
+        const [formId, userId] = getFormIdFromSearchParams();
         id = formId;
         await setFormId(id);
+        await setUserId(userId);
         setApiStatus(apiStatusConstants.inProgress);
-        const userId = Cookies.get("user_id");
         const api = "http://localhost:6969";
 
         setApiStatus(apiStatusConstants.success);
@@ -66,7 +196,7 @@ const AssessmentOfFunctionalHead = () => {
       }
     }
     fetchYear();
-  }, []);
+  }, [searchParams]);
 
   const calculateTotalScore = (data) => {
     const { impression, examination, interpersonal } = data;
@@ -83,20 +213,162 @@ const AssessmentOfFunctionalHead = () => {
     });
   };
 
-  const submitAssessmentOfFunctionalHead = () => {
+  // const submitAssessmentOfFunctionalHead = async () => {
+  //   try {
+  //     const { impression, examination, interpersonal } = tableData;
+  //     const totalScore = calculateTotalScore(tableData);
+  //     console.log("i",impression,"e",examination,"in",interpersonal,"t",totalScore)
+
+  //     const api = "http://localhost:6969";
+  //     const response = await fetch(`${api}/RD/PartA`, {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+
+  //     const response1 = await fetch('/functional-head-assessment', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         userId,
+  //         formId,
+  //         impression,
+  //         examination,
+  //         interpersonal,
+  //         totalScore,
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(errorData.error_msg || 'Failed to submit assessment');
+  //     }
+
+  //     const data = await response.json();
+
+  //     toast.success("Assessment submitted successfully!", {
+  //       position: "bottom-center",
+  //       autoClose: 5000,
+  //       hideProgressBar: false,
+  //       closeOnClick: true,
+  //       pauseOnHover: true,
+  //       draggable: true,
+  //       progress: undefined,
+  //       theme: "colored",
+  //     });
+
+  //     console.log('Submission successful:', data);
+
+  //   } catch (error) {
+  //     console.error('Error submitting assessment:', error);
+  //     toast.error(error.message || "Internal Server Error! Please try again later", {
+  //       position: "bottom-center",
+  //       autoClose: 6969,
+  //       hideProgressBar: true,
+  //       closeOnClick: true,
+  //       pauseOnHover: false,
+  //       draggable: true,
+  //       progress: undefined,
+  //       theme: "colored",
+  //     });
+  //   }
+  // };
+
+  const submitAssessmentOfFunctionalHead = async (f_id) => {
     try {
-      // Handle form submission
-    } catch (error) {
-      toast.error("Internal Server Error! Please try again Later", {
+      const { impression, examination, interpersonal } = tableData; // ensure tableData is defined
+      const totalScore = calculateTotalScore(tableData); // ensure calculateTotalScore is defined
+      console.log(
+        "i",
+        impression,
+        "e",
+        examination,
+        "in",
+        interpersonal,
+        "t",
+        totalScore
+      );
+
+      const api = "http://localhost:6969";
+
+      // First request
+      const response = await fetch(
+        `${api}/functional-head-assessment/?f_id=${formId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            impression,
+            examination,
+            interpersonal,
+            totalScore,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error_msg || "Failed to submit assessment to PartA"
+        );
+      }
+
+      // Second request
+      // const response1 = await fetch(`/functional-head-assessment/${f_id}`, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     userId, // ensure userId is defined
+      //     formId: f_id, // use f_id for formId as passed param
+      //     impression,
+      //     examination,
+      //     interpersonal,
+      //     totalScore,
+      //   }),
+      // });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error_msg || "Failed to submit functional head assessment"
+        );
+      }
+
+      const data1 = await response.json();
+
+      toast.success("Assessment submitted successfully!", {
         position: "bottom-center",
-        autoClose: 6969,
-        hideProgressBar: true,
+        autoClose: 5000,
+        hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: false,
+        pauseOnHover: true,
         draggable: true,
         progress: undefined,
         theme: "colored",
       });
+
+      console.log("Submission successful:", data1);
+    } catch (error) {
+      console.error("Error submitting assessment:", error);
+      toast.error(
+        error.message || "Internal Server Error! Please try again later",
+        {
+          position: "bottom-center",
+          autoClose: 6969,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        }
+      );
     }
   };
 

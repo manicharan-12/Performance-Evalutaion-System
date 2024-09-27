@@ -26,6 +26,7 @@ const ContributionToDepartment = require("./models/contributionToDepartment");
 const ContributionToSociety = require("./models/contributionToSociety");
 const ApiScore = require("./models/apiScore");
 const AssessmentOfFunctionalHead = require("./models/assessmentOfFunctionalHead");
+const assessmentOfFunctionalHead = require("./models/assessmentOfFunctionalHead");
 
 // const mongoURI = "mongodb://localhost:27017/faculty_evaluation_system";
 const mongoURI =
@@ -1007,6 +1008,7 @@ app.get("/RD/PartA/:userId", async (request, response) => {
 app.post("/RD/PartB", upload.array("files"), async (request, response) => {
   try {
     const { userId, formId, tableData, totalApiScore } = request.body;
+    console.log({ userId, formId, tableData, totalApiScore });
     let { deletedFiles } = request.body;
     const files = request.files;
     let parsedTableData;
@@ -2197,55 +2199,127 @@ app.patch("/hod/remarks/:f_id", async (req, res) => {
   }
 });
 
+// app.post("/functional-head-assessment/:f_id", async (request, response) => {
+//   try {
+//     const {
+//       userId,
+//       formId,
+//       impression,
+//       examination,
+//       interpersonal,
+//       totalScore,
+//     } = request.body;
 
-app.post("/functional-head-assessment", async (request, response) => {
+//     // Optionally recalculate the total score on the backend for verification
+//     const calculatedTotalScore = impression + examination + interpersonal;
+
+//     if (calculatedTotalScore !== totalScore) {
+//       return response
+//         .status(400)
+//         .json({ error_msg: "Total score mismatch. Please try again." });
+//     }
+
+//     const existingAssessment = await AssessmentOfFunctionalHead.findOne({
+//       userId,
+//       formId,
+//     });
+
+//     if (existingAssessment) {
+//       existingAssessment.impression = impression;
+//       existingAssessment.examination = examination;
+//       existingAssessment.interpersonal = interpersonal;
+//       existingAssessment.totalScore = totalScore;
+//       await existingAssessment.save();
+//     } else {
+//       const newAssessment = new AssessmentOfFunctionalHead({
+//         userId,
+//         formId,
+//         impression,
+//         examination,
+//         interpersonal,
+//         totalScore,
+//       });
+//       await newAssessment.save();
+//     }
+
+//     // Update the ApiScore model
+//     const existingScore = await assessmentOfFunctionalHead.findOne({ userId, formId });
+//     if (existingScore) {
+//       existingScore.apiScores.functionalHeadAssessment = totalScore;
+//       await existingScore.save();
+//     } else {
+//       const newApiScore = new ApiScore({
+//         userId,
+//         formId,
+//         apiScores: { functionalHeadAssessment: totalScore },
+//       });
+//       await newApiScore.save();
+//     }
+
+//     response
+//       .status(200)
+//       .json({ message: "Assessment saved successfully!", totalScore });
+//   } catch (error) {
+//     console.error(error);
+//     response
+//       .status(500)
+//       .json({ error_msg: "Internal Server Error! Please try again later." });
+//   }
+// });
+
+app.post("/functional-head-assessment/", async (req, res) => {
+  const { f_id } = req.query; // formId passed in the URL
+  const { userId, impression, examination, interpersonal, totalScore } =
+    req.body;
+  console.log(userId, impression, examination, interpersonal, totalScore);
+
   try {
-    const { userId, formId, impression, examination, interpersonal, totalScore } = request.body;
-
-    // Optionally recalculate the total score on the backend for verification
-    const calculatedTotalScore = impression + examination + interpersonal;
-
-    if (calculatedTotalScore !== totalScore) {
-      return response.status(400).json({ error_msg: "Total score mismatch. Please try again." });
-    }
-
-    const existingAssessment = await AssessmentOfFunctionalHead.findOne({ userId, formId });
+    // Check if an assessment with the given formId (f_id) already exists
+    const existingAssessment = await AssessmentOfFunctionalHead.findOne({
+      formId: f_id,
+    });
 
     if (existingAssessment) {
-      existingAssessment.impression = impression;
-      existingAssessment.examination = examination;
-      existingAssessment.interpersonal = interpersonal;
-      existingAssessment.totalScore = totalScore;
-      await existingAssessment.save();
-    } else {
-      const newAssessment = new AssessmentOfFunctionalHead({
-        userId,
-        formId,
-        impression,
-        examination,
-        interpersonal,
-        totalScore,
+      // If an assessment already exists, return the existing data
+      return res.status(200).json({
+        message: "Assessment already exists",
+        assessment: existingAssessment,
       });
-      await newAssessment.save();
     }
 
-    // Update the ApiScore model
-    const existingApiScore = await ApiScore.findOne({ userId, formId });
-    if (existingApiScore) {
-      existingApiScore.apiScores.functionalHeadAssessment = totalScore;
-      await existingApiScore.save();
-    } else {
-      const newApiScore = new ApiScore({
-        userId,
-        formId,
-        apiScores: { functionalHeadAssessment: totalScore },
-      });
-      await newApiScore.save();
-    }
+    // If the totalScore does not match the sum of individual scores, return an error
+    // const calculatedTotal = impression + examination + interpersonal;
 
-    response.status(200).json({ message: "Assessment saved successfully!", totalScore });
+    // if (calculatedTotal !== totalScore) {
+    //   return res.status(400).json({
+    //     error_msg: "Total score does not match the sum of individual scores",
+    //   });
+    // }
+
+    // Create a new assessment document
+    const newAssessment = new AssessmentOfFunctionalHead({
+      formId: f_id,
+      userId: userId,
+      impression: impression,
+      examination: examination,
+      interpersonal: interpersonal,
+      totalScore: totalScore,
+    });
+
+    // Save the assessment document to MongoDB
+    await newAssessment.save();
+
+    // Return a success response with the new assessment
+    res.status(201).json({
+      message: "Assessment saved successfully!",
+      assessment: newAssessment,
+    });
   } catch (error) {
-    console.error(error);
-    response.status(500).json({ error_msg: "Internal Server Error! Please try again later." });
+    console.error("Error saving assessment:", error);
+
+    // Send an error response
+    res.status(500).json({
+      error_msg: "Failed to save assessment. Internal server error.",
+    });
   }
 });

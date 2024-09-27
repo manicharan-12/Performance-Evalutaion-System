@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LoginButtonContainer,
   MainNavContainer,
@@ -17,6 +17,8 @@ import logo from "../Images/AU LOGO.png";
 const Header = () => {
   const navigate = useNavigate();
   const isHod = Cookies.get("role") === "HOD";
+  const [searchParams] = useSearchParams();
+  const [userId, setUserId] = useState("");
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
   const handleProfileClick = () => {
@@ -28,7 +30,14 @@ const Header = () => {
     setIsDropdownVisible(false);
   };
 
+  const getfacid = () => {
+    const fac_id = searchParams.get("fac_id");
+    return fac_id;
+  };
+
   useEffect(() => {
+    const fac = getfacid();
+    setUserId(fac);
     if (isDropdownVisible) {
       document.addEventListener("click", handleOutsideClick);
     } else {
@@ -52,12 +61,12 @@ const Header = () => {
   };
 
   const onClickImage = () => {
-    navigate("/home");
+    navigate(`/home?fac_id=${userId}`);
   };
 
   const handleNavigate = () => {
     navigate("/hod-dashboard");
-  }
+  };
 
   return (
     <MainNavContainer className="shadow">

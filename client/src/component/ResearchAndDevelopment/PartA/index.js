@@ -84,6 +84,7 @@ const RDPartA = (props) => {
   };
 
   useEffect(() => {
+    console.log("props",props)
     const fetchYear = async () => {
       try {
         const [formId, userId] = getFormIdFromSearchParams();
@@ -129,7 +130,9 @@ const RDPartA = (props) => {
           }
         } else {
           setApiStatus(apiStatusConstants.inProgress);
-          const { presentation_data, files } = props.data.phdPartA || {};
+          const { presentation_data, files } = props.data || {};
+          console.log(presentation_data);
+          
           setTableData(presentation_data || []);
           setFiles(files || []);
           setYear(props.data.academic_year);

@@ -70,6 +70,7 @@ const RDPartB = (props) => {
     location.pathname.startsWith("/summary") ||
     location.pathname.startsWith("/review");
   const isReview = location.pathname.startsWith("/review");
+  const [totalApiScore, setTotalApiScore] = useState(0);
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -79,7 +80,7 @@ const RDPartB = (props) => {
       try {
         const formId = searchParams.get("f_id");
         const userId = searchParams.get("fac_id");
-        return formId, userId;
+        return [formId, userId];
       } catch (error) {
         console.error("Error fetching form ID from search params:", error);
         navigate("/home");
@@ -94,6 +95,7 @@ const RDPartB = (props) => {
         const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
         if (response.ok) {
           const data = await response.json();
+          console.log("asdfgh", data.academic_year);
           setYear(data.academic_year);
 
           const response2 = await fetch(
@@ -133,7 +135,7 @@ const RDPartB = (props) => {
       setFormId(fId);
       setUserId(uId);
       if (!isReview) {
-        fetchYear(fId);
+        fetchYear(uId, fId);
       } else {
         setApiStatus(apiStatusConstants.inProgress);
         const { projects_data, files } = props.data;
@@ -169,15 +171,18 @@ const RDPartB = (props) => {
   });
 
   const handleOpenInNewTab = async (file) => {
-    // if(!navigator.onLine){
-    //   await toast.error("You are offline. Please connect to the internet and try again.", {
-    //     position: "bottom-center",
-    //     autoClose: 6969,
-    //     hideProgressBar: true,
-    //     closeOnClick: true,
-    //     pauseOnHover: false,
-    //     draggable: true,
-    //   });
+    // if (!navigator.onLine) {
+    //   await toast.error(
+    //     "You are offline. Please connect to the internet and try again.",
+    //     {
+    //       position: "bottom-center",
+    //       autoClose: 6969,
+    //       hideProgressBar: true,
+    //       closeOnClick: true,
+    //       pauseOnHover: false,
+    //       draggable: true,
+    //     }
+    //   );
     //   return;
     // }
     if (file.fileId) {
@@ -257,7 +262,6 @@ const RDPartB = (props) => {
       indexedIn: "",
       noOfDays: "",
       apiScore: "",
-      hodRemark: "",
     };
     setTableData([...tableData, newArticle]);
   };
@@ -266,15 +270,6 @@ const RDPartB = (props) => {
     const newTableData = tableData.slice(0, -1);
     setTableData(newTableData);
   };
-
-  const calculateTotalApiScore = (data) => {
-    const score = data.reduce(
-      (total, item) => total + (parseFloat(item.apiScore) || 0),
-      0
-    );
-    return score >= 5 ? 5 : score;
-  };
-
   const submitRDPartB = async () => {
     // if(!navigator.onLine){
     //   await toast.error("You are offline. Please connect to the internet and try again.", {
@@ -294,11 +289,9 @@ const RDPartB = (props) => {
       if (!isEmpty) {
         setDisabled(true);
         const formData = new FormData();
-        const totalApiScore = calculateTotalApiScore(tableData);
         formData.append("userId", userId);
         formData.append("formId", formId);
         formData.append("tableData", JSON.stringify(tableData));
-        formData.append("totalApiScore", totalApiScore);
         files.forEach((file) => {
           if (!file.fileId) {
             formData.append("files", file);
@@ -315,7 +308,7 @@ const RDPartB = (props) => {
         if (response.ok) {
           setDisabled(false);
           !isReview &&
-            navigate(`/research-and-development/partC/?f_id=${formId}`);
+            navigate(`/research-and-development/partC/?f_id=${formId}&fac_id=${userId}`);
         } else {
           setDisabled(false);
           toast.error("Error while saving the data! Please try again Later", {
@@ -406,12 +399,6 @@ const RDPartB = (props) => {
               <TableHead>Indexed in? (WoS/Scopus)</TableHead>
               <TableHead>No. of days</TableHead>
               <TableHead>Score (Max. 5)</TableHead>
-              {isReview && (
-                <TableHead>
-                  Reviewer Remark <br />
-                  (Max. 5)
-                </TableHead>
-              )}
             </TableRow>
           </TableMainHead>
           <TableBody>
@@ -489,22 +476,6 @@ const RDPartB = (props) => {
                   />
                 </TableData>
                 <TableData>{paper.apiScore}</TableData>
-                {isReview && (
-                  <TableData>
-                    <EditableValue
-                      value={paper.reviewerScore || ""}
-                      onValueChange={(newValue) =>
-                        handleEditPresentation(paperIndex, {
-                          ...paper,
-                          reviewerScore: newValue,
-                        })
-                      }
-                      validate={(input) => /^[0-5]+$/.test(input)}
-                      type="text"
-                      disabled={false}
-                    />
-                  </TableData>
-                )}
               </TableRow>
             ))}
           </TableBody>
@@ -544,30 +515,25 @@ const RDPartB = (props) => {
         )}
       </TableContainer>
       <FileContainer className="mt-4">
-        {!isSummaryPath && (
-          <>
-            <SubSectionHeading>
-              Submit the documentary evidences below
-            </SubSectionHeading>
-            <StyledDropzone {...getRootProps({ isDragActive })}>
-              <InputFile {...getInputProps()} />
-              {isDragActive ? (
-                <>
-                  <Paragraph>Drop the files here...</Paragraph>
-                  <Paragraph>(Max File size is 50mb)</Paragraph>
-                </>
-              ) : (
-                <>
-                  <Paragraph>
-                    Drag or drop some files here, or click to select files
-                  </Paragraph>
-                  <Paragraph>(Max File size is 50mb)</Paragraph>
-                </>
-              )}
-            </StyledDropzone>
-          </>
-        )}
-
+        <SubSectionHeading>
+          Submit the documentary evidences below
+        </SubSectionHeading>
+        <StyledDropzone {...getRootProps({ isDragActive })}>
+          <InputFile {...getInputProps()} />
+          {isDragActive ? (
+            <>
+              <Paragraph>Drop the files here...</Paragraph>
+              <Paragraph>(Max File size is 50mb)</Paragraph>
+            </>
+          ) : (
+            <>
+              <Paragraph>
+                Drag or drop some files here, or click to select files
+              </Paragraph>
+              <Paragraph>(Max File size is 50mb)</Paragraph>
+            </>
+          )}
+        </StyledDropzone>
         <UnorderedList className="mt-3">
           {files.map((file, index) => (
             <ListItems key={index}>
@@ -610,37 +576,6 @@ const RDPartB = (props) => {
               />
             ) : (
               "Save & Next"
-            )}
-          </SaveNextButton>
-        )}
-        {isReview && (
-          <SaveNextButton
-            className="btn btn-primary"
-            type="submit"
-            onClick={submitRDPartB}
-            disabled={disabled}
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              backgroundImage:
-                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-              color: "#fff",
-              border: "none",
-            }}
-          >
-            {disabled ? (
-              <Oval
-                visible={true}
-                height="25"
-                width="25"
-                color="#ffffff"
-                ariaLabel="oval-loading"
-                wrapperStyle={{}}
-                wrapperClass=""
-                className="text-center"
-              />
-            ) : (
-              "Save"
             )}
           </SaveNextButton>
         )}
