@@ -57,6 +57,7 @@ export const TableContainer = styled.div`
 export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 `;
 
 export const TableMainHead = styled.thead``;
@@ -67,7 +68,7 @@ export const TableHead = styled.th`
   text-align: left;
   padding: 8px;
   border: 1px solid #ddd;
-  white-space: nowrap;
+  white-space: normal;
   text-align: center;
 `;
 
@@ -75,7 +76,7 @@ export const TableData = styled.td`
   text-align: left;
   padding: 8px;
   border: 1px solid #ddd;
-  white-space: nowrap;
+  white-space: normal;
   text-align: center;
 `;
 
@@ -112,4 +113,3 @@ export const EditableTextArea = styled.textarea`
   overflow-wrap: break-word; /* Prevents words from breaking out of the box */
   white-space: pre-wrap; /* Maintains white spaces and line breaks */
 `;
-

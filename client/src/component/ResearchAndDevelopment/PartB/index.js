@@ -138,8 +138,8 @@ const RDPartB = (props) => {
         fetchYear(uId, fId);
       } else {
         setApiStatus(apiStatusConstants.inProgress);
-        const { projects_data, files } = props.data;
-        setTableData(projects_data);
+        const { presentation_data, files } = props.data;
+        setTableData(presentation_data);
         setFiles(files);
         setApiStatus(apiStatusConstants.success);
       }
@@ -308,7 +308,9 @@ const RDPartB = (props) => {
         if (response.ok) {
           setDisabled(false);
           !isReview &&
-            navigate(`/research-and-development/partC/?f_id=${formId}&fac_id=${userId}`);
+            navigate(
+              `/research-and-development/partC/?f_id=${formId}&fac_id=${userId}`
+            );
         } else {
           setDisabled(false);
           toast.error("Error while saving the data! Please try again Later", {
@@ -514,39 +516,41 @@ const RDPartB = (props) => {
           </SaveNextButton>
         )}
       </TableContainer>
-      <FileContainer className="mt-4">
-        <SubSectionHeading>
-          Submit the documentary evidences below
-        </SubSectionHeading>
-        <StyledDropzone {...getRootProps({ isDragActive })}>
-          <InputFile {...getInputProps()} />
-          {isDragActive ? (
-            <>
-              <Paragraph>Drop the files here...</Paragraph>
-              <Paragraph>(Max File size is 50mb)</Paragraph>
-            </>
-          ) : (
-            <>
-              <Paragraph>
-                Drag or drop some files here, or click to select files
-              </Paragraph>
-              <Paragraph>(Max File size is 50mb)</Paragraph>
-            </>
-          )}
-        </StyledDropzone>
-        <UnorderedList className="mt-3">
-          {files.map((file, index) => (
-            <ListItems key={index}>
-              <SpanEle onClick={() => handleOpenInNewTab(file)}>
-                {file.filename || file.name}
-              </SpanEle>
-              <DeleteButton onClick={() => handleDeleteFile(file.fileId)}>
-                <TiDelete />
-              </DeleteButton>
-            </ListItems>
-          ))}
-        </UnorderedList>
-      </FileContainer>
+      {!isReview && (
+        <FileContainer className="mt-4">
+          <SubSectionHeading>
+            Submit the documentary evidences below
+          </SubSectionHeading>
+          <StyledDropzone {...getRootProps({ isDragActive })}>
+            <InputFile {...getInputProps()} />
+            {isDragActive ? (
+              <>
+                <Paragraph>Drop the files here...</Paragraph>
+                <Paragraph>(Max File size is 50mb)</Paragraph>
+              </>
+            ) : (
+              <>
+                <Paragraph>
+                  Drag or drop some files here, or click to select files
+                </Paragraph>
+                <Paragraph>(Max File size is 50mb)</Paragraph>
+              </>
+            )}
+          </StyledDropzone>
+          <UnorderedList className="mt-3">
+            {files.map((file, index) => (
+              <ListItems key={index}>
+                <SpanEle onClick={() => handleOpenInNewTab(file)}>
+                  {file.filename || file.name}
+                </SpanEle>
+                <DeleteButton onClick={() => handleDeleteFile(file.fileId)}>
+                  <TiDelete />
+                </DeleteButton>
+              </ListItems>
+            ))}
+          </UnorderedList>
+        </FileContainer>
+      )}
       <SaveNextButtonContainer className="mt-3">
         {!isSummaryPath && (
           <SaveNextButton

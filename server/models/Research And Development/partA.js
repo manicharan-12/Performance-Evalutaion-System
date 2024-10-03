@@ -24,6 +24,7 @@ const researchAndDevelopmentPartA = new Schema({
       fileContent: { type: String },
     },
   ],
+  totalReviewerScore: { type: Number, default: null },
 });
 
 module.exports = mongoose.model(

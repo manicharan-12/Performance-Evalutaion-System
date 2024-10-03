@@ -541,12 +541,14 @@ app.post("/academic-work-2", upload.array("files"), async (req, res) => {
     const existingApiScore = await ApiScore.findOne({ userId, formId });
     if (existingApiScore) {
       existingApiScore.apiScores.academicWorkPartB = 5;
+      existingApiScore.reviewerApiScores.academicWorkPartB = reviewerScore;
       await existingApiScore.save();
     } else {
       const newApiScore = new ApiScore({
         userId,
         formId,
-        apiScores: { academicWorkPartA: 5 },
+        apiScores: { academicWorkPartB: 5 },
+        reviewerApiScores: { academicWorkPartB: reviewerScore },
       });
       await newApiScore.save();
     }

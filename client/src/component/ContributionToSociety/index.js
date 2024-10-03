@@ -611,7 +611,7 @@ const ContributionToSociety = (props) => {
                   className="text-center"
                 />
               ) : (
-                "Save & Next"
+                "Save"
               )}
             </SaveNextButton>
           )}

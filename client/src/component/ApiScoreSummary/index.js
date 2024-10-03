@@ -1,19 +1,12 @@
-import Back from "../Back";
 import React, { useEffect, useState } from "react";
-import Header from "../Header";
-import Cookies from "js-cookie";
 import { ThreeDots } from "react-loader-spinner";
-import failure from "../Images/failure view.png";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import EditableText from "./textArea";
 import { toast } from "react-toastify";
+import EditableText from "./textArea";
+import failure from "../Images/failure view.png";
 import {
   HomeMainContainer,
   MainContainer,
   LoaderContainer,
-  SubSectionHeading,
-  FailureImage,
-  FailureContainer,
   TableContainer,
   Table,
   TableMainHead,
@@ -25,6 +18,9 @@ import {
   SaveNextButtonContainer,
   HeadingContainer,
   SectionHeading,
+  FailureImage,
+  FailureContainer,
+  SubSectionHeading,
 } from "./StyledComponents";
 
 const apiStatusConstants = {
@@ -38,31 +34,46 @@ const ApiScoreSummary = (props) => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [formId, setFormId] = useState("");
   const [tableData, setTableData] = useState({
-    academicWorkPartA: "",
-    academicWorkPartB: "",
-    researchAndDevelopmentPartA: "",
-    researchAndDevelopmentPartB: "",
-    researchAndDevelopmentPartC: "",
-    researchAndDevelopmentPartD: "",
-    contributionToSchool: "",
-    contributionToDepartment: "",
-    contributionToSociety: "",
+    apiScores: {
+      academicWorkPartA: 0,
+      academicWorkPartB: 0,
+      researchAndDevelopmentPartA: 0,
+      researchAndDevelopmentPartB: 0,
+      researchAndDevelopmentPartC: 0,
+      researchAndDevelopmentPartD: 0,
+      contributionToSchool: 0,
+      contributionToDepartment: 0,
+      contributionToSociety: 0,
+    },
+    reviewerApiScores: {
+      academicWorkPartA: 0,
+      academicWorkPartB: 0,
+      researchAndDevelopmentPartA: 0,
+      researchAndDevelopmentPartB: 0,
+      researchAndDevelopmentPartC: 0,
+      researchAndDevelopmentPartD: 0,
+      contributionToSchool: 0,
+      contributionToDepartment: 0,
+      contributionToSociety: 0,
+      functionalHeadAssessment: 0,
+    },
   });
-
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     setApiStatus(apiStatusConstants.inProgress);
-    const { apiScores } = props.data;
-    setTableData(apiScores);
+    const { apiScores, reviewerApiScores } = props;
+    setTableData({
+      apiScores,
+      reviewerApiScores,
+    });
     setApiStatus(apiStatusConstants.success);
-  }, []);
+  }, [props]);
 
   const submitApiScoreSummary = () => {
     try {
+      // Submission logic here
     } catch (error) {
-      toast.error("Internal Server Error! Please try again Later", {
+      toast.error("Internal Server Error! Please try again later", {
         position: "bottom-center",
         autoClose: 6969,
         hideProgressBar: true,
@@ -75,24 +86,9 @@ const ApiScoreSummary = (props) => {
     }
   };
 
-  const renderLoadingView = () => {
-    return (
-      <LoaderContainer data-testid="loader">
-        <ThreeDots
-          visible={true}
-          height="50"
-          width="50"
-          color="#0b69ff"
-          radius="9"
-          ariaLabel="three-dots-loading"
-          wrapperStyle={{}}
-          wrapperClass=""
-        />
-      </LoaderContainer>
-    );
-  };
-
   const renderSuccessView = () => {
+    const { apiScores, reviewerApiScores } = tableData;
+
     return (
       <>
         <HeadingContainer>
@@ -104,11 +100,20 @@ const ApiScoreSummary = (props) => {
           <Table>
             <TableMainHead>
               <TableRow>
-                <TableHead>S.No</TableHead>
-                <TableHead>Criteria</TableHead>
-                <TableHead>Maximum API Score</TableHead>
-                <TableHead>API Score attained</TableHead>
-                <TableHead>Remarks of the functional head</TableHead>
+                <TableHead style={{ width: "5%" }}>S.No</TableHead>
+                <TableHead style={{ width: "20%" }}>Criteria</TableHead>
+                <TableHead style={{ width: "14%" }}>
+                  Maximum API Score
+                </TableHead>
+                <TableHead style={{ width: "14%" }}>
+                  API Score Attained
+                </TableHead>
+                <TableHead style={{ width: "14%" }}>
+                  Reviewer Score Attained
+                </TableHead>
+                <TableHead style={{ width: "33%" }}>
+                  Remarks of the functional head
+                </TableHead>
               </TableRow>
             </TableMainHead>
             <TableBody>
@@ -117,14 +122,17 @@ const ApiScoreSummary = (props) => {
                 <TableData>Academic Work (a+b)</TableData>
                 <TableData>45</TableData>
                 <TableData>
-                  {tableData.academicWorkPartA + tableData.academicWorkPartB}
+                  {apiScores.academicWorkPartA + (apiScores.academicWorkPartB)}
+                </TableData>
+                <TableData>
+                  {reviewerApiScores.academicWorkPartA +
+                    reviewerApiScores.academicWorkPartB}
                 </TableData>
                 <TableData
                   rowSpan="6"
                   style={{
                     verticalAlign: "top",
                     wordWrap: "break-word",
-                    overflowWrap: "break-word",
                     whiteSpace: "pre-wrap",
                   }}
                 >
@@ -136,44 +144,48 @@ const ApiScoreSummary = (props) => {
                 <TableData>Research work (a+b+c) or (a+b+d)</TableData>
                 <TableData>25</TableData>
                 <TableData>
-                  {tableData.researchAndDevelopmentPartB +
-                    tableData.researchAndDevelopmentPartC +
-                    tableData.researchAndDevelopmentPartD +
-                    5}
+                  {apiScores.researchAndDevelopmentPartA +
+                    (apiScores.researchAndDevelopmentPartB || 5) +
+                    (apiScores.researchAndDevelopmentPartC || 5)}
+                </TableData>
+                <TableData>
+                  {reviewerApiScores.researchAndDevelopmentPartA +
+                    reviewerApiScores.researchAndDevelopmentPartB +
+                    reviewerApiScores.researchAndDevelopmentPartC}
                 </TableData>
               </TableRow>
               <TableRow>
                 <TableData>III</TableData>
-                <TableData>Contribution to the University </TableData>
+                <TableData>Contribution to the University</TableData>
                 <TableData>5</TableData>
-                <TableData>{tableData.contributionToSchool}</TableData>
+                <TableData>{apiScores.contributionToSchool}</TableData>
+                <TableData>{reviewerApiScores.contributionToSchool}</TableData>
               </TableRow>
               <TableRow>
                 <TableData>IV</TableData>
                 <TableData>Contribution to the Department</TableData>
                 <TableData>5</TableData>
-                <TableData>{tableData.contributionToDepartment}</TableData>
+                <TableData>{apiScores.contributionToDepartment}</TableData>
+                <TableData>
+                  {reviewerApiScores.contributionToDepartment}
+                </TableData>
               </TableRow>
               <TableRow>
                 <TableData>V</TableData>
                 <TableData>Contribution to Society</TableData>
                 <TableData>5</TableData>
-                <TableData>{tableData.contributionToSociety}</TableData>
+                <TableData>{apiScores.contributionToSociety}</TableData>
+                <TableData>{reviewerApiScores.contributionToSociety}</TableData>
               </TableRow>
               <TableRow>
                 <TableData>I</TableData>
-                <TableData>Assessment by functional head </TableData>
+                <TableData>Assessment by functional head</TableData>
                 <TableData>15</TableData>
                 <TableData>
-                  {tableData.academicWorkPartA +
-                    tableData.academicWorkPartB +
-                    tableData.researchAndDevelopmentPartB +
-                    tableData.researchAndDevelopmentPartC +
-                    tableData.researchAndDevelopmentPartD +
-                    5 +
-                    tableData.contributionToSchool +
-                    tableData.contributionToDepartment +
-                    tableData.contributionToSociety}
+                  {0}
+                </TableData>
+                <TableData>
+                  {reviewerApiScores.functionalHeadAssessment}
                 </TableData>
               </TableRow>
             </TableBody>
@@ -199,27 +211,35 @@ const ApiScoreSummary = (props) => {
     );
   };
 
-  const renderFailureView = () => {
-    return (
-      <FailureContainer>
-        <FailureImage src={failure} />
-        <SubSectionHeading className="mt-4">
-          Failed to load Data. Retry Again!
-        </SubSectionHeading>
-      </FailureContainer>
-    );
-  };
+  const renderFailureView = () => (
+    <FailureContainer>
+      <FailureImage src={failure} />
+      <SubSectionHeading className="mt-4">
+        Failed to load Data. Retry Again!
+      </SubSectionHeading>
+    </FailureContainer>
+  );
 
   const renderAssessmentOfFunctionalHeadPage = () => {
     switch (apiStatus) {
       case apiStatusConstants.inProgress:
-        return renderLoadingView();
+        return (
+          <LoaderContainer data-testid="loader">
+            <ThreeDots
+              visible={true}
+              height="50"
+              width="50"
+              color="#0b69ff"
+              radius="9"
+            />
+          </LoaderContainer>
+        );
       case apiStatusConstants.success:
         return renderSuccessView();
       case apiStatusConstants.failure:
         return renderFailureView();
       default:
-        break;
+        return null;
     }
   };
 

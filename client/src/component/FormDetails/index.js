@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   DataContainer,
   LoaderContainer,
@@ -24,42 +24,48 @@ import Conformation from "../ResearchAndDevelopment/Conformation";
 import RDPartA from "../ResearchAndDevelopment/PartA";
 
 const FormDetails = () => {
-  const [formId, setFormId] = useState();
-  const [formData, setFormData] = useState();
+  const [searchParams] = useSearchParams();
+  const [formId, setFormId] = useState(null);
+  const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [apiScores, setApiScores] = useState({});
+  const [reviewerApiScores, setReviewerApiScores] = useState({});
 
-  const [searchParams] = useSearchParams();
-
-  useEffect(() => {
-    const getFacultyId = () => {
-      const id = searchParams.get("f_id");
-      setFormId(id);
-    };
-
-    getFacultyId();
-  }, [searchParams]);
-
-  useEffect(() => {
-    const getFormData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(
-          `http://localhost:6969/faculty/forms/${formId}`
-        );
-
-        setFormData(response.data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (formId) {
-      getFormData();
+  const getFormData = useCallback(async (id) => {
+    if (!id) {
+      return;
     }
-  }, [formId]);
+
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `http://localhost:6969/faculty/forms/${id}`
+      );
+
+      setFormData(response.data);
+
+      // Set apiScores and reviewerApiScores here
+      if (response.data && response.data.apiScore) {
+        setApiScores(response.data.apiScore.apiScores || {});
+        setReviewerApiScores(response.data.apiScore.reviewerApiScores || {});
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const id = searchParams.get("f_id");
+    setFormId(id);
+    getFormData(id);
+  }, [searchParams, getFormData]);
+
+  const updateReviewerApiScores = (newScores) => {
+    setReviewerApiScores((prevScores) => ({ ...prevScores, ...newScores }));
+  };
 
   if (loading) {
     return (
@@ -88,45 +94,89 @@ const FormDetails = () => {
   }
   return (
     <div>
+      {/* <pre>{JSON.stringify(formData.apiScore, null, 2)}</pre> */}
       <DataContainer>
-        <section>
-          <AcademicWorkI data={formData.academicWorkPartA} />
-        </section>
-        <section>
-          <AcademicWorkII data={formData.academicWorkPartB} />
-        </section>
-        <section>
+        {/* <section> */}
+          <AcademicWorkI
+            data={formData.academicWorkPartA}
+            reviewerApiScores={reviewerApiScores}
+            updateReviewerApiScores={updateReviewerApiScores}
+          />
+        {/* </section>
+        <section> */}
+          <AcademicWorkII
+            data={formData.academicWorkPartB}
+            reviewerApiScores={reviewerApiScores}
+            updateReviewerApiScores={updateReviewerApiScores}
+          />
+        {/* </section>
+        <section> */}
           <Conformation data={formData.phdConformation} />
-        </section>
-        <section>
-          <RDPartA data={formData.researchAndDevelopmentPartA}/>
-        </section>
-        {/* <section>
-          <RDPartB data={formData.researchAndDevelopmentPartB} />
-        </section> */}
-        <section>
-          <RDPartC data={formData.researchAndDevelopmentPartC} />
-        </section>
-        <section>
-          <RDPartD data={formData.researchAndDevelopmentPartD} />
-        </section>
-        <section>
+        {/* </section>
+        <section> */}
+          {/* <pre>
+            {JSON.stringify(formData.researchAndDevelopmentPartA, null, 2)}
+          </pre> */}
+          <RDPartA
+            data={formData.researchAndDevelopmentPartA}
+            reviewerApiScores={reviewerApiScores}
+            updateReviewerApiScores={updateReviewerApiScores}
+          />
+        {/* </section>
+        <section> */}
+          <RDPartB
+            data={formData.researchAndDevelopmentPartB}
+            reviewerApiScores={reviewerApiScores}
+            updateReviewerApiScores={updateReviewerApiScores}
+          />
+        {/* </section>
+        <section> */}
+          <RDPartC
+            data={formData.researchAndDevelopmentPartC}
+            reviewerApiScores={reviewerApiScores}
+            updateReviewerApiScores={updateReviewerApiScores}
+          />
+        {/* </section>
+        <section> */}
+          <RDPartD
+            data={formData.researchAndDevelopmentPartD}
+            reviewerApiScores={reviewerApiScores}
+            updateReviewerApiScores={updateReviewerApiScores}
+          />
+        {/* </section>
+        <section> */}
           <ContributionToUniversity
             data={formData.contributionToUniversitySchool}
+            reviewerApiScores={reviewerApiScores}
+            updateReviewerApiScores={updateReviewerApiScores}
           />
-        </section>
-        <section>
-          <ContributionToDepartment data={formData.contributionToDepartment} />
-        </section>
-        <section>
-          <ContributionToSociety data={formData.contributionToSociety} />
-        </section>
-        <section>
-          <ApiScoreSummary data={formData.apiScore} />
-        </section>
-        <section>
-          <AssessmentOfFunctionalHead />
-        </section>
+        {/* </section>
+        <section> */}
+          <ContributionToDepartment
+            data={formData.contributionToDepartment}
+            reviewerApiScores={reviewerApiScores}
+            updateReviewerApiScores={updateReviewerApiScores}
+          />
+        {/* </section>
+        <section> */}
+          <ContributionToSociety
+            data={formData.contributionToSociety}
+            reviewerApiScores={reviewerApiScores}
+            updateReviewerApiScores={updateReviewerApiScores}
+          />
+        {/* </section>
+        <section> */}
+          <AssessmentOfFunctionalHead
+            reviewerApiScores={reviewerApiScores}
+            updateReviewerApiScores={updateReviewerApiScores}
+          />
+        {/* </section>
+        <section> */}
+          <ApiScoreSummary
+            apiScores={apiScores}
+            reviewerApiScores={reviewerApiScores}
+          />
+        {/* </section> */}
       </DataContainer>
     </div>
   );

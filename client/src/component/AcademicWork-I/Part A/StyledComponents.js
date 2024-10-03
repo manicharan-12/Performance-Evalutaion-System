@@ -60,6 +60,7 @@ export const TableHead = styled.th`
   border: 1px solid #ddd;
   word-wrap: break-word;
   text-align: center;
+  white-space: normal;
 `;
 
 export const TableData = styled.td`
@@ -68,6 +69,7 @@ export const TableData = styled.td`
   border: 1px solid #ddd;
   word-wrap: break-word;
   text-align: center;
+  white-space: normal;
 `;
 
 export const TableRow = styled.tr``;

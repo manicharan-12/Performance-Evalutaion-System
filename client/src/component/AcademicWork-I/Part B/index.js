@@ -104,10 +104,11 @@ const AcademicWorkII = (props) => {
   const [onClick, setOnClick] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [formId, setFormId] = useState("");
-  
   const [loading, setLoading] = useState(false);
-  const [reviewerScore, setReviewerScore] = useState("");
+  const [reviewerScore, setReviewerScore] = useState(null);
   const [userId, setUserId] = useState("");
+
+  const {reviewerApiScores,updateReviewerApiScores}=props
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -167,10 +168,12 @@ const AcademicWorkII = (props) => {
         fetchData(formId, userId);
       } else {
         setApiStatus(apiStatusConstants.inProgress);
-        const { editorContent, files } = props.data;
+        const { editorContent, files, reviewerScore } = props.data;
         setEditorContent(editorContent);
         setFiles(files);
+        setReviewerScore(reviewerScore)
         setApiStatus(apiStatusConstants.success);
+
       }
     }
   }, [isReview, searchParams, props.data]);
@@ -360,6 +363,11 @@ const AcademicWorkII = (props) => {
     setDeletedFiles((prevDeletedFiles) => [...prevDeletedFiles, fileId]);
   };
 
+  const handleReviewerScoreChange = (newValue) => {
+    setReviewerScore(newValue);
+    updateReviewerApiScores({academicWorkPartB: parseInt(newValue, 10)});
+  };
+
   const renderLoadingView = () => {
     return (
       <LoaderContainer data-testid="loader">
@@ -459,7 +467,7 @@ const AcademicWorkII = (props) => {
                   <TableData>
                     <EditableValue
                       value={reviewerScore || ""}
-                      onValueChange={(newValue) => setReviewerScore(newValue)}
+                      onValueChange={(newValue) => handleReviewerScoreChange(newValue)}
                       validate={(input) => /^[0-5]+$/.test(input)}
                       type="text"
                       disabled={false}

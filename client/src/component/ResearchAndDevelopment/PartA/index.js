@@ -71,6 +71,7 @@ const RDPartA = (props) => {
   const isReview = location.pathname.startsWith("/review");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { reviewerApiScores, updateReviewerApiScores } = props;
 
   const getFormIdFromSearchParams = () => {
     try {
@@ -84,28 +85,26 @@ const RDPartA = (props) => {
   };
 
   useEffect(() => {
-    console.log("props",props)
     const fetchYear = async () => {
       try {
         const [formId, userId] = getFormIdFromSearchParams();
-  
+
         if (formId) {
           setFormId(formId);
           setUserId(userId);
         }
-  
+
         setApiStatus(apiStatusConstants.inProgress);
-  
-        // Check if it's in review mode
+
         if (!isReview) {
           const response = await fetch(
             `http://localhost:6969/RD/PartA/${userId}/?formId=${formId}`
           );
-  
+
           if (response.ok) {
             const data = await response.json();
             console.log(data.phdPartA.presentation_data);
-  
+
             if (data.phdPartA.presentation_data) {
               const presentation_data = data.phdPartA.presentation_data.map(
                 (item) => ({
@@ -131,8 +130,6 @@ const RDPartA = (props) => {
         } else {
           setApiStatus(apiStatusConstants.inProgress);
           const { presentation_data, files } = props.data || {};
-          console.log(presentation_data);
-          
           setTableData(presentation_data || []);
           setFiles(files || []);
           setYear(props.data.academic_year);
@@ -143,10 +140,9 @@ const RDPartA = (props) => {
         setApiStatus(apiStatusConstants.failure);
       }
     };
-  
+
     fetchYear();
   }, [isReview, searchParams, props.data]);
-  
 
   const onDrop = useCallback((acceptedFiles) => {
     setFiles((prevFiles) => [
@@ -399,6 +395,11 @@ const RDPartA = (props) => {
                 Whether you are the 1st or corresponding author?
               </TableHead>
               <TableHead>API Score (Max.15)</TableHead>
+              {isReview && (
+                <TableHead>
+                  Reviewer Remark <br /> (Max. 5)
+                </TableHead>
+              )}
             </TableRow>
           </TableMainHead>
           <TableBody>
@@ -468,6 +469,17 @@ const RDPartA = (props) => {
                   />
                 </TableData>
                 <TableData>{article.apiScore}</TableData>
+                {isReview && (
+                  <TableData>
+                    <EditableValue
+                      value={article.reviewerScore || ""}
+                      onValueChange={(`mani`)}
+                      validate={(input) => /^[0-5]+$/.test(input)}
+                      type="text"
+                      disabled={false}
+                    />
+                  </TableData>
+                )}
               </TableRow>
             ))}
           </TableBody>
@@ -506,40 +518,42 @@ const RDPartA = (props) => {
           </SaveNextButton>
         )}
       </TableContainer>
-      <FileContainer className="mt-4">
-        <SubSectionHeading>
-          Submit the documentary evidences below
-        </SubSectionHeading>
-        <StyledDropzone {...getRootProps({ isDragActive })}>
-          <InputFile {...getInputProps()} />
-          {isDragActive ? (
-            <>
-              <Paragraph>Drop the files here...</Paragraph>
-              <Paragraph>(Max File size is 50mb)</Paragraph>
-            </>
-          ) : (
-            <>
-              <Paragraph>
-                Drag or drop some files here, or click to select files
-              </Paragraph>
-              <Paragraph>(Max File size is 50mb)</Paragraph>
-            </>
-          )}
-        </StyledDropzone>
-        <UnorderedList className="mt-3">
-          {files.map((file, index) => (
-            <ListItems key={index}>
-              <SpanEle onClick={() => handleOpenInNewTab(file)}>
-                {file.filename || file.name}
-                {console.log(files)}
-              </SpanEle>
-              <DeleteButton onClick={() => handleDeleteFile(file.fileId)}>
-                <TiDelete />
-              </DeleteButton>
-            </ListItems>
-          ))}
-        </UnorderedList>
-      </FileContainer>
+      {!isSummaryPath && (
+        <FileContainer className="mt-4">
+          <SubSectionHeading>
+            Submit the documentary evidences below
+          </SubSectionHeading>
+          <StyledDropzone {...getRootProps({ isDragActive })}>
+            <InputFile {...getInputProps()} />
+            {isDragActive ? (
+              <>
+                <Paragraph>Drop the files here...</Paragraph>
+                <Paragraph>(Max File size is 50mb)</Paragraph>
+              </>
+            ) : (
+              <>
+                <Paragraph>
+                  Drag or drop some files here, or click to select files
+                </Paragraph>
+                <Paragraph>(Max File size is 50mb)</Paragraph>
+              </>
+            )}
+          </StyledDropzone>
+          <UnorderedList className="mt-3">
+            {files.map((file, index) => (
+              <ListItems key={index}>
+                <SpanEle onClick={() => handleOpenInNewTab(file)}>
+                  {file.filename || file.name}
+                  {console.log(files)}
+                </SpanEle>
+                <DeleteButton onClick={() => handleDeleteFile(file.fileId)}>
+                  <TiDelete />
+                </DeleteButton>
+              </ListItems>
+            ))}
+          </UnorderedList>
+        </FileContainer>
+      )}
       {!isSummaryPath && (
         <SaveNextButtonContainer className="mt-3">
           <SaveNextButton
@@ -554,6 +568,23 @@ const RDPartA = (props) => {
             }}
           >
             Save & Next
+          </SaveNextButton>
+        </SaveNextButtonContainer>
+      )}
+      {isReview && (
+        <SaveNextButtonContainer className="mt-3">
+          <SaveNextButton
+            onClick={submitRDPartA}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            Save
           </SaveNextButton>
         </SaveNextButtonContainer>
       )}
@@ -647,7 +678,7 @@ const RDPartA = (props) => {
             marginBottom: "18px",
           }}
         >
-          <Back />
+          {!isSummaryPath && <Back />}
           <div
             style={{
               display: "flex",

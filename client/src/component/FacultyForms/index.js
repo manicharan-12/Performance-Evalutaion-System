@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { ThreeDots } from "react-loader-spinner";
 import failureImage from "../Images/failure view.png";
+import { toast } from "react-toastify";
 import Back from "../Back";
 import {
   LoaderContainer,
@@ -125,6 +126,19 @@ const UserDetail = () => {
   const handleFormClick = (f_id) => {
     navigate(`/review/user-details/?fac_id=${facultyId}&f_id=${f_id}`);
   };
+
+  const handlePrintClick = (f_id) => {
+    toast.info("Please wait until the print option appears.", {
+      position: "top-right",
+      autoClose: 3000,
+    });
+    setTimeout(() => {
+      handleFormClick(f_id); // Navigate to the form
+      setTimeout(() => window.print(), 5000); // Allow time for navigation before printing
+    }, 3000); // Delay navigation until the toast disappears
+  };
+
+  
   return (
     <HomeMainContainer>
       <MainContainer>
@@ -161,7 +175,7 @@ const UserDetail = () => {
                 </button>
                 <button
                   className="icon-button"
-                  onClick={() => handleFormClick(eachForm._id)}
+                  onClick={() => handlePrintClick(eachForm._id)}
                   aria-label="Print"
                 >
                   <i class="fa-solid fa-print" style={{ fontSize: "25px" }}></i>

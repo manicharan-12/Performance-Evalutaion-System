@@ -121,7 +121,8 @@ const Login = (props) => {
 
   const jwtToken = Cookies.get("jwt_token");
   if (jwtToken !== undefined) {
-    return <Navigate to="/home" />;
+    const userId=Cookies.get("user_id")
+    return <Navigate to={`/home?fac_id=${userId}`} />;
   }
   return (
     <>
