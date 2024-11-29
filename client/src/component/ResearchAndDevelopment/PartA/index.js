@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import Cookies from "js-cookie";
-import { ThreeDots } from "react-loader-spinner";
+import { ThreeDots, Oval } from "react-loader-spinner";
 import { TiDelete } from "react-icons/ti";
 import { toast } from "react-toastify";
 import Back from "../../Back";
@@ -61,10 +61,12 @@ const RDPartA = (props) => {
       indexedIn: "",
       dateOfPublication: "",
       oneOrCorrespondingAuthor: "",
-      apiScore: "",
+      apiScore: 0,
+      reviewerScore: 0,
     },
   ]);
   const [formId, setFormId] = useState("");
+  const [reviewerScore, setReviewerScore] = useState(0);
   const isSummaryPath =
     location.pathname.startsWith("/summary") ||
     location.pathname.startsWith("/review");
@@ -274,9 +276,27 @@ const RDPartA = (props) => {
     setTableData((prevData) => prevData.slice(0, -1));
   };
 
+  const handleReviewerScoreChange = (newValue) => {
+    setReviewerScore(newValue);
+    {
+      isReview &&
+        updateReviewerApiScores({
+          researchAndDevelopmentPartA: parseInt(newValue, 10) || 0,
+        });
+    }
+  };
+
   const calculateTotalApiScore = (data) => {
     const score = data.reduce(
       (total, item) => total + (parseFloat(item.apiScore) || 0),
+      0
+    );
+    return score >= 5 ? 5 : score;
+  };
+
+  const calculateReviewerScore = (data) => {
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.reviewerScore) || 0),
       0
     );
     return score >= 5 ? 5 : score;
@@ -296,12 +316,15 @@ const RDPartA = (props) => {
     // }
 
     try {
+      setDisabled(true);
       const formData = new FormData();
       const totalApiScore = calculateTotalApiScore(tableData);
+      const totalReviewerScore = calculateReviewerScore(tableData);
       formData.append("userId", userId);
       formData.append("formId", formId);
       formData.append("tableData", JSON.stringify(tableData));
       formData.append("totalApiScore", totalApiScore);
+      formData.append("reviewerScore", totalReviewerScore);
       files.forEach((file) => {
         if (!file.fileId) {
           formData.append("files", file);
@@ -317,6 +340,7 @@ const RDPartA = (props) => {
       });
       if (response.ok) {
         setDisabled(false);
+        handleReviewerScoreChange(totalReviewerScore);
         !isReview &&
           navigate(
             `/research-and-development/partB/?fac_id=${userId}&f_id=${formId}`
@@ -346,6 +370,8 @@ const RDPartA = (props) => {
         progress: undefined,
         theme: "colored",
       });
+    } finally {
+      setDisabled(false);
     }
   };
 
@@ -473,7 +499,12 @@ const RDPartA = (props) => {
                   <TableData>
                     <EditableValue
                       value={article.reviewerScore || ""}
-                      onValueChange={(`mani`)}
+                      onValueChange={(newValue) =>
+                        handleEditArticle(index, {
+                          ...article,
+                          reviewerScore: newValue,
+                        })
+                      }
                       validate={(input) => /^[0-5]+$/.test(input)}
                       type="text"
                       disabled={false}
@@ -584,7 +615,20 @@ const RDPartA = (props) => {
               border: "none",
             }}
           >
-            Save
+            {disabled ? (
+              <Oval
+                visible={true}
+                height="25"
+                width="25"
+                color="#ffffff"
+                ariaLabel="oval-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                className="text-center"
+              />
+            ) : (
+              "Save"
+            )}
           </SaveNextButton>
         </SaveNextButtonContainer>
       )}

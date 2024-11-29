@@ -1,6 +1,6 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useEffect, useState } from "react";
 import ReactToPrint from "react-to-print";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
@@ -19,6 +19,26 @@ import RDPartD from "../ResearchAndDevelopment/PartD";
 const Review = () => {
   const reviewRef = useRef();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const [userId, setUserId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const userId = await searchParams.get("fac_id");
+        setUserId(userId);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        setIsLoading(false);
+        navigate(`/home?fac_id=${userId}`);
+      }
+    };
+
+    fetchUserId();
+  }, []);
 
   const handleDownloadPDF = useCallback(async () => {
     const input = reviewRef.current;
@@ -45,6 +65,10 @@ const Review = () => {
   }, []);
 
   const onClickSubmitForm = useCallback(async () => {
+    if (isLoading || !userId) {
+      toast.error("User ID not available. Please try again.");
+      return;
+    }
     await toast.success("Your Form has been successfully submitted", {
       position: "bottom-center",
       autoClose: 6969,
@@ -55,8 +79,9 @@ const Review = () => {
       progress: undefined,
       theme: "colored",
     });
-    navigate("/home");
-  }, [navigate]);
+    console.log(userId);
+    navigate(`/home?fac_id=${userId}`);
+  }, [navigate, isLoading, userId]);
 
   const buttonStyle = {
     padding: "12px",

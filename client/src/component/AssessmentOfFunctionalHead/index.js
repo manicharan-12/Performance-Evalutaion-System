@@ -35,7 +35,7 @@ const apiStatusConstants = {
   failure: "FAILURE",
 };
 
-const AssessmentOfFunctionalHead = () => {
+const AssessmentOfFunctionalHead = (props) => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [formId, setFormId] = useState("");
   const [userId, setUserId] = useState("");
@@ -48,6 +48,8 @@ const AssessmentOfFunctionalHead = () => {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const { updateReviewerApiScores } = props;
 
   // useEffect(() => {
   //   let id;
@@ -189,6 +191,8 @@ const AssessmentOfFunctionalHead = () => {
         setApiStatus(apiStatusConstants.inProgress);
         const api = "http://localhost:6969";
 
+        const response = await `${api}/`
+
         setApiStatus(apiStatusConstants.success);
       } catch (error) {
         console.log(error);
@@ -279,20 +283,9 @@ const AssessmentOfFunctionalHead = () => {
     try {
       const { impression, examination, interpersonal } = tableData; // ensure tableData is defined
       const totalScore = calculateTotalScore(tableData); // ensure calculateTotalScore is defined
-      console.log(
-        "i",
-        impression,
-        "e",
-        examination,
-        "in",
-        interpersonal,
-        "t",
-        totalScore
-      );
-
       const api = "http://localhost:6969";
 
-      // First request
+     
       const response = await fetch(
         `${api}/functional-head-assessment/?f_id=${formId}`,
         {
@@ -310,51 +303,11 @@ const AssessmentOfFunctionalHead = () => {
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error_msg || "Failed to submit assessment to PartA"
-        );
-      }
-
-      // Second request
-      // const response1 = await fetch(`/functional-head-assessment/${f_id}`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     userId, // ensure userId is defined
-      //     formId: f_id, // use f_id for formId as passed param
-      //     impression,
-      //     examination,
-      //     interpersonal,
-      //     totalScore,
-      //   }),
-      // });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error_msg || "Failed to submit functional head assessment"
-        );
-      }
-
       const data1 = await response.json();
 
-      toast.success("Assessment submitted successfully!", {
-        position: "bottom-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "colored",
-      });
+      
 
-      console.log("Submission successful:", data1);
-    } catch (error) {
+  } catch (error) {
       console.error("Error submitting assessment:", error);
       toast.error(
         error.message || "Internal Server Error! Please try again later",

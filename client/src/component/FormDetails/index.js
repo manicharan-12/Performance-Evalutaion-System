@@ -45,7 +45,6 @@ const FormDetails = () => {
 
       setFormData(response.data);
 
-      // Set apiScores and reviewerApiScores here
       if (response.data && response.data.apiScore) {
         setApiScores(response.data.apiScore.apiScores || {});
         setReviewerApiScores(response.data.apiScore.reviewerApiScores || {});
@@ -94,7 +93,7 @@ const FormDetails = () => {
   }
   return (
     <div>
-      {/* <pre>{JSON.stringify(formData.apiScore, null, 2)}</pre> */}
+      <pre>{JSON.stringify(formData.apiScore, null, 2)}</pre>
       <DataContainer>
         {/* <section> */}
           <AcademicWorkI

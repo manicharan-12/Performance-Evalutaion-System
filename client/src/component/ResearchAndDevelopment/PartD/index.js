@@ -65,68 +65,10 @@ const RDPartD = (props) => {
     location.pathname.startsWith("/summary") ||
     location.pathname.startsWith("/review");
   const isReview = location.pathname.startsWith("/review");
+  const {updateReviewerApiScores}=props
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-
-  // useEffect(() => {
-  //   const getFormIdFromSearchParams = () => {
-  //     try {
-  //       const formId = searchParams.get("f_id");
-  //       return formId;
-  //     } catch (error) {
-  //       console.error("Error fetching form ID from search params:", error);
-  //       navigate("/home");
-  //     }
-  //   };
-
-  //   const fetchCertificates = async (id) => {
-  //     try {
-  //       setApiStatus(apiStatusConstants.inProgress);
-  //       const userId = Cookies.get("user_id");
-  //       const api = "http://localhost:6969";
-
-  //       const response = await fetch(`${api}/RD/PartD/${userId}/?formId=${id}`);
-  //       const data = await response.json();
-
-  //       if (data.phdPartD.certificates_data) {
-  //         const transformedData = data.phdPartD.certificates_data.map(
-  //           (item) => ({
-  //             nameOfTheCertificate: item.nameOfTheCertificate,
-  //             organization: item.organization,
-  //             score: item.score,
-  //             apiScore: item.apiScore,
-  //             hodRemark: item.hodRemark,
-  //           })
-  //         );
-  //         setTableData(transformedData);
-  //         setFiles(data.phdPartD.files || []);
-  //       }
-
-  //       setDisabled(false);
-  //       setApiStatus(apiStatusConstants.success);
-  //     } catch (error) {
-  //       console.error("Error fetching certificates data:", error);
-  //       setDisabled(false);
-  //       setApiStatus(apiStatusConstants.failure);
-  //     }
-  //   };
-
-  //   const formId = getFormIdFromSearchParams();
-  //   if (formId) {
-  //     setFormId(formId);
-
-  //     if (!isReview) {
-  //       fetchCertificates(formId);
-  //     } else {
-  //       setApiStatus(apiStatusConstants.inProgress);
-  //       const { certificates_data, files } = props.data;
-  //       setTableData(certificates_data);
-  //       setFiles(files);
-  //       setApiStatus(apiStatusConstants.success);
-  //     }
-  //   }
-  // }, [isReview, searchParams, props.data]);
 
   useEffect(() => {
     // Updated getFormIdFromSearchParams to return formId and userId
@@ -313,6 +255,23 @@ const RDPartD = (props) => {
     return score >= 5 ? 5 : score;
   };
 
+  const calculateReviewerScore = (data) => {
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.reviewerScore) || 0),
+      0
+    );
+    return score >= 5 ? 5 : score;
+  };
+
+  const handleReviewerScoreChange = (newValue) => {
+    {
+      isReview &&
+        updateReviewerApiScores({
+          researchAndDevelopmentPartD: parseInt(newValue, 10) || 0,
+        });
+    }
+  };
+
   const submitRDPartD = async () => {
     // if(!navigator.onLine){
     //   await toast.error("You are offline. Please connect to the internet and try again.", {
@@ -349,10 +308,12 @@ const RDPartD = (props) => {
       setDisabled(true);
       const formData = new FormData();
       const totalApiScore = calculateTotalApiScore(tableData);
+      const totalReviewerScore = calculateReviewerScore(tableData);
       formData.append("userId", userId);
       formData.append("formId", formId);
       formData.append("tableData", JSON.stringify(tableData));
       formData.append("totalApiScore", totalApiScore);
+      formData.append("reviewerScore", totalReviewerScore);
       files.forEach((file) => {
         if (!file.fileId) {
           formData.append("files", file);
@@ -367,6 +328,9 @@ const RDPartD = (props) => {
         body: formData,
       };
       const response = await fetch(`${api}/RD/PartD`, option);
+      if (response.ok) {
+        handleReviewerScoreChange(totalReviewerScore);
+      }
       !isReview &&
         navigate(
           `/contribution-to-university-school/?fac_id=${userId}&f_id=${formId}`

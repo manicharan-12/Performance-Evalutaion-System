@@ -71,6 +71,7 @@ const RDPartB = (props) => {
     location.pathname.startsWith("/review");
   const isReview = location.pathname.startsWith("/review");
   const [totalApiScore, setTotalApiScore] = useState(0);
+  const { updateReviewerApiScores } = props;
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -270,6 +271,32 @@ const RDPartB = (props) => {
     const newTableData = tableData.slice(0, -1);
     setTableData(newTableData);
   };
+
+  const handleReviewerScoreChange = (newValue) => {
+    {
+      isReview &&
+        updateReviewerApiScores({
+          researchAndDevelopmentPartB: parseInt(newValue, 10) || 0,
+        });
+    }
+  };
+
+  const calculateTotalApiScore = (data) => {
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.apiScore) || 0),
+      0
+    );
+    return score >= 5 ? 5 : score;
+  };
+
+  const calculateReviewerScore = (data) => {
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.reviewerScore) || 0),
+      0
+    );
+    return score >= 5 ? 5 : score;
+  };
+
   const submitRDPartB = async () => {
     // if(!navigator.onLine){
     //   await toast.error("You are offline. Please connect to the internet and try again.", {
@@ -289,9 +316,13 @@ const RDPartB = (props) => {
       if (!isEmpty) {
         setDisabled(true);
         const formData = new FormData();
+        const totalApiScore = calculateTotalApiScore(tableData);
+        const totalReviewerScore = calculateReviewerScore(tableData);
         formData.append("userId", userId);
         formData.append("formId", formId);
         formData.append("tableData", JSON.stringify(tableData));
+        formData.append("totalApiScore", totalApiScore);
+        formData.append("reviewerScore", totalReviewerScore);
         files.forEach((file) => {
           if (!file.fileId) {
             formData.append("files", file);
@@ -307,6 +338,7 @@ const RDPartB = (props) => {
         });
         if (response.ok) {
           setDisabled(false);
+          handleReviewerScoreChange(totalReviewerScore);
           !isReview &&
             navigate(
               `/research-and-development/partC/?f_id=${formId}&fac_id=${userId}`
@@ -401,6 +433,7 @@ const RDPartB = (props) => {
               <TableHead>Indexed in? (WoS/Scopus)</TableHead>
               <TableHead>No. of days</TableHead>
               <TableHead>Score (Max. 5)</TableHead>
+              {isReview && <TableHead>Reviewer Score</TableHead>}
             </TableRow>
           </TableMainHead>
           <TableBody>
@@ -478,6 +511,22 @@ const RDPartB = (props) => {
                   />
                 </TableData>
                 <TableData>{paper.apiScore}</TableData>
+                {isReview && (
+                  <TableData>
+                    <EditableValue
+                      value={paper.reviewerScore || ""}
+                      onValueChange={(newValue) =>
+                        handleEditPresentation(paperIndex, {
+                          ...paper,
+                          reviewerScore: newValue,
+                        })
+                      }
+                      validate={(input) => /^[0-5]+$/.test(input)}
+                      type="text"
+                      disabled={false}
+                    />
+                  </TableData>
+                )}
               </TableRow>
             ))}
           </TableBody>
@@ -516,7 +565,7 @@ const RDPartB = (props) => {
           </SaveNextButton>
         )}
       </TableContainer>
-      {!isReview && (
+      {!isSummaryPath && (
         <FileContainer className="mt-4">
           <SubSectionHeading>
             Submit the documentary evidences below
@@ -584,6 +633,36 @@ const RDPartB = (props) => {
           </SaveNextButton>
         )}
       </SaveNextButtonContainer>
+      {isReview && (
+        <SaveNextButtonContainer className="mt-3">
+          <SaveNextButton
+            onClick={submitRDPartB}
+            style={{
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundImage:
+                "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            {disabled ? (
+              <Oval
+                visible={true}
+                height="25"
+                width="25"
+                color="#ffffff"
+                ariaLabel="oval-loading"
+                wrapperStyle={{}}
+                wrapperClass=""
+                className="text-center"
+              />
+            ) : (
+              "Save"
+            )}
+          </SaveNextButton>
+        </SaveNextButtonContainer>
+      )}
     </>
   );
 

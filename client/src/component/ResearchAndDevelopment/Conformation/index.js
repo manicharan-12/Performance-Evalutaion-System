@@ -753,25 +753,30 @@ const Conformation = (props) => {
           </Table>
         </TableContainer>
         <FileContainer className="mt-4">
-          <SubSectionHeading>
-            Submit the documentary evidences below
-          </SubSectionHeading>
-          <StyledDropzone {...getRootProps({ isDragActive })}>
-            <InputFile {...getInputProps()} />
-            {isDragActive ? (
-              <>
-                <Paragraph>Drop the files here...</Paragraph>
-                <Paragraph>(Max File size is 50mb)</Paragraph>
-              </>
-            ) : (
-              <>
-                <Paragraph>
-                  Drag or drop some files here, or click to select files
-                </Paragraph>
-                <Paragraph>(Max File size is 50mb)</Paragraph>
-              </>
-            )}
-          </StyledDropzone>
+          {!isSummaryPath && (
+            <>
+              <SubSectionHeading>
+                Submit the documentary evidences below
+              </SubSectionHeading>
+
+              <StyledDropzone {...getRootProps({ isDragActive })}>
+                <InputFile {...getInputProps()} />
+                {isDragActive ? (
+                  <>
+                    <Paragraph>Drop the files here...</Paragraph>
+                    <Paragraph>(Max File size is 50mb)</Paragraph>
+                  </>
+                ) : (
+                  <>
+                    <Paragraph>
+                      Drag or drop some files here, or click to select files
+                    </Paragraph>
+                    <Paragraph>(Max File size is 50mb)</Paragraph>
+                  </>
+                )}
+              </StyledDropzone>
+            </>
+          )}
           <UnorderedList className="mt-3">
             {files.map((file, index) => (
               <ListItems key={index}>

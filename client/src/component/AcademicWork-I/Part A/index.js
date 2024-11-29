@@ -84,10 +84,11 @@ const AcademicWorkI = (props) => {
   const [formId, setFormId] = useState("");
   const [userId, setUserId] = useState("");
   const location = useLocation();
-  const isSummaryPath =
+  const isSummaryPath = location.pathname.startsWith("/summary");
+  const isReview = location.pathname.startsWith("/review");
+  const isReviewAndIsSummary =
     location.pathname.startsWith("/summary") ||
     location.pathname.startsWith("/review");
-  const isReview = location.pathname.startsWith("/review");
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -450,7 +451,7 @@ const AcademicWorkI = (props) => {
         <SubSectionHeadingContainer>
           <SubSectionHeading className="mt-4 flex-start">
             a. Teaching Performance indicator for{" "}
-            {!isSummaryPath ? (
+            {!isReviewAndIsSummary ? (
               <InputElement
                 style={{
                   borderTop: "none",
@@ -484,7 +485,7 @@ const AcademicWorkI = (props) => {
                 )}
                 <TableHead>Student Feedback %</TableHead>
                 <TableHead>API Score-Feedback (Max. 20) (B)</TableHead>
-                {!isSummaryPath && <TableHead>Actions</TableHead>}
+                {!isReviewAndIsSummary && <TableHead>Actions</TableHead>}
                 {isReview && (
                   <TableHead>Reviewer Remark (Max. 20) (B)</TableHead>
                 )}
@@ -609,7 +610,7 @@ const AcademicWorkI = (props) => {
                     <TableData>
                       <SpanEle>{course.studentFeedbackScore}</SpanEle>
                     </TableData>
-                    {courseIndex === 0 && !isSummaryPath && (
+                    {courseIndex === 0 && !isReviewAndIsSummary && (
                       <TableData rowSpan={semesterCoursesCount}>
                         <SaveNextButton
                           onClick={() => handleAddCourse(semesterIndex)}
@@ -680,36 +681,34 @@ const AcademicWorkI = (props) => {
                 {isReview && (
                   <TableData>{/* Calculate Average Score */}</TableData>
                 )}
-                {!isSummaryPath && <TableData></TableData>}
+                {!isReviewAndIsSummary && <TableData></TableData>}
               </TableRow>
               <TableRow>
-                <TableHead colSpan="5">
+                <TableHead colSpan={isReview ? 5 : isSummaryPath ? 4 : 5}>
                   Total API score (Results + Feedback)
                 </TableHead>
-                <TableData colSpan="5">{totalApiScore}</TableData>
-                {isReview && (
-                  <TableData>{/* Calculate Average Score */}</TableData>
-                )}
+                <TableData colSpan={isReview ? 6 : isSummaryPath ? 5 : 5}>{totalApiScore}</TableData>
               </TableRow>
             </TableBody>
           </Table>
-          {!isSummaryPath && (
-            <SaveNextButton
-              onClick={handleAddSemester}
-              className="mt-3"
-              style={{
-                padding: "12px",
-                borderRadius: "8px",
-                backgroundImage:
-                  "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
-                color: "#fff",
-                border: "none",
-              }}
-            >
-              Add Semester
-            </SaveNextButton>
-          )}
-          {tableData.length > 1 && !isSummaryPath && (
+          {!isSummaryPath ||
+            (isReview && (
+              <SaveNextButton
+                onClick={handleAddSemester}
+                className="mt-3"
+                style={{
+                  padding: "12px",
+                  borderRadius: "8px",
+                  backgroundImage:
+                    "linear-gradient(127deg, #c02633 -40%, #233659 100%)",
+                  color: "#fff",
+                  border: "none",
+                }}
+              >
+                Add Semester
+              </SaveNextButton>
+            ))}
+          {tableData.length > 1 && (!isSummaryPath || !isReview) && (
             <SaveNextButton
               onClick={() => handleDeleteSemester(tableData.length - 1)}
               className="mt-3"
@@ -969,7 +968,7 @@ const AcademicWorkI = (props) => {
             marginBottom: "18px",
           }}
         >
-          {!isSummaryPath && <Back />}
+          {!isReviewAndIsSummary && <Back />}
 
           <div
             style={{
@@ -980,12 +979,12 @@ const AcademicWorkI = (props) => {
               width: "100%",
             }}
           >
-            {!isSummaryPath && (
+            {!isReviewAndIsSummary && (
               <p style={{ marginRight: "10px", marginTop: "10px" }}>
                 Navigate to
               </p>
             )}
-            {!isSummaryPath && (
+            {!isReviewAndIsSummary && (
               <select
                 style={{
                   border: "1px solid #000",

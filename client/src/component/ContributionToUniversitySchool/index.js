@@ -71,66 +71,7 @@ const ContributionToUniversity = (props) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // useEffect(() => {
-  //   const getFormIdFromSearchParams = () => {
-  //     try {
-  //       const formId = searchParams.get("f_id");
-  //       return formId;
-  //     } catch (error) {
-  //       console.error("Error fetching form ID from search params:", error);
-  //       navigate("/home");
-  //     }
-  //   };
-
-  //   const fetchContributionToUniversitySchool = async (id) => {
-  //     try {
-  //       setApiStatus(apiStatusConstants.inProgress);
-  //       const userId = Cookies.get("user_id");
-  //       const api = "http://localhost:6969";
-
-  //       const response = await fetch(
-  //         `${api}/ContributionToUniversitySchool/${userId}/?formId=${id}`
-  //       );
-  //       const data = await response.json();
-
-  //       if (data.contributionToUniversitySchool.contribution_data) {
-  //         const transformedData =
-  //           data.contributionToUniversitySchool.contribution_data.map(
-  //             (item) => ({
-  //               nameOfTheResponsibility: item.nameOfTheResponsibility,
-  //               contribution: item.contribution,
-  //               apiScore: item.apiScore,
-  //               hodRemark: item.hodRemark,
-  //             })
-  //           );
-  //         setTableData(transformedData);
-  //         setFiles(data.contributionToUniversitySchool.files || []);
-  //       }
-
-  //       setDisabled(false);
-  //       setApiStatus(apiStatusConstants.success);
-  //     } catch (error) {
-  //       console.error("Error fetching contribution data:", error);
-  //       setDisabled(false);
-  //       setApiStatus(apiStatusConstants.failure);
-  //     }
-  //   };
-
-  //   const formId = getFormIdFromSearchParams();
-  //   if (formId) {
-  //     setFormId(formId);
-
-  //     if (!isReview) {
-  //       fetchContributionToUniversitySchool(formId);
-  //     } else {
-  //       setApiStatus(apiStatusConstants.inProgress);
-  //       const { contribution_data, files } = props.data;
-  //       setTableData(contribution_data);
-  //       setFiles(files);
-  //       setApiStatus(apiStatusConstants.success);
-  //     }
-  //   }
-  // }, [isReview, searchParams, props.data]);
+  const { updateReviewerApiScores } = props;
 
   useEffect(() => {
     // Updated getFormIdFromSearchParams to return both formId and userId
@@ -237,6 +178,23 @@ const ContributionToUniversity = (props) => {
     return score >= 5 ? 5 : score;
   };
 
+  const calculateReviewerScore = (data) => {
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.reviewerScore) || 0),
+      0
+    );
+    return score >= 5 ? 5 : score;
+  };
+
+  const handleReviewerScoreChange = (newValue) => {
+    {
+      isReview &&
+        updateReviewerApiScores({
+          contributionToSchool: parseInt(newValue, 10) || 0,
+        });
+    }
+  };
+
   const submitContributionToUniversity = async () => {
     // if(!navigator.onLine){
     //   await toast.error("You are offline. Please connect to the internet and try again.", {
@@ -271,10 +229,12 @@ const ContributionToUniversity = (props) => {
       setDisabled(true);
       const formData = new FormData();
       const totalApiScore = calculateTotalApiScore(tableData);
+      const totalReviewerScore = calculateReviewerScore(tableData);
       formData.append("userId", userId);
       formData.append("formId", formId);
       formData.append("tableData", JSON.stringify(tableData));
       formData.append("totalApiScore", totalApiScore);
+      formData.append("reviewerScore", totalReviewerScore);
       files.forEach((file) => {
         if (!file.fileId) {
           formData.append("files", file);
@@ -292,6 +252,7 @@ const ContributionToUniversity = (props) => {
         `${api}/ContributionToUniversitySchool`,
         option
       );
+      handleReviewerScoreChange(totalReviewerScore);
       !isReview &&
         navigate(
           `/contribution-to-department/?fac_id=${userId}&f_id=${formId}`

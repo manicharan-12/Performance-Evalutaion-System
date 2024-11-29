@@ -13,7 +13,7 @@ const researchAndDevelopmentPartA = new Schema({
       dateOfPublication: { type: String },
       oneOrCorrespondingAuthor: { type: String },
       apiScore: { type: Number },
-      reviewerScore: { type: Number, default: null },
+      reviewerScore:{type:Number}
     },
   ],
   files: [
@@ -24,7 +24,6 @@ const researchAndDevelopmentPartA = new Schema({
       fileContent: { type: String },
     },
   ],
-  totalReviewerScore: { type: Number, default: null },
 });
 
 module.exports = mongoose.model(

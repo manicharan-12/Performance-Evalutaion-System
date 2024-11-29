@@ -69,64 +69,7 @@ const ContributionToSociety = (props) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // useEffect(() => {
-  //   const getFormIdFromSearchParams = () => {
-  //     try {
-  //       const formId = searchParams.get("f_id");
-  //       return formId;
-  //     } catch (error) {
-  //       console.error("Error fetching form ID from search params:", error);
-  //       navigate("/home");
-  //     }
-  //   };
-
-  //   const fetchContributionToSociety = async (id) => {
-  //     try {
-  //       setApiStatus(apiStatusConstants.inProgress);
-  //       const userId = Cookies.get("user_id");
-  //       const api = "http://localhost:6969";
-
-  //       const response = await fetch(
-  //         `${api}/ContributionToSociety/${userId}/?formId=${id}`
-  //       );
-  //       const data = await response.json();
-
-  //       if (data.contributionToSociety.contribution_data) {
-  //         const transformedData =
-  //           data.contributionToSociety.contribution_data.map((item) => ({
-  //             nameOfTheResponsibility: item.nameOfTheResponsibility,
-  //             contribution: item.contribution,
-  //             apiScore: item.apiScore,
-  //             hodRemark: item.hodRemark,
-  //           }));
-  //         setTableData(transformedData);
-  //         setFiles(data.contributionToSociety.files || []);
-  //       }
-
-  //       setDisabled(false);
-  //       setApiStatus(apiStatusConstants.success);
-  //     } catch (error) {
-  //       console.error("Error fetching contribution data:", error);
-  //       setDisabled(false);
-  //       setApiStatus(apiStatusConstants.failure);
-  //     }
-  //   };
-
-  //   const formId = getFormIdFromSearchParams();
-  //   if (formId) {
-  //     setFormId(formId);
-
-  //     if (!isReview) {
-  //       fetchContributionToSociety(formId);
-  //     } else {
-  //       setApiStatus(apiStatusConstants.inProgress);
-  //       const { contribution_data, files } = props.data;
-  //       setTableData(contribution_data);
-  //       setFiles(files);
-  //       setApiStatus(apiStatusConstants.success);
-  //     }
-  //   }
-  // }, [isReview, searchParams, props.data]);
+  const { updateReviewerApiScores } = props;
 
   useEffect(() => {
     // Updated getFormIdFromSearchParams to return formId and userId
@@ -231,6 +174,21 @@ const ContributionToSociety = (props) => {
     return score >= 5 ? 5 : score;
   };
 
+  const calculateReviewerScore = (data) => {
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.reviewerScore) || 0),
+      0
+    );
+    return score >= 5 ? 5 : score;
+  };
+
+  const handleReviewerScoreChange = (newValue) => {
+    isReview &&
+      updateReviewerApiScores({
+        contributionToSociety: parseInt(newValue, 10) || 0,
+      });
+  };
+
   const submitContributionToSociety = async () => {
     // if(!navigator.onLine){
     //   await toast.error("You are offline. Please connect to the internet and try again.", {
@@ -265,10 +223,12 @@ const ContributionToSociety = (props) => {
       setDisabled(true);
       const formData = new FormData();
       const totalApiScore = calculateTotalApiScore(tableData);
+      const totalReviewerScore = calculateReviewerScore(tableData);
       formData.append("userId", userId);
       formData.append("formId", formId);
       formData.append("totalApiScore", totalApiScore);
       formData.append("tableData", JSON.stringify(tableData));
+      formData.append("reviewerScore", totalReviewerScore);
       files.forEach((file) => {
         if (!file.fileId) {
           formData.append("files", file);
@@ -283,7 +243,7 @@ const ContributionToSociety = (props) => {
         body: formData,
       };
       const response = await fetch(`${api}/ContributionToSociety`, option);
-
+      handleReviewerScoreChange(totalReviewerScore);
       !isReview && navigate(`/summary/?fac_id=${userId}&f_id=${formId}`);
     } catch (error) {
       setDisabled(false);
@@ -425,9 +385,11 @@ const ContributionToSociety = (props) => {
                 <TableHead>Responsibilities assigned</TableHead>
                 <TableHead>Contribution(s)</TableHead>
                 <TableHead>Score (Max. 5)</TableHead>
-                <TableHead>
-                  Reviewer Remark <br /> (Max. 5)
-                </TableHead>
+                {isReview && (
+                  <TableHead>
+                    Reviewer Remark <br /> (Max. 5)
+                  </TableHead>
+                )}
               </TableRow>
             </TableMainHead>
             <TableBody>

@@ -29,6 +29,7 @@ const AssessmentOfFunctionalHead = require("./models/assessmentOfFunctionalHead"
 const assessmentOfFunctionalHead = require("./models/assessmentOfFunctionalHead");
 
 // const mongoURI = "mongodb://localhost:27017/faculty_evaluation_system";
+
 const mongoURI =
   "mongodb+srv://manicharan12:manicharan%40mongoDb@cluster0.p6x1kr4.mongodb.net/faculty_evaluation_system?retryWrites=true&w=majority";
 
@@ -827,7 +828,8 @@ app.get("/rdConfo/:userId", async (request, response) => {
 
 app.post("/RD/PartA", upload.array("files"), async (request, response) => {
   try {
-    const { userId, formId, tableData, totalApiScore } = request.body;
+    const { userId, formId, tableData, totalApiScore, reviewerScore } =
+      request.body;
     let { deletedFiles } = request.body;
     const files = request.files;
     let parsedTableData;
@@ -887,7 +889,7 @@ app.post("/RD/PartA", upload.array("files"), async (request, response) => {
     });
 
     if (existingData) {
-      existingData.presentation_data = parsedTableData; // Use parsed table data
+      existingData.presentation_data = parsedTableData;
       if (Array.isArray(deletedFiles)) {
         existingData.files = existingData.files.filter(
           (file) => !deletedFiles.includes(file.fileId.toString())
@@ -908,12 +910,15 @@ app.post("/RD/PartA", upload.array("files"), async (request, response) => {
     const existingApiScore = await ApiScore.findOne({ userId, formId });
     if (existingApiScore) {
       existingApiScore.apiScores.researchAndDevelopmentPartA = totalApiScore;
+      existingApiScore.reviewerApiScores.researchAndDevelopmentPartA =
+        reviewerScore;
       await existingApiScore.save();
     } else {
       const newApiScore = new ApiScore({
         userId,
         formId,
         apiScores: { researchAndDevelopmentPartA: totalApiScore },
+        reviewerApiScores: { researchAndDevelopmentPartA: reviewerScore },
       });
       await newApiScore.save();
     }
@@ -1009,8 +1014,8 @@ app.get("/RD/PartA/:userId", async (request, response) => {
 
 app.post("/RD/PartB", upload.array("files"), async (request, response) => {
   try {
-    const { userId, formId, tableData, totalApiScore } = request.body;
-    console.log({ userId, formId, tableData, totalApiScore });
+    const { userId, formId, tableData, totalApiScore, reviewerScore } =
+      request.body;
     let { deletedFiles } = request.body;
     const files = request.files;
     let parsedTableData;
@@ -1091,12 +1096,15 @@ app.post("/RD/PartB", upload.array("files"), async (request, response) => {
     const existingApiScore = await ApiScore.findOne({ userId, formId });
     if (existingApiScore) {
       existingApiScore.apiScores.researchAndDevelopmentPartB = totalApiScore;
+      existingApiScore.reviewerApiScores.researchAndDevelopmentPartB =
+        reviewerScore;
       await existingApiScore.save();
     } else {
       const newApiScore = new ApiScore({
         userId,
         formId,
         apiScores: { researchAndDevelopmentPartB: totalApiScore },
+        reviewerApiScores: { researchAndDevelopmentPartB: reviewerScore },
       });
       await newApiScore.save();
     }
@@ -1190,7 +1198,8 @@ app.get("/RD/PartB/:userId", async (request, response) => {
 
 app.post("/RD/PartC", upload.array("files"), async (request, response) => {
   try {
-    const { userId, tableData, formId, totalApiScore } = request.body;
+    const { userId, tableData, formId, totalApiScore, reviewerScore } =
+      request.body;
     let { deletedFiles } = request.body;
     const files = request.files;
     let parsedTableData;
@@ -1271,12 +1280,15 @@ app.post("/RD/PartC", upload.array("files"), async (request, response) => {
     const existingApiScore = await ApiScore.findOne({ userId, formId });
     if (existingApiScore) {
       existingApiScore.apiScores.researchAndDevelopmentPartC = totalApiScore;
+      existingApiScore.reviewerApiScores.researchAndDevelopmentPartC =
+        reviewerScore;
       await existingApiScore.save();
     } else {
       const newApiScore = new ApiScore({
         userId,
         formId,
         apiScores: { researchAndDevelopmentPartC: totalApiScore },
+        reviewerApiScores: { researchAndDevelopmentPartC: reviewerScore },
       });
       await newApiScore.save();
     }
@@ -1367,7 +1379,8 @@ app.get("/RD/PartC/:userId", async (request, response) => {
 
 app.post("/RD/PartD", upload.array("files"), async (request, response) => {
   try {
-    const { userId, tableData, formId, totalApiScore } = request.body;
+    const { userId, tableData, formId, totalApiScore, reviewerScore } =
+      request.body;
     let { deletedFiles } = request.body;
     const files = request.files;
     let parsedTableData;
@@ -1447,16 +1460,19 @@ app.post("/RD/PartD", upload.array("files"), async (request, response) => {
     const existingApiScore = await ApiScore.findOne({ userId, formId });
     if (existingApiScore) {
       existingApiScore.apiScores.researchAndDevelopmentPartD = totalApiScore;
+      existingApiScore.reviewerApiScores.researchAndDevelopmentPartD =
+        reviewerScore;
       await existingApiScore.save();
     } else {
       const newApiScore = new ApiScore({
         userId,
         formId,
         apiScores: { researchAndDevelopmentPartD: totalApiScore },
+        reviewerApiScores: { researchAndDevelopmentPartD: reviewerScore },
       });
       await newApiScore.save();
     }
-    response.status(200).json({ success_msg: "Successfully Saved1" });
+    response.status(200).json({ success_msg: "Successfully Saved" });
   } catch (error) {
     console.error(error);
     response
@@ -1546,7 +1562,8 @@ app.post(
   upload.array("files"),
   async (request, response) => {
     try {
-      const { userId, tableData, formId, totalApiScore } = request.body;
+      const { userId, tableData, formId, totalApiScore, reviewerScore } =
+        request.body;
       let { deletedFiles } = request.body;
       const files = request.files;
       let parsedTableData;
@@ -1631,12 +1648,14 @@ app.post(
       const existingApiScore = await ApiScore.findOne({ userId, formId });
       if (existingApiScore) {
         existingApiScore.apiScores.contributionToSchool = totalApiScore;
+        existingApiScore.reviewerApiScores.contributionToSchool = reviewerScore;
         await existingApiScore.save();
       } else {
         const newApiScore = new ApiScore({
           userId,
           formId,
           apiScores: { contributionToSchool: totalApiScore },
+          reviewerApiScores: { contributionToSchool: reviewerScore },
         });
         await newApiScore.save();
       }
@@ -1733,7 +1752,8 @@ app.post(
   upload.array("files"),
   async (request, response) => {
     try {
-      const { userId, tableData, formId, totalApiScore } = request.body;
+      const { userId, tableData, formId, totalApiScore, reviewerScore } =
+        request.body;
       let { deletedFiles } = request.body;
       const files = request.files;
       let parsedTableData;
@@ -1816,16 +1836,19 @@ app.post(
       const existingApiScore = await ApiScore.findOne({ userId, formId });
       if (existingApiScore) {
         existingApiScore.apiScores.contributionToDepartment = totalApiScore;
+        existingApiScore.reviewerApiScores.contributionToDepartment =
+          reviewerScore;
         await existingApiScore.save();
       } else {
         const newApiScore = new ApiScore({
           userId,
           formId,
           apiScores: { contributionToDepartment: totalApiScore },
+          reviewerApiScores: { contributionToDepartment: reviewerScore },
         });
         await newApiScore.save();
       }
-      response.status(200).json({ success_msg: "Successfully Saved1" });
+      response.status(200).json({ success_msg: "Successfully Saved" });
     } catch (error) {
       console.error(error);
       response
@@ -1912,7 +1935,8 @@ app.post(
   upload.array("files"),
   async (request, response) => {
     try {
-      const { userId, tableData, formId, totalApiScore } = request.body;
+      const { userId, tableData, formId, totalApiScore, reviewerScore } =
+        request.body;
       let { deletedFiles } = request.body;
       const files = request.files;
       let parsedTableData;
@@ -1995,12 +2019,15 @@ app.post(
       const existingApiScore = await ApiScore.findOne({ userId, formId });
       if (existingApiScore) {
         existingApiScore.apiScores.contributionToSociety = totalApiScore;
+        existingApiScore.reviewerApiScores.contributionToSociety =
+          reviewerScore;
         await existingApiScore.save();
       } else {
         const newApiScore = new ApiScore({
           userId,
           formId,
           apiScores: { contributionToSociety: totalApiScore },
+          reviewerApiScores: { contributionToSociety: reviewerScore },
         });
         await newApiScore.save();
       }
@@ -2273,7 +2300,6 @@ app.post("/functional-head-assessment/", async (req, res) => {
   const { f_id } = req.query; // formId passed in the URL
   const { userId, impression, examination, interpersonal, totalScore } =
     req.body;
-  console.log(userId, impression, examination, interpersonal, totalScore);
 
   try {
     // Check if an assessment with the given formId (f_id) already exists
@@ -2283,38 +2309,40 @@ app.post("/functional-head-assessment/", async (req, res) => {
 
     if (existingAssessment) {
       // If an assessment already exists, return the existing data
-      return res.status(200).json({
-        message: "Assessment already exists",
-        assessment: existingAssessment,
+      existingAssessment.impression = impression;
+      existingAssessment.examination = examination;
+      existingAssessment.interpersonal = interpersonal;
+      existingAssessment.totalScore = totalScore;
+      await existingAssessment.save();
+    } else {
+      const newAssessment = new AssessmentOfFunctionalHead({
+        formId: f_id,
+        userId: userId,
+        impression: impression,
+        examination: examination,
+        interpersonal: interpersonal,
+        totalScore: totalScore,
       });
+
+      await newAssessment.save();
     }
 
-    // If the totalScore does not match the sum of individual scores, return an error
-    // const calculatedTotal = impression + examination + interpersonal;
-
-    // if (calculatedTotal !== totalScore) {
-    //   return res.status(400).json({
-    //     error_msg: "Total score does not match the sum of individual scores",
-    //   });
-    // }
-
-    // Create a new assessment document
-    const newAssessment = new AssessmentOfFunctionalHead({
-      formId: f_id,
-      userId: userId,
-      impression: impression,
-      examination: examination,
-      interpersonal: interpersonal,
-      totalScore: totalScore,
-    });
-
-    // Save the assessment document to MongoDB
-    await newAssessment.save();
+    const existingApiScore = await ApiScore.findOne({ userId, formId: f_id });
+    if (existingApiScore) {
+      existingApiScore.reviewerApiScores.functionalHeadAssessment = totalScore;
+      await existingApiScore.save();
+    } else {
+      const newApiScore = new ApiScore({
+        userId,
+        formId,
+        reviewerApiScores: { functionalHeadAssessment: totalScore },
+      });
+      await newApiScore.save();
+    }
 
     // Return a success response with the new assessment
     res.status(201).json({
       message: "Assessment saved successfully!",
-      assessment: newAssessment,
     });
   } catch (error) {
     console.error("Error saving assessment:", error);
@@ -2322,6 +2350,27 @@ app.post("/functional-head-assessment/", async (req, res) => {
     // Send an error response
     res.status(500).json({
       error_msg: "Failed to save assessment. Internal server error.",
+    });
+  }
+});
+
+app.get("/functional-head-assessment/:fid", async (req, res) => {
+  try {
+    const formId = req.params.formId;
+    const { userId } = request.params;
+    const functionalHeadAssessmentDetails = await AssessmentOfFunctionalHead.findOne({
+      userId,
+      formId,
+    });
+
+    console.log(functionalHeadAssessmentDetails)
+
+
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error_msg: "Internal server error! Please try again",
     });
   }
 });

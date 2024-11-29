@@ -105,7 +105,7 @@ const AcademicWorkII = (props) => {
   const [disabled, setDisabled] = useState(false);
   const [formId, setFormId] = useState("");
   const [loading, setLoading] = useState(false);
-  const [reviewerScore, setReviewerScore] = useState(null);
+  const [reviewerScore, setReviewerScore] = useState(0);
   const [userId, setUserId] = useState("");
 
   const {reviewerApiScores,updateReviewerApiScores}=props
@@ -406,7 +406,7 @@ const AcademicWorkII = (props) => {
             activities. Submit the documentary evidences for your claims.{" "}
           </Paragraph>
         </ParagraphContainer>
-        <TextEditorContainer>
+        {isSummaryPath && (<TextEditorContainer>
           <ReactQuill
             theme="snow"
             value={editorContent}
@@ -416,7 +416,8 @@ const AcademicWorkII = (props) => {
             formats={formats}
             style={{ width: "100%" }}
           />
-        </TextEditorContainer>
+        </TextEditorContainer>)}
+        
         <FileContainer className="mt-4">
           {!isSummaryPath && (
             <>

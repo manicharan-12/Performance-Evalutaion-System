@@ -65,6 +65,7 @@ const RDPartC = (props) => {
   ]);
   const [formId, setFormId] = useState("");
   const [userId, setUserId] = useState("");
+  const { updateReviewerApiScores } = props;
 
   const isSummaryPath =
     location.pathname.startsWith("/summary") ||
@@ -73,77 +74,6 @@ const RDPartC = (props) => {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-
-  // useEffect(() => {
-  //   const getFormIdFromSearchParams = () => {
-  //     try {
-  //       const formId = searchParams.get("f_id");
-  //       return formId;
-  //     } catch (error) {
-  //       console.error("Error fetching form ID from search params:", error);
-  //       navigate("/home");
-  //     }
-  //   };
-
-  //   const fetchYear = async (id) => {
-  //     try {
-  //       setApiStatus(apiStatusConstants.inProgress);
-  //       setDisabled(true);
-  //       const userId = Cookies.get("user_id");
-  //       const api = "http://localhost:6969";
-
-  //       const response = await fetch(`${api}/year/${userId}/?formId=${id}`);
-  //       if (response.ok) {
-  //         const data = await response.json();
-  //         setYear(data.academic_year);
-
-  //         const response2 = await fetch(
-  //           `${api}/RD/PartC/${userId}/?formId=${id}`
-  //         );
-  //         const data2 = await response2.json();
-
-  //         if (data2.phdPartC.projects_data) {
-  //           const transformedData = data2.phdPartC.projects_data.map(
-  //             (item) => ({
-  //               titleOfTheFundingProject: item.titleOfTheFundingProject,
-  //               fundingAgencyDetails: item.fundingAgencyDetails,
-  //               grant: item.grant,
-  //               status: item.status,
-  //               apiScore: item.apiScore,
-  //               hodRemark: item.hodRemark,
-  //             })
-  //           );
-  //           setTableData(transformedData);
-  //           setFiles(data2.phdPartC.files || []);
-  //         }
-
-  //         setDisabled(false);
-  //         setApiStatus(apiStatusConstants.success);
-  //       } else {
-  //         setDisabled(false);
-  //         setApiStatus(apiStatusConstants.failure);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching data:", error);
-  //       setDisabled(false);
-  //       setApiStatus(apiStatusConstants.failure);
-  //     }
-  //   };
-
-  //   const formId = getFormIdFromSearchParams();
-  //   if (formId) {
-  //     setFormId(formId);
-  //     if (!isReview) {
-  //       fetchYear(formId);
-  //     } else {
-  //       setApiStatus(apiStatusConstants.inProgress);
-  //       const { projects_data, files } = props.data;
-  //       setTableData(projects_data);
-  //       setFiles(files);
-  //       setApiStatus(apiStatusConstants.success);
-  //     }
-  //   }
-  // }, [isReview, searchParams, props.data]);
 
   useEffect(() => {
     const getFormIdFromSearchParams = () => {
@@ -156,38 +86,44 @@ const RDPartC = (props) => {
         navigate("/home"); // Redirect if there's an error in retrieving parameters
       }
     };
-  
+
     const fetchYear = async (id) => {
       try {
         setApiStatus(apiStatusConstants.inProgress);
         setDisabled(true);
-  
+
         const userIdFromCookie = Cookies.get("user_id");
         const api = "http://localhost:6969";
-  
+
         // Fetch academic year
-        const response = await fetch(`${api}/year/${userIdFromCookie}/?formId=${id}`);
+        const response = await fetch(
+          `${api}/year/${userIdFromCookie}/?formId=${id}`
+        );
         if (response.ok) {
           const data = await response.json();
           setYear(data.academic_year);
-  
+
           // Fetch project data for Part C
-          const response2 = await fetch(`${api}/RD/PartC/${userIdFromCookie}/?formId=${id}`);
+          const response2 = await fetch(
+            `${api}/RD/PartC/${userIdFromCookie}/?formId=${id}`
+          );
           const data2 = await response2.json();
-  
+
           if (data2.phdPartC.projects_data) {
-            const transformedData = data2.phdPartC.projects_data.map((item) => ({
-              titleOfTheFundingProject: item.titleOfTheFundingProject,
-              fundingAgencyDetails: item.fundingAgencyDetails,
-              grant: item.grant,
-              status: item.status,
-              apiScore: item.apiScore,
-              hodRemark: item.hodRemark,
-            }));
+            const transformedData = data2.phdPartC.projects_data.map(
+              (item) => ({
+                titleOfTheFundingProject: item.titleOfTheFundingProject,
+                fundingAgencyDetails: item.fundingAgencyDetails,
+                grant: item.grant,
+                status: item.status,
+                apiScore: item.apiScore,
+                hodRemark: item.hodRemark,
+              })
+            );
             setTableData(transformedData);
             setFiles(data2.phdPartC.files || []);
           }
-  
+
           setDisabled(false);
           setApiStatus(apiStatusConstants.success);
         } else {
@@ -200,14 +136,14 @@ const RDPartC = (props) => {
         setApiStatus(apiStatusConstants.failure);
       }
     };
-  
+
     // Retrieve formId and userId from searchParams
     const [fId, uId] = getFormIdFromSearchParams();
-    
+
     if (fId) {
       setFormId(fId);
       setUserId(uId);
-      
+
       // If not in review mode, fetch the year and related data
       if (!isReview) {
         fetchYear(fId);
@@ -221,7 +157,6 @@ const RDPartC = (props) => {
       }
     }
   }, [isReview, searchParams, props.data]);
-  
 
   const calculateApiScore = (value) => {
     if (value === "sanctioned") {
@@ -345,9 +280,26 @@ const RDPartC = (props) => {
     setDeletedFiles((prevDeletedFiles) => [...prevDeletedFiles, fileId]);
   };
 
+  const handleReviewerScoreChange = (newValue) => {
+    {
+      isReview &&
+        updateReviewerApiScores({
+          researchAndDevelopmentPartC: parseInt(newValue, 10) || 0,
+        });
+    }
+  };
+
   const calculateTotalApiScore = (data) => {
     const score = data.reduce(
       (total, item) => total + (parseFloat(item.apiScore) || 0),
+      0
+    );
+    return score >= 5 ? 5 : score;
+  };
+
+  const calculateReviewerScore = (data) => {
+    const score = data.reduce(
+      (total, item) => total + (parseFloat(item.reviewerScore) || 0),
       0
     );
     return score >= 5 ? 5 : score;
@@ -373,10 +325,12 @@ const RDPartC = (props) => {
         setDisabled(true);
         const formData = new FormData();
         const totalApiScore = calculateTotalApiScore(tableData);
+        const totalReviewerScore = calculateReviewerScore(tableData);
         formData.append("userId", userId);
         formData.append("formId", formId);
         formData.append("tableData", JSON.stringify(tableData));
         formData.append("totalApiScore", totalApiScore);
+        formData.append("reviewerScore", totalReviewerScore);
         files.forEach((file) => {
           if (!file.fileId) {
             formData.append("files", file);
@@ -393,6 +347,7 @@ const RDPartC = (props) => {
         const response = await fetch(`${api}/RD/PartC`, option);
         if (response.ok === true) {
           setDisabled(false);
+          handleReviewerScoreChange(totalReviewerScore);
           !isReview &&
             navigate(
               `/research-and-development/partD/?fac_id=${userId}&f_id=${formId}`
@@ -552,9 +507,7 @@ const RDPartC = (props) => {
                         <OptionEle value="submitted">Submitted</OptionEle>
                       </SelectEle>
                     </TableData>
-
                     <TableData>{project.apiScore}</TableData>
-
                     {isReview && (
                       <TableData>
                         <EditableValue
