@@ -2356,17 +2356,42 @@ app.post("/functional-head-assessment/", async (req, res) => {
 
 app.get("/functional-head-assessment/:fid", async (req, res) => {
   try {
-    const formId = req.params.formId;
-    const { userId } = request.params;
-    const functionalHeadAssessmentDetails = await AssessmentOfFunctionalHead.findOne({
-      userId,
-      formId,
+    const { fid } = req.params;
+    const { formId } = req.query;
+
+    const functionalHeadAssessmentDetails =
+      await AssessmentOfFunctionalHead.findOne({
+        userId: fid,
+        formId,
+      });
+
+    res.status(200).json(functionalHeadAssessmentDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error_msg: "Internal server error! Please try again",
     });
+  }
+});
 
-    console.log(functionalHeadAssessmentDetails)
-
-
-
+app.post("/api/summary-score", async (req, res) => {
+  try {
+    const { formId, userId, remarks, apiScores, reviewerApiScores } = req.body;
+    const updatedScore = await ApiScore.findOneAndUpdate(
+      { formId, userId }, // Filter by formId and userId
+      {
+        $set: {
+          remarks,
+          apiScores,
+          reviewerApiScores,
+        },
+      },
+      { upsert: true, new: true } // Create a new document if none exists, and return the updated document
+    );
+    console.log(updatedScore)
+    res
+      .status(200)
+      .json({ message: "Data saved successfully!", data: updatedScore });
   } catch (error) {
     console.error(error);
     res.status(500).json({

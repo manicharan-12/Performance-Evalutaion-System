@@ -31,6 +31,7 @@ const FormDetails = () => {
   const [error, setError] = useState(null);
   const [apiScores, setApiScores] = useState({});
   const [reviewerApiScores, setReviewerApiScores] = useState({});
+  const [remarksData, setRemarksData] = useState('');
 
   const getFormData = useCallback(async (id) => {
     if (!id) {
@@ -48,6 +49,7 @@ const FormDetails = () => {
       if (response.data && response.data.apiScore) {
         setApiScores(response.data.apiScore.apiScores || {});
         setReviewerApiScores(response.data.apiScore.reviewerApiScores || {});
+        setRemarksData(response.data.apiScore.remarks || '')
       }
     } catch (err) {
       setError(err.message);
@@ -174,6 +176,7 @@ const FormDetails = () => {
           <ApiScoreSummary
             apiScores={apiScores}
             reviewerApiScores={reviewerApiScores}
+            remarks={remarksData}
           />
         {/* </section> */}
       </DataContainer>

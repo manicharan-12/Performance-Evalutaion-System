@@ -3,6 +3,7 @@ import { ThreeDots } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import EditableText from "./textArea";
 import failure from "../Images/failure view.png";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   HomeMainContainer,
   MainContainer,
@@ -33,6 +34,7 @@ const apiStatusConstants = {
 const ApiScoreSummary = (props) => {
   const [apiStatus, setApiStatus] = useState(apiStatusConstants.initial);
   const [formId, setFormId] = useState("");
+  const [userId, setUserId] = useState("");
   const [tableData, setTableData] = useState({
     apiScores: {
       academicWorkPartA: 0,
@@ -59,19 +61,79 @@ const ApiScoreSummary = (props) => {
     },
   });
 
+  const [remarks, setRemarks] = useState(""); // Parent state for remarks
+
+  const handleRemarksChange = (newRemarks) => {
+    setRemarks(newRemarks); // Update parent state
+  };
+
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   useEffect(() => {
     setApiStatus(apiStatusConstants.inProgress);
-    const { apiScores, reviewerApiScores } = props;
-    setTableData({
-      apiScores,
-      reviewerApiScores,
-    });
-    setApiStatus(apiStatusConstants.success);
-  }, [props]);
 
-  const submitApiScoreSummary = () => {
+    const getFormIdFromSearchParams = () => {
+      try {
+        const formId = searchParams.get("f_id");
+        const userId = searchParams.get("fac_id"); // Fetch userId as well
+        return [formId, userId];
+      } catch (error) {
+        console.error("Error fetching form ID from search params:", error);
+        navigate("/home");
+      }
+    };
+
+    const [fId, uId] = getFormIdFromSearchParams();
+    setFormId(fId);
+    setUserId(uId);
+    if (fId && uId) {
+      const { apiScores, reviewerApiScores, remarks } = props;
+      setTableData({
+        apiScores,
+        reviewerApiScores,
+      });
+      setRemarks(remarks);
+      setApiStatus(apiStatusConstants.success);
+    }
+  }, [props, navigate, searchParams]);
+
+  const submitApiScoreSummary = async () => {
     try {
-      // Submission logic here
+      console.log(remarks);
+      const payload = {
+        formId,
+        userId,
+        remarks,
+        apiScores: tableData.apiScores,
+        reviewerApiScores: tableData.reviewerApiScores,
+      };
+
+      // Call the API to submit data
+      const response = await fetch("http://localhost:6969/api/summary-score", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      // Handle the response from the server
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log(responseData);
+        toast.success("Data saved successfully!", {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
+        // navigate("/next-page")
+      }
     } catch (error) {
       toast.error("Internal Server Error! Please try again later", {
         position: "bottom-center",
@@ -122,7 +184,7 @@ const ApiScoreSummary = (props) => {
                 <TableData>Academic Work (a+b)</TableData>
                 <TableData>45</TableData>
                 <TableData>
-                  {apiScores.academicWorkPartA + (apiScores.academicWorkPartB)}
+                  {apiScores.academicWorkPartA + apiScores.academicWorkPartB}
                 </TableData>
                 <TableData>
                   {reviewerApiScores.academicWorkPartA +
@@ -136,7 +198,10 @@ const ApiScoreSummary = (props) => {
                     whiteSpace: "pre-wrap",
                   }}
                 >
-                  <EditableText value="" />
+                  <EditableText
+                    value={remarks} // Bind to parent's state
+                    onChange={handleRemarksChange} // Callback to update parent state
+                  />
                 </TableData>
               </TableRow>
               <TableRow>
@@ -181,9 +246,7 @@ const ApiScoreSummary = (props) => {
                 <TableData>I</TableData>
                 <TableData>Assessment by functional head</TableData>
                 <TableData>15</TableData>
-                <TableData>
-                  {0}
-                </TableData>
+                <TableData>{0}</TableData>
                 <TableData>
                   {reviewerApiScores.functionalHeadAssessment}
                 </TableData>

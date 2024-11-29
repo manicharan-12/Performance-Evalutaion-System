@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { EditableTextArea } from './StyledComponents';
 
-const EditableText = ({ value }) => {
+const EditableText = ({ value, onChange }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(value);
   const textareaRef = useRef(null);
   const [textareaHeight, setTextareaHeight] = useState('auto');
 
+  
   const handleTextClick = () => {
     setIsEditing(true);
     if (textareaRef.current) {
@@ -16,6 +17,7 @@ const EditableText = ({ value }) => {
 
   const handleTextChange = (event) => {
     setText(event.target.value);
+    onChange(event.target.value);
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;

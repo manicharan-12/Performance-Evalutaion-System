@@ -51,123 +51,6 @@ const AssessmentOfFunctionalHead = (props) => {
 
   const { updateReviewerApiScores } = props;
 
-  // useEffect(() => {
-  //   let id;
-  //   async function fetchYear() {
-  //     try {
-  //       const formId = await searchParams.get("f_id");
-  //       id = formId;
-  //       await setFormId(id);
-  //       setApiStatus(apiStatusConstants.inProgress);
-  //       const userId = Cookies.get("user_id");
-  //       const api = "http://localhost:6969";
-
-  //       setApiStatus(apiStatusConstants.success);
-  //     } catch (error) {
-  //       console.log(error);
-  //       setApiStatus(apiStatusConstants.failure);
-  //     }
-  //   }
-  //   fetchYear();
-  // }, []);
-
-  // const calculateTotalScore = (data) => {
-  //   const { impression, examination, interpersonal } = data;
-  //   const total = [impression, examination, interpersonal]
-  //     .map((value) => parseInt(value, 10) || 0)
-  //     .reduce((acc, score) => acc + score, 0);
-  //   return total;
-  // };
-
-  // const handleValueChange = (field, value) => {
-  //   setTableData((prevState) => {
-  //     const updatedData = { ...prevState, [field]: value };
-  //     return { ...updatedData, apiScore: calculateTotalScore(updatedData) };
-  //   });
-  // };
-
-  // const submitAssessmentOfFunctionalHead = () => {
-  //   try {
-  //     // Handle form submission
-
-  //   } catch (error) {
-  //     toast.error("Internal Server Error! Please try again Later", {
-  //       position: "bottom-center",
-  //       autoClose: 6969,
-  //       hideProgressBar: true,
-  //       closeOnClick: true,
-  //       pauseOnHover: false,
-  //       draggable: true,
-  //       progress: undefined,
-  //       theme: "colored",
-  //     });
-  //   }
-  // };
-
-  // const submitAssessmentOfFunctionalHead = async () => {
-  //   try {
-  //     // Assuming you have state variables for these values
-
-  //     const impression = tableData.impression(); // Replace with actual method to get impression
-  //     const examination = tableData.examination(); // Replace with actual method to get examination
-  //     const interpersonal = tableData.interpersonal(); // Replace with actual method to get interpersonal
-
-  //     // Calculate total score
-  //     const totalScore = impression + examination + interpersonal;
-
-  //     const response = await fetch('/functional-head-assessment', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({
-  //         userId,
-  //         formId,
-  //         impression,
-  //         examination,
-  //         interpersonal,
-  //         totalScore,
-  //       }),
-  //     });
-
-  //     if (!response.ok) {
-  //       const errorData = await response.json();
-  //       throw new Error(errorData.error_msg || 'Failed to submit assessment');
-  //     }
-
-  //     const data = await response.json();
-
-  //     // Show success message
-  //     toast.success("Assessment submitted successfully!", {
-  //       position: "bottom-center",
-  //       autoClose: 5000,
-  //       hideProgressBar: false,
-  //       closeOnClick: true,
-  //       pauseOnHover: true,
-  //       draggable: true,
-  //       progress: undefined,
-  //       theme: "colored",
-  //     });
-
-  //     // You might want to do something with the response data here
-  //     console.log('Submission successful:', data);
-
-  //     // Optionally, you could reset form fields or update UI state here
-
-  //   } catch (error) {
-  //     console.error('Error submitting assessment:', error);
-  //     toast.error(error.message || "Internal Server Error! Please try again later", {
-  //       position: "bottom-center",
-  //       autoClose: 6969,
-  //       hideProgressBar: true,
-  //       closeOnClick: true,
-  //       pauseOnHover: false,
-  //       draggable: true,
-  //       progress: undefined,
-  //       theme: "colored",
-  //     });
-  //   }
-  // };
 
   const getFormIdFromSearchParams = () => {
     try {
@@ -191,7 +74,16 @@ const AssessmentOfFunctionalHead = (props) => {
         setApiStatus(apiStatusConstants.inProgress);
         const api = "http://localhost:6969";
 
-        const response = await `${api}/`
+        const response = await fetch(`${api}/functional-head-assessment/${userId}/?formId=${id}`)
+        const data=await response.json();
+        console.log(data)
+        setTableData({
+          impression: data.impression || "",
+          examination: data.examination || "",
+          interpersonal: data.interpersonal || "",
+          totalApiScore: data.totalScore || "",
+        });
+
 
         setApiStatus(apiStatusConstants.success);
       } catch (error) {
@@ -376,7 +268,7 @@ const AssessmentOfFunctionalHead = (props) => {
                     disabled={false}
                   />
                 </TableData>
-                <TableData rowSpan="3">{tableData.apiScore}</TableData>
+                <TableData rowSpan="3">{tableData.totalApiScore}</TableData>
               </TableRow>
               <TableRow>
                 <TableData>Examination duties</TableData>

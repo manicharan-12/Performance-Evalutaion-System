@@ -28,6 +28,7 @@ const apiScore = new Schema({
     contributionToSociety: { type: Number, default: 0 },
     functionalHeadAssessment: { type: Number, default: 0 },
   },
+  remarks:{type:String,default:""}
 });
 
 module.exports = mongoose.model("ApiScore", apiScore);
